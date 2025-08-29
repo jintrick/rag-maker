@@ -1,0 +1,6 @@
+[tool.pylint.main]
+max-line-length = 120
+disable = [
+    "trailing-whitespace",
+    "missing-final-newline",
+]

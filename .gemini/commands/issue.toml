@@ -1,0 +1,2 @@
+description = "issue定義のペルソナに切り替える"
+prompt = ".gemini/commands/issue.md を読んでissueの完成を目指してください"
