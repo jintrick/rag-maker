@@ -3,6 +3,4 @@ langchain-community
 unstructured
 markdown
 chromadb
-tensorflow
-tensorflow_hub
-tensorflow-text
+sentence-transformers

@@ -25,7 +25,7 @@ try:
         UnstructuredMarkdownLoader,
     )
     from langchain_text_splitters import RecursiveCharacterTextSplitter
-    from langchain_community.embeddings import TensorflowHubEmbeddings
+    from langchain_community.embeddings import HuggingFaceEmbeddings
     from langchain_community.vectorstores import Chroma
     from langchain_core.documents import Document
 except ImportError as e:
@@ -161,8 +161,9 @@ class VectorDBMaker:
         logging.info(f"{len(chunks)}個のチャンクに分割しました。")
 
         logging.info("チャンクをベクトル化し、ChromaDBに保存しています...")
-        logging.info(f"埋め込みモデルとして '{self.embedding_model_url}' を使用します。")
-        embeddings = TensorflowHubEmbeddings(model_url=self.embedding_model_url)
+        model_name = "all-MiniLM-L6-v2"
+        logging.info(f"埋め込みモデルとして '{model_name}' を使用します。")
+        embeddings = HuggingFaceEmbeddings(model_name=model_name)
 
         vectordb = Chroma.from_documents(
             documents=chunks,

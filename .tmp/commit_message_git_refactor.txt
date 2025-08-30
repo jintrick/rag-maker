@@ -1,0 +1,5 @@
+refactor: Separate git command prompt into external file
+
+Moved the prompt content for the git command from `.gemini/commands/git.toml`
+to a new external markdown file `.gemini/commands/git.md`.
+This improves readability and maintainability of the command definition.
