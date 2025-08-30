@@ -2,8 +2,6 @@
 
 ## 前提知識
 - docs/Architecture/Architecture.md
-- docs/Architecture/*.puml
-- docs/AgentDesign/ConversationalFlow.md
 
 ## 現状の問題点
 

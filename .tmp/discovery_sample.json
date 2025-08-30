@@ -1,0 +1,38 @@
+{
+  "documents": [
+    {
+      "path": "docs/architecture.md",
+      "title": "Gemini CLI Architecture Overview",
+      "summary": "このドキュメントは、Gemini CLIのアーキテクチャの概要を提供します。CLIは主に2つの主要パッケージと、コマンドライン入力を処理する際にシステムが使用できる一連のツールで構成されています。"
+    }
+  ],
+  "handles": [
+    "main_config": {
+      "path": "config.yml",
+      "description": "システムの動作を定義する、唯一のメイン設定ファイル。",
+      "schema_handle": "main_config_schema"
+    }
+  ],
+  "tools": [
+    {
+      "name": "import_excel_files",
+      "path": "import_excel_files.py",
+      "description": "GUIでユーザーにExcelファイルを選択させ、指定されたディレクトリにコピーし、コピー後のファイルパスのリストをJSON形式で返す。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "input-dir": {
+            "type": "string",
+            "description": "コピー先のディレクトリパス。"
+          },
+          "initial-dir": {
+            "type": "string",
+            "description": "ファイルダイアログの初期表示ディレクトリ。「USB」と指定すると、接続されているUSBドライブを自動的に検索します。"
+          }
+        },
+        "required": [
+          "input-dir"
+        ]
+      }
+    }
+  }
