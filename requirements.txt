@@ -2,8 +2,7 @@ langchain
 langchain-community
 unstructured
 markdown
-langchain-openai
 chromadb
-tiktoken
-openai
-python-dotenv
+tensorflow
+tensorflow_hub
+tensorflow-text

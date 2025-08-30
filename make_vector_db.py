@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 指定されたディレクトリ内のテキストファイルを処理し、RAGデータベース（ChromaDB）を構築するツール。
+このツールはGoogleのUniversal Sentence Encoderを利用して、APIキーなしで動作します。
 
 このツールはAIエージェントによる利用を想定しており、堅牢なエラーハンドリングと
 自己修正を促すための豊富なエラー情報をJSON形式で標準エラー出力に提供する。
@@ -18,14 +19,13 @@ from typing import Any, List
 
 # --- 依存ライブラリのインポートと確認 ---
 try:
-    from dotenv import load_dotenv
     from langchain_community.document_loaders import (
         DirectoryLoader,
         TextLoader,
         UnstructuredMarkdownLoader,
     )
     from langchain_text_splitters import RecursiveCharacterTextSplitter
-    from langchain_openai import OpenAIEmbeddings
+    from langchain_community.embeddings import TensorflowHubEmbeddings
     from langchain_community.vectorstores import Chroma
     from langchain_core.documents import Document
 except ImportError as e:
@@ -85,16 +85,6 @@ def handle_directory_not_found(context: ErrorContext):
     })
     sys.exit(1)
 
-def handle_api_key_not_found(context: ErrorContext):
-    eprint_error({
-        "status": "error",
-        "error_code": "API_KEY_NOT_FOUND",
-        "message": "OpenAIのAPIキーが見つかりません。",
-        "remediation_suggestion": "環境変数 'OPENAI_API_KEY' を設定するか、ルートディレクトリに '.env' ファイルを作成してキーを記述してください。",
-        "details": {}
-    })
-    sys.exit(1)
-
 def handle_no_documents_found(context: ErrorContext):
     eprint_error({
         "status": "error",
@@ -121,15 +111,10 @@ class VectorDBMaker:
     """RAGデータベースの構築処理をカプセル化するクラス。"""
 
     def __init__(self, input_dir: str):
-        self._setup_environment()
         self.input_dir = self._validate_input_dir(input_dir)
         self.persist_directory = os.path.join(self.input_dir, ".chroma")
+        self.embedding_model_url = "https://tfhub.dev/google/universal-sentence-encoder/4"
 
-    def _setup_environment(self):
-        """環境変数をロードし、APIキーの存在を確認する。"""
-        load_dotenv()
-        if not os.getenv("OPENAI_API_KEY"):
-            raise ValueError("API_KEY_NOT_FOUND")
 
     def _validate_input_dir(self, path: str) -> str:
         """入力ディレクトリの存在確認と正規化を行う。"""
@@ -143,7 +128,6 @@ class VectorDBMaker:
         """指定されたディレクトリからドキュメントを読み込む。"""
         logging.info(f"'{self.input_dir}' からドキュメントを読み込んでいます...")
 
-        # globパターンで .md と .txt ファイルを再帰的に検索
         md_loader = DirectoryLoader(
             self.input_dir,
             glob="**/*.md",
@@ -162,7 +146,6 @@ class VectorDBMaker:
         docs = md_loader.load() + txt_loader.load()
 
         if not docs:
-            # NO_DOCUMENTS_FOUND はカスタムエラーとしてValueErrorで送出
             raise ValueError("NO_DOCUMENTS_FOUND")
 
         logging.info(f"{len(docs)}個のドキュメントを読み込みました。")
@@ -178,18 +161,17 @@ class VectorDBMaker:
         logging.info(f"{len(chunks)}個のチャンクに分割しました。")
 
         logging.info("チャンクをベクトル化し、ChromaDBに保存しています...")
-        embeddings = OpenAIEmbeddings()
+        logging.info(f"埋め込みモデルとして '{self.embedding_model_url}' を使用します。")
+        embeddings = TensorflowHubEmbeddings(model_url=self.embedding_model_url)
 
-        # from_documentsはDBを新規作成または上書きする
         vectordb = Chroma.from_documents(
             documents=chunks,
             embedding=embeddings,
             persist_directory=self.persist_directory
         )
-        vectordb.persist() # なくても良いが念のため
+        vectordb.persist()
         logging.info(f"データベースを '{self.persist_directory}' に保存しました。")
 
-        # 呼び出し元がタイトルと概要を生成するために必要な情報を返す
         original_documents_data = [
             {"path": doc.metadata.get("source", "不明"), "content": doc.page_content}
             for doc in documents
@@ -223,18 +205,11 @@ def main():
     except ArgumentParsingError as e:
         handle_argument_parsing_error(ErrorContext(exception=e))
     except FileNotFoundError as e:
-        # パスが見つからないエラーをハンドル
-        # e.filename だと None になることがあるため、エラーメッセージからパスを抽出
         path_str = str(e).split(": ")[-1]
         handle_directory_not_found(ErrorContext(target_path=path_str, exception=e))
     except ValueError as e:
-        # APIキーやドキュメントが見つからないカスタムエラーをハンドル
         error_code = str(e)
-        if error_code == "API_KEY_NOT_FOUND":
-            handle_api_key_not_found(ErrorContext(exception=e))
-        elif error_code == "NO_DOCUMENTS_FOUND":
-            # args.input_dir は tryブロックの外なので、parserから取得する
-            # このままだと引数がない場合に再度エラーになるので、try-exceptで囲む
+        if error_code == "NO_DOCUMENTS_FOUND":
             try:
                 input_dir = parser.parse_args().input_dir
             except ArgumentParsingError:
