@@ -1,0 +1,196 @@
+{
+  "$schema": "https://jintrick.net/stream/2025/0713/document-discovery-schema.json",
+  "title": "Gemini CLI Documentation Catalog",
+  "description": "A catalog of documentation files for the Gemini CLI, providing metadata for efficient retrieval and understanding.",
+  "version": "1.0.0",
+  "generated_at": "2025-07-13T12:00:00Z",
+  "author": "Gemini CLI Agent",
+  "purpose": "To provide structured metadata for Gemini CLI documentation, facilitating efficient information retrieval and context understanding for the AI agent.",
+  "documents": [
+    {
+      "path": "docs/architecture.md",
+      "title": "Gemini CLI Architecture Overview",
+      "summary": "このドキュメントは、Gemini CLIのアーキテクチャの概要を提供します。CLIは主に2つの主要パッケージと、コマンドライン入力を処理する際にシステムが使用できる一連のツールで構成されています。"
+    },
+    {
+      "path": "docs/checkpointing.md",
+      "title": "Checkpointing",
+      "summary": "Gemini CLIには、AIツールによるファイル変更前にプロジェクトの状態のスナップショットを自動的に保存するチェックポイント機能が含まれています。これにより、ツール実行前の状態にすぐに戻せるため、安全にコード変更を試すことができます。"
+    },
+    {
+      "path": "docs/Uninstall.md",
+      "title": "Uninstalling the CLI",
+      "summary": "CLIのアンインストール方法は、CLIの実行方法によって異なります。npxまたはグローバルnpmインストールのいずれかの手順に従ってください。npxを使用している場合は、npxキャッシュをクリアする必要があります。"
+    },
+    {
+      "path": "docs/cli/authentication.md",
+      "title": "Authentication Setup",
+      "summary": "Gemini CLIはGoogleのAIサービスとの認証が必要です。初期起動時に、Googleアカウントでのログインまたはサービスアカウントキーのいずれかの認証方法を設定する必要があります。"
+    },
+    {
+      "path": "docs/cli/commands.md",
+      "title": "CLI Commands",
+      "summary": "Gemini CLIは、セッションの管理、インターフェースのカスタマイズ、動作の制御に役立ついくつかの組み込みコマンドをサポートしています。これらのコマンドはスラッシュ (`/`)、アットマーク (`@`)、または感嘆符 (`!`) で始まります。"
+    },
+    {
+      "path": "docs/cli/configuration.md",
+      "title": "Gemini CLI Configuration",
+      "summary": "Gemini CLIは、環境変数、コマンドライン引数、設定ファイルなど、その動作を設定するためのいくつかの方法を提供します。このドキュメントでは、さまざまな設定方法と利用可能な設定について説明します。"
+    },
+    {
+      "path": "docs/cli/index.md",
+      "title": "Gemini CLI",
+      "summary": "Gemini CLIの`packages/cli`は、ユーザーがGemini AIモデルとその関連ツールとプロンプトを送受信するためのフロントエンドです。このセクションでは、認証、コマンド、設定、トークンキャッシュについて説明します。"
+    },
+    {
+      "path": "docs/cli/themes.md",
+      "title": "Themes",
+      "summary": "Gemini CLIは、カラーテーマと外観をカスタマイズするためのさまざまなテーマをサポートしています。`/theme`コマンドまたはtheme設定を使用して、好みに合わせてテーマを変更できます。"
+    },
+    {
+      "path": "docs/cli/token-caching.md",
+      "title": "Token Caching and Cost Optimization",
+      "summary": "Gemini CLIは、APIキー認証を使用する際にトークンキャッシュを通じてAPIコストを自動的に最適化します。この機能は、以前のシステム指示とコンテキストを再利用して、後続のリクエストで処理されるトークンの数を削減します。"
+    },
+    {
+      "path": "docs/cli/tutorials.md",
+      "title": "Tutorials",
+      "summary": "このページには、Gemini CLIと対話するためのチュートリアルが含まれています。MCPサーバーの設定方法や、GitHub MCPサーバーの使用例などが含まれます。"
+    },
+    {
+      "path": "docs/core/index.md",
+      "title": "Gemini CLI Core",
+      "summary": "Gemini CLIのコアパッケージは、Gemini APIとの通信、ツールの管理、`packages/cli`から送信されたリクエストの処理を行うバックエンド部分です。このセクションでは、コアツールAPIとメモリインポートプロセッサについて説明します。"
+    },
+    {
+      "path": "docs/core/memport.md",
+      "title": "Memory Import Processor",
+      "summary": "メモリインポートプロセッサは、`@file.md`構文を使用して他のMarkdownファイルからコンテンツをインポートすることで、`GEMINI.md`ファイルをモジュール化できる機能です。"
+    },
+    {
+      "path": "docs/core/tools-api.md",
+      "title": "Gemini CLI Core: Tools API",
+      "summary": "Gemini CLIコアは、ツールの定義、登録、実行のための堅牢なシステムを備えています。これらのツールはGeminiモデルの機能を拡張し、ローカル環境との対話、Webコンテンツの取得、および単純なテキスト生成以外のさまざまなアクションを実行できるようにします。"
+    },
+    {
+      "path": "docs/deployment.md",
+      "title": "Gemini CLI Execution and Deployment",
+      "summary": "このドキュメントでは、Gemini CLIの実行方法と、Gemini CLIが使用するデプロイメントアーキテクチャについて説明します。"
+    },
+    {
+      "path": "docs/examples/proxy-script.md",
+      "title": "Example Proxy Script",
+      "summary": "これは、`GEMINI_SANDBOX_PROXY_COMMAND`環境変数で使用できるプロキシスクリプトの例です。このスクリプトは、`example.com:443`へのHTTPS接続のみを許可し、他のすべてのリクエストを拒否します。"
+    },
+    {
+      "path": "docs/extension.md",
+      "title": "Gemini CLI Extensions",
+      "summary": "Gemini CLIは、その機能を設定および拡張するために使用できる拡張機能をサポートしています。起動時に、Gemini CLIはワークスペースとホームディレクトリの2つの場所で拡張機能を検索します。"
+    },
+    {
+      "path": "docs/index.md",
+      "title": "Welcome to Gemini CLI documentation",
+      "summary": "このドキュメントは、Gemini CLIのインストール、使用、開発に関する包括的なガイドを提供します。このツールを使用すると、コマンドラインインターフェースを通じてGeminiモデルと対話できます。"
+    },
+    {
+      "path": "docs/integration-tests.md",
+      "title": "Integration Tests",
+      "summary": "このドキュメントは、このプロジェクトで使用されている統合テストフレームワークに関する情報を提供します。統合テストは、Gemini CLIのエンドツーエンド機能を検証するように設計されています。"
+    },
+    {
+      "path": "docs/npm.md",
+      "title": "Package Overview",
+      "summary": "このモノレポには、`@google/gemini-cli`と`@google/gemini-cli-core`の2つの主要なパッケージが含まれています。このドキュメントでは、これらのパッケージの概要と、それらがどのように機能するかについて説明します。"
+    },
+    {
+      "path": "docs/quota-and-pricing.md",
+      "title": "Gemini CLI: Quotas and Pricing",
+      "summary": "Gemini CLIのクォータと料金は、Googleの認証に使用するアカウントの種類によって異なります。このドキュメントでは、さまざまな認証方法を使用した場合のGemini CLIに適用される特定のクォータと料金について説明します。"
+    },
+    {
+      "path": "docs/sandbox.md",
+      "title": "Sandboxing in the Gemini CLI",
+      "summary": "このドキュメントは、Gemini CLIでのサンドボックス化に関するガイドを提供します。これには、前提条件、クイックスタート、および構成が含まれます。"
+    },
+    {
+      "path": "docs/telemetry.md",
+      "title": "Gemini CLI Observability Guide",
+      "summary": "テレメトリーは、Gemini CLIのパフォーマンス、健全性、および使用状況に関するデータを提供します。これを有効にすることで、トレース、メトリクス、および構造化ログを通じて、操作を監視し、問題をデバッグし、ツールの使用を最適化できます。"
+    },
+    {
+      "path": "docs/tos-privacy.md",
+      "title": "Gemini CLI: Terms of Service and Privacy Notice",
+      "summary": "Gemini CLIは、Googleの強力な言語モデルとコマンドラインインターフェースから直接対話できるオープンソースツールです。Gemini CLIの使用に適用される利用規約とプライバシー通知は、Googleの認証に使用するアカウントの種類によって異なります。"
+    },
+    {
+      "path": "docs/troubleshooting.md",
+      "title": "Troubleshooting Guide",
+      "summary": "このガイドは、一般的な問題の解決策とデバッグのヒントを提供します。認証に関する問題や、Google Workspaceアカウントでの無料ティアの有効化に関する問題などが含まれます。"
+    },
+    {
+      "path": "docs/tools/file-system.md",
+      "title": "Gemini CLI file system tools",
+      "summary": "Gemini CLIは、ローカルファイルシステムと対話するための包括的なツールスイートを提供します。これらのツールにより、Geminiモデルはファイルの読み書き、リスト表示、検索、変更を行うことができます。"
+    },
+    {
+      "path": "docs/tools/index.md",
+      "title": "Gemini CLI tools",
+      "summary": "Gemini CLIには、Geminiモデルがローカル環境と対話し、情報にアクセスし、アクションを実行するために使用する組み込みツールが含まれています。これらのツールは、CLIの機能を強化し、テキスト生成を超えて幅広いタスクを支援できるようにします。"
+    },
+    {
+      "path": "docs/tools/mcp-server.md",
+      "title": "MCP servers with the Gemini CLI",
+      "summary": "このドキュメントは、Gemini CLIでモデルコンテキストプロトコル（MCP）サーバーを構成および使用するためのガイドを提供します。MCPサーバーは、Gemini CLIにツールとリソースを公開するアプリケーションです。"
+    },
+    {
+      "path": "docs/tools/memory.md",
+      "title": "Memory Tool (`save_memory`)
+",
+      "summary": "このドキュメントは、Gemini CLIの`save_memory`ツールについて説明します。`save_memory`を使用して、Gemini CLIセッション間で情報を保存および呼び出すことができます。"
+    },
+    {
+      "path": "docs/tools/multi-file.md",
+      "title": "Multi File Read Tool (`read_many_files`)
+",
+      "summary": "このドキュメントは、Gemini CLIの`read_many_files`ツールについて説明します。`read_many_files`を使用して、パスまたはグロブパターンで指定された複数のファイルからコンテンツを読み取ることができます。"
+    },
+    {
+      "path": "docs/tools/shell.md",
+      "title": "Shell Tool (`run_shell_command`)
+",
+      "summary": "このドキュメントは、Gemini CLIの`run_shell_command`ツールについて説明します。`run_shell_command`を使用して、基盤となるシステムと対話し、スクリプトを実行し、コマンドライン操作を実行できます。"
+    },
+    {
+      "path": "docs/tools/web-fetch.md",
+      "title": "Web Fetch Tool (`web_fetch`)
+",
+      "summary": "このドキュメントは、Gemini CLIの`web_fetch`ツールについて説明します。`web_fetch`を使用して、Webページから情報を要約、比較、または抽出できます。"
+    },
+    {
+      "path": "docs/tools/web-search.md",
+      "title": "Web Search Tool (`google_web_search`)
+",
+      "summary": "このドキュメントは、Gemini CLIの`google_web_search`ツールについて説明します。`google_web_search`を使用して、Gemini APIを介してGoogle検索を使用してWeb検索を実行できます。"
+    },
+    {
+      "path": "docs/keyboard-shortcuts.md",
+      "title": "Gemini CLI Keyboard Shortcuts",
+      "summary": "This document lists the available keyboard shortcuts in the Gemini CLI, covering general shortcuts, input prompt shortcuts, suggestions, radio button select, and IDE integration."
+    },
+    {
+      "path": "docs/issue-and-pr-automation.md",
+      "title": "Automation and Triage Processes",
+      "summary": "This document provides a detailed overview of the automated processes used to manage and triage issues and pull requests in the Gemini CLI project, explaining how automation helps in tracking work, prioritizing features, and maintaining clear historical context."
+    },
+    {
+      "path": "docs/ide-integration.md",
+      "title": "IDE Integration",
+      "summary": "This document explains how Gemini CLI integrates with IDEs (currently Visual Studio Code and its forks) to provide a more seamless and context-aware experience, including features like workspace context, native diffing, and VS Code commands, along with installation, usage, and troubleshooting guides."
+    },
+    {
+      "path": "docs/gemini-ignore.md",
+      "title": "Ignoring Files",
+      "summary": "This document provides an overview of the Gemini Ignore (`.geminiignore`) feature, explaining how it allows users to exclude files and directories from tools that support this feature, similar to `.gitignore`, and details its conventions and usage with examples."
+    }
+  ]
+}
