@@ -4,3 +4,4 @@ unstructured
 markdown
 chromadb
 sentence-transformers
+trafilatura
