@@ -24,6 +24,43 @@
           "input-dir"
         ]
       }
+    },
+    {
+      "name": "web_fetch",
+      "path": "tools/web_fetch.py",
+      "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "取得対象のWebページのURL。"
+          },
+          "base-url": {
+            "type": "string",
+            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。AIエージェントは、収集対象のURLからこの値を推測して渡すことを想定。"
+          },
+          "temp-dir": {
+            "type": "string",
+            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。AIエージェントは、このツール実行のために一時ディレクトリを新規に作成し、そのパスを渡すことを想定。"
+          },
+          "recursive": {
+            "type": "boolean",
+            "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
+            "default": true
+          },
+          "depth": {
+            "type": "integer",
+            "description": "再帰探索の最大深度。",
+            "default": 5
+          }
+        },
+        "required": [
+          "url",
+          "base-url",
+          "temp-dir"
+        ]
+      }
     }
   ]
 }

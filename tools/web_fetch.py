@@ -1,11 +1,31 @@
 #!/usr/bin/env python3
 """
-web_fetch.py - A tool to fetch and extract content from web pages.
+Webページを取得し、コンテンツをファイルとして保存するツール。
 
-This script fetches a web page from a given URL, extracts the main content,
-and can recursively fetch linked pages up to a specified depth.
-It is designed for use by AI agents and provides robust error handling
-and structured JSON output.
+指定されたURLからWebページを再帰的に取得し、主要なコンテンツを抽出して
+一時ディレクトリにHTMLファイルとして保存する。
+AIエージェントによる利用を想定しており、堅牢なエラーハンドリングと
+構造化されたJSONによるレポート出力を提供する。
+
+Usage:
+    python web_fetch.py --url <start_url> --base-url <scope_url> --temp-dir <path/to/dir> [--no-recursive] [--depth <N>]
+
+Args:
+    --url (str): 収集を開始するWebページのURL。
+    --base-url (str):収集対象を制限するためのベースURL。このURL配下のページのみが収集される。
+    --temp-dir (str): 取得したHTMLファイルを保存する一時ディレクトリのパス。
+    --recursive / --no-recursive (bool, optional): リンクを再帰的にたどるか。デフォルトは --recursive。
+    --depth (int, optional): 再帰的に収集する際の最大深度。デフォルトは5。
+
+Returns:
+    (stdout): 成功した場合、処理結果をまとめたJSONオブジェクト。
+              例: {
+                    "status": "success",
+                    "output_dir": "/path/to/temp_output_directory",
+                    "converted_count": 15,
+                    "depth_level": 3
+                  }
+    (stderr): エラーが発生した場合、エラーコードと詳細を含むJSONオブジェクト。
 """
 
 import argparse
@@ -13,9 +33,8 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from urllib.parse import urljoin, urlparse
-import re
 
 # --- Dependency Check ---
 try:
@@ -52,24 +71,33 @@ def eprint_error(error_obj: dict):
     print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
 
 def handle_argument_parsing_error(exception: Exception):
+    """Handles argument parsing errors by printing a structured JSON error."""
     eprint_error({
         "status": "error",
         "error_code": "ARGUMENT_PARSING_ERROR",
         "message": "Failed to parse command-line arguments.",
-        "remediation_suggestion": "Review the command-line parameters and ensure all required arguments are provided correctly.",
+        "remediation_suggestion": (
+            "Review the command-line parameters and ensure all required "
+            "arguments are provided correctly."
+        ),
         "details": {"original_error": str(exception)}
     })
 
 def handle_request_error(url: str, exception: Exception):
+    """Handles network request errors by printing a structured JSON error."""
     eprint_error({
         "status": "error",
         "error_code": "REQUEST_ERROR",
-        "message": f"Failed to fetch content from URL: {url}",
-        "remediation_suggestion": "Ensure the URL is correct, accessible, and the network connection is stable.",
+        "message": "Failed to fetch content from URL: %s" % url,
+        "remediation_suggestion": (
+            "Ensure the URL is correct, accessible, and the network "
+            "connection is stable."
+        ),
         "details": {"url": url, "error_type": type(exception).__name__, "error": str(exception)}
     })
 
 def handle_unexpected_error(exception: Exception):
+    """Handles unexpected errors by printing a structured JSON error."""
     eprint_error({
         "status": "error",
         "error_code": "UNEXPECTED_ERROR",
@@ -84,7 +112,6 @@ def handle_unexpected_error(exception: Exception):
 def setup_logging(verbose: bool, log_level: str) -> None:
     """Setup logging configuration."""
     level = logging.DEBUG if verbose else getattr(logging, log_level.upper(), logging.INFO)
-    # Log to stderr to separate logs from successful JSON output on stdout
     logging.basicConfig(
         level=level,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -92,78 +119,165 @@ def setup_logging(verbose: bool, log_level: str) -> None:
         stream=sys.stderr
     )
 
+# pylint: disable=R0903
+class WebFetcher:
+    """Webページの取得と処理のロジックをカプセル化するクラス。"""
+    def __init__(self, args: argparse.Namespace):
+        """
+        WebFetcherのインスタンスを初期化する。
 
-def fetch_html(url: str) -> Optional[str]:
-    """Fetches HTML content from a given URL."""
-    try:
-        # Set a user-agent to mimic a browser
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+        Args:
+            args (argparse.Namespace): コマンドライン引数を格納したオブジェクト。
+        """
+        self.start_url = args.url.rstrip('/')
+        self.base_url = args.base_url.rstrip('/')
+        self.temp_dir = Path(args.temp_dir)
+        self.recursive = args.recursive
+        self.depth = args.depth
+        self.visited_urls = set()
+        self.fetched_files_map = []
 
-        # Check content type to ensure it's HTML
-        if 'text/html' not in response.headers.get('Content-Type', ''):
-            logger.warning(f"URL {url} does not appear to be an HTML page. Content-Type: {response.headers.get('Content-Type')}")
+    def _fetch_html(self, url: str) -> Optional[bytes]:
+        """
+        指定されたURLから生のHTMLコンテンツをバイトデータとして取得する。
+
+        Args:
+            url (str): 取得対象のURL。
+
+        Returns:
+            Optional[bytes]: 取得したHTMLのバイトデータ。失敗した場合はNone。
+        """
+        try:
+            headers = {
+                'User-Agent': (
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                    'AppleWebKit/537.36 (KHTML, like Gecko) '
+                    'Chrome/91.0.4472.124 Safari/537.36'
+                )
+            }
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
+
+            if 'text/html' not in response.headers.get('Content-Type', ''):
+                logger.warning("URL %s is not HTML. Content-Type: %s", url, response.headers.get('Content-Type'))
+                return None
+            
+            return response.content
+
+        except requests.exceptions.RequestException as e:
+            handle_request_error(url, e)
             return None
 
-        return response.text
-    except requests.exceptions.RequestException as e:
-        handle_request_error(url, e)
-        return None
+    def _extract_main_content(self, html_bytes: bytes, url: str) -> str:
+        """
+        trafilaturaを使用してHTMLのバイトデータから主要なコンテンツを抽出する。
+        これにより、trafilaturaがエンコーディング検出を処理する。
 
+        Args:
+            html_bytes (bytes): 処理対象のHTML（バイトデータ）。
+            url (str): コンテンツの取得元URL。
 
-def extract_main_content(html_content: str, url: str) -> str:
-    """Extracts the main article content from HTML using trafilatura."""
-    try:
-        # `output_format="html"` preserves the structure within the extracted content.
-        # `include_links=True` ensures that links are kept in the content.
-        extracted_html = trafilatura.extract(
-            html_content,
-            url=url,
-            output_format="html",
-            include_links=True
-        )
-        return extracted_html if extracted_html else html_content
-    except Exception as e:
-        logger.warning(f"Trafilatura failed for content from {url}: {e}")
-        logger.warning("Falling back to returning raw HTML body.")
-        # Fallback to just getting the body content
+        Returns:
+            str: 抽出された主要コンテンツのHTML（文字列）。
+        """
+        try:
+            # trafilaturaにバイトデータを直接渡してエンコーディングを自動解決させる
+            extracted_html = trafilatura.extract(
+                html_bytes, url=url, output_format="html", include_links=True
+            )
+            return extracted_html if extracted_html else ""
+        except Exception as e:  # pylint: disable=W0718
+            # trafilatura can raise a wide variety of exceptions.
+            # Catching a broad exception is necessary for the fallback mechanism.
+            logger.warning("Trafilatura failed for %s: %s. Falling back to raw body.", url, e)
+            # フォールバックとしてUTF-8でデコードを試みる
+            html_content = html_bytes.decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(html_content, 'html.parser')
+            body = soup.find('body')
+            return str(body) if body else html_content
+
+    def _find_links(self, html_content: str, page_url: str) -> List[str]:
+        """
+        HTMLコンテンツ内からbase_urlの範囲に収まる有効なリンクをすべて探し出す。
+
+        Args:
+            html_content (str): リンクを探索するHTMLコンテンツ。
+            page_url (str): HTMLコンテンツの取得元URL。
+
+        Returns:
+            List[str]: 発見されたURLのリスト。
+        """
         soup = BeautifulSoup(html_content, 'html.parser')
-        body = soup.find('body')
-        return str(body) if body else html_content
+        links = set()
+        for a_tag in soup.find_all('a', href=True):
+            href = a_tag['href']
+            full_url = urljoin(page_url, href)
+            parsed_url = urlparse(full_url)
+            if parsed_url.scheme not in ['http', 'https']:
+                continue
+            clean_url = parsed_url._replace(fragment="").geturl()
+            if clean_url.startswith(self.base_url):
+                links.add(clean_url)
+        return list(links)
 
+    def run(self):
+        """Webページの取得プロセスを実行する。"""
+        logger.info("Starting fetch for URL: %s within base URL: %s", self.start_url, self.base_url)
+        if not self.start_url.startswith(self.base_url):
+            logger.warning("Start URL '%s' is outside the base URL '%s'.", self.start_url, self.base_url)
+            return
 
-def find_links(html_content: str, page_url: str, scope_base_url: str) -> List[str]:
-    """
-    Finds and resolves all valid links from HTML content that are within the scope
-    of the scope_base_url.
-    """
-    soup = BeautifulSoup(html_content, 'html.parser')
-    links = set()
+        urls_to_visit = [(self.start_url, 0)]
+        page_counter = 0
 
-    for a_tag in soup.find_all('a', href=True):
-        href = a_tag['href']
+        while urls_to_visit:
+            current_url, current_depth = urls_to_visit.pop(0)
+            if current_url in self.visited_urls:
+                continue
+            if not self.recursive and len(self.visited_urls) > 0:
+                break
+            if self.recursive and current_depth > self.depth:
+                logger.debug("Skipping %s, depth %s > max depth %s", current_url, current_depth, self.depth)
+                continue
 
-        # Resolve the URL (handles relative paths) against the page's URL
-        full_url = urljoin(page_url, href)
+            logger.info("Fetching: %s at depth %s", current_url, current_depth)
+            self.visited_urls.add(current_url)
 
-        # Parse the full URL to work with its components
-        parsed_url = urlparse(full_url)
+            html_bytes = self._fetch_html(current_url)
+            if not html_bytes:
+                continue
 
-        # Basic filtering for scheme
-        if parsed_url.scheme not in ['http', 'https']:
-            continue
+            # リンク抽出のために一度デコードする (BeautifulSoupは文字列を扱うため)
+            # trafilaturaには生のバイトデータを渡すので、ここではエラーを無視してデコード
+            html_for_links = html_bytes.decode('utf-8', errors='ignore')
 
-        # Remove fragments (e.g., #section)
-        clean_url = parsed_url._replace(fragment="").geturl()
+            if self.recursive and current_depth < self.depth:
+                found_links = self._find_links(html_for_links, current_url)
+                logger.debug("Found %d links on %s", len(found_links), current_url)
+                for link in found_links:
+                    if link not in self.visited_urls:
+                        urls_to_visit.append((link, current_depth + 1))
+            
+            main_content = self._extract_main_content(html_bytes, current_url)
+            if not main_content:
+                logger.warning("No main content extracted from %s. Skipping file save.", current_url)
+                continue
 
-        # The main filtering logic: ensure the link is within the base URL path.
-        if clean_url.startswith(scope_base_url):
-            links.add(clean_url)
+            try:
+                filename = f"page_{page_counter}.html"
+                file_path = self.temp_dir / filename
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(main_content)
+                
+                self.fetched_files_map.append({
+                    "url": current_url,
+                    "file_path": filename
+                })
+                logger.debug("Saved content from %s to %s", current_url, file_path)
+                page_counter += 1
+            except IOError as e:
+                logger.error("Failed to write file for %s: %s", current_url, e)
 
-    return list(links)
 
 
 def main() -> None:
@@ -173,6 +287,7 @@ def main() -> None:
     parser = GracefulArgumentParser(description="Fetch and extract content from web pages.")
     parser.add_argument("--url", required=True, help="The starting URL to fetch.")
     parser.add_argument("--base-url", required=True, help="The base URL to define the scope of the documentation.")
+    parser.add_argument("--temp-dir", required=True, help="Directory to save fetched HTML files.")
     parser.add_argument("--recursive", action=argparse.BooleanOptionalAction, default=True, help="Recursively fetch linked pages.")
     parser.add_argument("--depth", type=int, default=5, help="Maximum recursion depth.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
@@ -182,57 +297,31 @@ def main() -> None:
         args = parser.parse_args()
         setup_logging(args.verbose, args.log_level)
 
-        logger.info(f"Starting fetch for URL: {args.url} within base URL: {args.base_url}")
+        temp_dir_path = Path(args.temp_dir)
+        temp_dir_path.mkdir(parents=True, exist_ok=True)
 
-        if not args.url.startswith(args.base_url):
-            logger.warning(f"The starting URL '{args.url}' is not within the specified base URL '{args.base_url}'. No pages will be fetched.")
-            print(json.dumps({"status": "success", "fetched_pages": []}, ensure_ascii=False, indent=2))
-            sys.exit(0)
+        fetcher = WebFetcher(args)
+        fetcher.run()
 
-        fetched_pages = []
-        urls_to_visit = [(args.url, 0)] # A queue of (url, current_depth)
-        visited_urls = set()
+        # Write the discovery.json file
+        discovery_path = temp_dir_path / "discovery.json"
+        try:
+            with open(discovery_path, 'w', encoding='utf-8') as f:
+                json.dump(fetcher.fetched_files_map, f, ensure_ascii=False, indent=2)
+            logger.info("Successfully created discovery file at %s", discovery_path)
+        except IOError as e:
+            # This is a critical error, might be better to raise or handle
+            logger.error("Could not write discovery.json: %s", e)
+            # For now, we will let the program exit via an exception if this fails.
+            raise
 
-        while urls_to_visit:
-            current_url, current_depth = urls_to_visit.pop(0)
-
-            if current_url in visited_urls:
-                continue
-
-            if not args.recursive and len(visited_urls) > 0:
-                break
-
-            if args.recursive and current_depth > args.depth:
-                logger.debug(f"Skipping {current_url}, depth {current_depth} > max depth {args.depth}")
-                continue
-
-            logger.info(f"Fetching: {current_url} at depth {current_depth}")
-            visited_urls.add(current_url)
-
-            html_content = fetch_html(current_url)
-            if not html_content:
-                continue
-
-            # Find links from the original HTML before content extraction
-            if args.recursive and current_depth < args.depth:
-                found_links = find_links(html_content, current_url, args.base_url)
-                logger.debug(f"Found {len(found_links)} links on {current_url}")
-                for link in found_links:
-                    if link not in visited_urls:
-                        urls_to_visit.append((link, current_depth + 1))
-
-            # Now extract main content for storage
-            main_content = extract_main_content(html_content, current_url)
-            fetched_pages.append({
-                "url": current_url,
-                "html_content": main_content
-            })
-
+        # Print final JSON report to stdout
         result = {
             "status": "success",
-            "fetched_pages": fetched_pages
+            "output_dir": str(temp_dir_path.resolve()),
+            "converted_count": len(fetcher.fetched_files_map),
+            "depth_level": args.depth
         }
-
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     except ArgumentParsingError as e:
@@ -241,7 +330,9 @@ def main() -> None:
     except KeyboardInterrupt:
         logger.info("Process interrupted by user.")
         sys.exit(1)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=W0718
+        # A top-level catch-all is necessary to ensure any unexpected error
+        # is gracefully handled and reported as a JSON object.
         logger.exception("An unexpected error occurred.")
         handle_unexpected_error(e)
         sys.exit(1)
