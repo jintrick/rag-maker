@@ -5,3 +5,4 @@ markdown
 chromadb
 sentence-transformers
 trafilatura
+tk
