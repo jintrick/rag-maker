@@ -34,6 +34,7 @@ import sys
 import os
 from pathlib import Path
 from typing import Optional, List
+from utils import create_discovery_file
 
 # --- Dependency Check ---
 try:
@@ -194,7 +195,7 @@ class GitHubFetcher:
 
                     self.fetched_files_map.append({
                         "url": file_url,
-                        "file_path": relative_path
+                        "path": relative_path
                     })
         logger.info("Discovered %d relevant files.", len(self.fetched_files_map))
 
@@ -238,11 +239,8 @@ def main() -> None:
         fetcher.run()
 
         # Write the discovery.json file
-        discovery_path = temp_dir_path / "discovery.json"
         try:
-            with open(discovery_path, 'w', encoding='utf-8') as f:
-                json.dump(fetcher.fetched_files_map, f, ensure_ascii=False, indent=2)
-            logger.info("Successfully created discovery file at %s", discovery_path)
+            create_discovery_file(fetcher.fetched_files_map, temp_dir_path)
         except IOError as e:
             logger.error("Could not write discovery.json: %s", e)
             # This is a critical error, so we'll let it be caught by the main exception handler
