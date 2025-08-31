@@ -21,14 +21,14 @@ import re
 try:
     import requests
     from bs4 import BeautifulSoup
-    from readabilipy import simple_json_from_html_string
+    import trafilatura
 except ImportError:
     # `eprint_error` and other functions are not yet defined, so print directly.
     print(json.dumps({
         "status": "error",
         "error_code": "DEPENDENCY_ERROR",
-        "message": "Required libraries 'requests', 'beautifulsoup4', or 'readabilipy' not found.",
-        "remediation_suggestion": "Please install the required libraries by running: pip install requests beautifulsoup4 readabilipy"
+        "message": "Required libraries 'requests', 'beautifulsoup4', or 'trafilatura' not found.",
+        "remediation_suggestion": "Please install the required libraries by running: pip install requests beautifulsoup4 trafilatura"
     }, ensure_ascii=False), file=sys.stderr)
     sys.exit(1)
 
@@ -115,12 +115,19 @@ def fetch_html(url: str) -> Optional[str]:
 
 
 def extract_main_content(html_content: str, url: str) -> str:
-    """Extracts the main article content from HTML using readabilipy."""
+    """Extracts the main article content from HTML using trafilatura."""
     try:
-        article = simple_json_from_html_string(html_content, use_readability=True)
-        return article.get('content', '')
+        # `output_format="html"` preserves the structure within the extracted content.
+        # `include_links=True` ensures that links are kept in the content.
+        extracted_html = trafilatura.extract(
+            html_content,
+            url=url,
+            output_format="html",
+            include_links=True
+        )
+        return extracted_html if extracted_html else html_content
     except Exception as e:
-        logger.warning(f"ReadabiliPy failed for content from {url}: {e}")
+        logger.warning(f"Trafilatura failed for content from {url}: {e}")
         logger.warning("Falling back to returning raw HTML body.")
         # Fallback to just getting the body content
         soup = BeautifulSoup(html_content, 'html.parser')
