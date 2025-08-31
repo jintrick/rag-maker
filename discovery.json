@@ -114,6 +114,28 @@
           "temp-dir"
         ]
       }
+    },
+    {
+      "name": "file_sync",
+      "path": "tools/file_sync.py",
+      "description": "指定されたコピー元ディレクトリの内容を、コピー先ディレクトリに高速にコピーするツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source-dir": {
+            "type": "string",
+            "description": "コピー元のディレクトリパス。"
+          },
+          "dest-dir": {
+            "type": "string",
+            "description": "コピー先のディレクトリパス。"
+          }
+        },
+        "required": [
+          "source-dir",
+          "dest-dir"
+        ]
+      }
     }
   ]
 }
