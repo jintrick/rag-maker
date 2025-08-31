@@ -35,6 +35,7 @@ import sys
 from pathlib import Path
 from typing import Optional, List
 from urllib.parse import urljoin, urlparse
+from utils import create_discovery_file
 
 # --- Dependency Check ---
 try:
@@ -271,7 +272,7 @@ class WebFetcher:
                 
                 self.fetched_files_map.append({
                     "url": current_url,
-                    "file_path": filename
+                    "path": filename
                 })
                 logger.debug("Saved content from %s to %s", current_url, file_path)
                 page_counter += 1
@@ -304,11 +305,8 @@ def main() -> None:
         fetcher.run()
 
         # Write the discovery.json file
-        discovery_path = temp_dir_path / "discovery.json"
         try:
-            with open(discovery_path, 'w', encoding='utf-8') as f:
-                json.dump(fetcher.fetched_files_map, f, ensure_ascii=False, indent=2)
-            logger.info("Successfully created discovery file at %s", discovery_path)
+            create_discovery_file(fetcher.fetched_files_map, temp_dir_path)
         except IOError as e:
             # This is a critical error, might be better to raise or handle
             logger.error("Could not write discovery.json: %s", e)
