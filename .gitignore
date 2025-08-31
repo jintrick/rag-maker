@@ -6,6 +6,5 @@ __pycache__/
 
 # RAGMaker specific
 test_data/
-discovery.json
 **/.chroma/
 .tmp/

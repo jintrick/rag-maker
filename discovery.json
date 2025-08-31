@@ -1,0 +1,29 @@
+{
+  "documents": [
+    {
+      "path": "C:\\Synology Drive\\2way-sync\\.gemini\\docs",
+      "title": "Gemini CLI Documentation DB",
+      "summary": "A RAG database containing the full documentation for the Gemini CLI. Sourced from C:\\Synology Drive\\2way-sync\\.gemini\\docs."
+    }
+  ],
+  "handles": {},
+  "tools": [
+    {
+      "name": "make_vector_db",
+      "path": "make_vector_db.py",
+      "description": "指定されたディレクトリ内のテキストファイルを処理し、RAGデータベース（ChromaDB）を構築する。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "input-dir": {
+            "type": "string",
+            "description": "処理対象のテキストファイルが含まれるディレクトリのパス。"
+          }
+        },
+        "required": [
+          "input-dir"
+        ]
+      }
+    }
+  ]
+}
