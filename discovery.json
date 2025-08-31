@@ -1,30 +1,20 @@
 {
   "documents": [
     {
-      "path": "C:\\Synology Drive\\2way-sync\\.gemini\\docs",
-      "title": "Gemini CLI Documentation DB",
-      "summary": "A RAG database containing the full documentation for the Gemini CLI. Sourced from C:\\Synology Drive\\2way-sync\\.gemini\\docs."
+      "path": ".cache/google-gemini/gemini-cli/",
+      "title": "Gemini CLI Documentation",
+      "summary": "A RAG database containing the full documentation for the Gemini CLI.",
+      "src_type": "github"
+    },
+    {
+      "path": ".cache/jules-docs/",
+      "title": "jules Documentation",
+      "summary": "GitHubに接続しPRできるコーディングエージェント、Julesに関するドキュメントです。",
+      "src_type": "web"
     }
   ],
   "handles": {},
   "tools": [
-    {
-      "name": "make_vector_db",
-      "path": "make_vector_db.py",
-      "description": "指定されたディレクトリ内のテキストファイルを処理し、RAGデータベース（ChromaDB）を構築する。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "input-dir": {
-            "type": "string",
-            "description": "処理対象のテキストファイルが含まれるディレクトリのパス。"
-          }
-        },
-        "required": [
-          "input-dir"
-        ]
-      }
-    },
     {
       "name": "http_fetch",
       "path": "tools/http_fetch.py",
@@ -38,11 +28,11 @@
           },
           "base-url": {
             "type": "string",
-            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。AIエージェントは、収集対象のURLからこの値を推測して渡すことを想定。"
+            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
           },
           "temp-dir": {
             "type": "string",
-            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。AIエージェントは、このツール実行のために一時ディレクトリを新規に作成し、そのパスを渡すことを想定。"
+            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。"
           },
           "recursive": {
             "type": "boolean",
@@ -93,6 +83,37 @@
       "path": "tools/ask_dir.py",
       "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
       "parameters": {}
+    },
+    {
+      "name": "github_fetch",
+      "path": "tools/github_fetch.py",
+      "description": "GitHubリポジトリから特定パスのドキュメントを取得し、ファイルとして保存するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repo-url": {
+            "type": "string",
+            "description": "取得対象のGitHubリポジトリのURL。"
+          },
+          "path-in-repo": {
+            "type": "string",
+            "description": "リポジトリ内で収集対象とするディレクトリまたはファイルのパス。"
+          },
+          "temp-dir": {
+            "type": "string",
+            "description": "取得したファイルを保存するディレクトリのパス。"
+          },
+          "branch": {
+            "type": "string",
+            "description": "取得対象のブランチ名。指定されない場合、リポジトリのデフォルトブランチが使われる。"
+          }
+        },
+        "required": [
+          "repo-url",
+          "path-in-repo",
+          "temp-dir"
+        ]
+      }
     }
   ]
 }
