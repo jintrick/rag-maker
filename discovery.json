@@ -26,8 +26,8 @@
       }
     },
     {
-      "name": "web_fetch",
-      "path": "tools/web_fetch.py",
+      "name": "http_fetch",
+      "path": "tools/http_fetch.py",
       "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
       "parameters": {
         "type": "object",
@@ -61,6 +61,38 @@
           "temp-dir"
         ]
       }
+    },
+    {
+      "name": "html_to_markdown",
+      "path": "tools/html_to_markdown.py",
+      "description": "HTMLファイルをMarkdownに変換し、コンテンツを抽出し、リンクを修正するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "input-dir": {
+            "type": "string",
+            "description": "HTMLファイルが含まれる入力ディレクトリ。"
+          },
+          "output-dir": {
+            "type": "string",
+            "description": "Markdownファイルの出力ディレクトリ。"
+          },
+          "base-url": {
+            "type": "string",
+            "description": "相対リンクを絶対リンクに変換するためのベースURL。"
+          }
+        },
+        "required": [
+          "input-dir",
+          "output-dir"
+        ]
+      }
+    },
+    {
+      "name": "ask_dir",
+      "path": "tools/ask_dir.py",
+      "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
+      "parameters": {}
     }
   ]
 }
