@@ -3,27 +3,9 @@
 """
 A tool to register a new document entry into the root discovery.json.
 
-This tool adds or updates a document entry in the `documents` list of the
-RAGMaker's root `discovery.json` file. It ensures that the catalog of
-available knowledge bases is kept up-to-date.
-
-Usage:
-    python entry_discovery.py --path <path> --title <title> --summary <summary> --src-type <type>
-
-Args:
-    --path (str): The path to the cache directory of the document.
-    --title (str): The title of the document set.
-    --summary (str): A brief summary of the document set.
-    --src-type (str): The source type (e.g., 'local', 'web', 'github').
-
-Returns:
-    (stdout): On success, a JSON object summarizing the result.
-              Example: {
-                          "status": "success",
-                          "message": "Entry added/updated successfully.",
-                          "entry": { ... new entry ... }
-                       }
-    (stderr): On error, a JSON object with an error code and details.
+This tool reads the metadata from a discovery.json file within a specified
+cache directory, synthesizes a title and summary, and then adds or updates
+an entry in the RAGMaker's root discovery.json file.
 """
 
 import argparse
@@ -32,122 +14,127 @@ import logging
 import sys
 from pathlib import Path
 
-# --- Tool Characteristics ---
+# --- Setup Logging ---
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stderr
+)
 logger = logging.getLogger(__name__)
-
-# --- Custom Exception and ArgumentParser ---
-class ArgumentParsingError(Exception):
-    """Custom exception for argument parsing errors."""
-
-class GracefulArgumentParser(argparse.ArgumentParser):
-    """ArgumentParser that raises a custom exception on error."""
-    def error(self, message: str):
-        raise ArgumentParsingError(message)
 
 # --- Structured Error Handling ---
 def eprint_error(error_obj: dict):
     """Prints a structured error object as JSON to stderr."""
     print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
-
-def handle_argument_parsing_error(exception: Exception):
-    """Handles argument parsing errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "ARGUMENT_PARSING_ERROR",
-        "message": "Failed to parse command-line arguments.",
-        "details": {"original_error": str(exception)}
-    })
-
-def handle_file_io_error(exception: IOError, filepath: Path):
-    """Handles file I/O errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "FILE_IO_ERROR",
-        "message": f"Failed to read from or write to '{filepath}'.",
-        "details": {"error_type": type(exception).__name__, "error": str(exception)}
-    })
-
-def handle_unexpected_error(exception: Exception):
-    """Handles unexpected errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "UNEXPECTED_ERROR",
-        "message": "An unexpected error occurred during processing.",
-        "details": {"error_type": type(exception).__name__, "error": str(exception)}
-    })
+    sys.exit(1)
 
 # --- Core Logic ---
-def update_discovery_file(discovery_path: Path, new_entry: dict):
+def get_metadata_from_cache(cache_discovery_path: Path) -> dict | None:
     """
-    Adds or updates an entry in the discovery.json file.
+    Reads the discovery.json from the cache path to extract metadata.
+
+    It uses the title and summary of the first document entry as the
+    overall title and summary for the collection.
     """
     try:
-        if discovery_path.exists():
-            with open(discovery_path, 'r', encoding='utf-8') as f:
+        if not cache_discovery_path.is_file():
+            logger.error(f"Cache discovery file not found at: {cache_discovery_path}")
+            return None
+
+        with open(cache_discovery_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        documents = data.get("documents")
+        if not documents:
+            logger.error(f"No 'documents' array found in {cache_discovery_path}")
+            return None
+
+        first_doc = documents[0]
+        title = first_doc.get("title")
+        summary = first_doc.get("summary")
+
+        if not title or not summary:
+            logger.error(f"First document in {cache_discovery_path} is missing 'title' or 'summary'")
+            return None
+
+        return {"title": title, "summary": summary}
+
+    except (IOError, json.JSONDecodeError) as e:
+        logger.error(f"Failed to read or parse {cache_discovery_path}: {e}")
+        return None
+
+
+def update_root_discovery_file(root_discovery_path: Path, new_entry: dict):
+    """
+    Adds or updates an entry in the root discovery.json file.
+    """
+    try:
+        if root_discovery_path.exists():
+            with open(root_discovery_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
         else:
             data = {"documents": [], "tools": [], "handles": {}}
 
         documents = data.get("documents", [])
         entry_path = new_entry["path"]
+        entry_src_type = new_entry["src_type"]
 
-        # Check if an entry with the same path already exists
         found_index = -1
         for i, doc in enumerate(documents):
-            if doc.get("path") == entry_path:
+            if doc.get("path") == entry_path and doc.get("src_type") == entry_src_type:
                 found_index = i
                 break
 
         if found_index != -1:
-            # Update existing entry
-            documents[found_index] = new_entry
+            documents[found_index].update(new_entry)
             message = "Entry updated successfully."
         else:
-            # Add new entry
             documents.append(new_entry)
             message = "Entry added successfully."
 
         data["documents"] = documents
 
-        with open(discovery_path, 'w', encoding='utf-8') as f:
+        with open(root_discovery_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
         logger.info(message)
         return message
 
     except (IOError, json.JSONDecodeError) as e:
-        handle_file_io_error(e, discovery_path)
+        logger.error(f"Error processing root discovery file {root_discovery_path}: {e}")
         raise
 
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        stream=sys.stderr
-    )
-
-    parser = GracefulArgumentParser(description="Register a document entry in discovery.json.")
+    parser = argparse.ArgumentParser(description="Register a document entry by reading metadata from its cache.")
     parser.add_argument("--path", required=True, help="The path to the document's cache directory.")
-    parser.add_argument("--title", required=True, help="The title of the document set.")
-    parser.add_argument("--summary", required=True, help="A summary of the document set.")
     parser.add_argument("--src-type", required=True, help="The source type (e.g., local, web, github).")
 
     try:
         args = parser.parse_args()
 
-        discovery_file_path = Path("discovery.json")
+        cache_path = Path(args.path)
+        cache_discovery_file = cache_path / "discovery.json"
+        root_discovery_file = Path("discovery.json")
 
+        # 1. Get metadata from the cache's discovery file
+        metadata = get_metadata_from_cache(cache_discovery_file)
+        if not metadata:
+            raise ValueError("Could not retrieve valid metadata from cache.")
+
+        # 2. Prepare the new entry for the root discovery file
         new_document_entry = {
             "path": args.path,
-            "title": args.title,
-            "summary": args.summary,
+            "title": metadata["title"],
+            "summary": metadata["summary"],
             "src_type": args.src_type
         }
 
-        message = update_discovery_file(discovery_file_path, new_document_entry)
+        # 3. Update the root discovery file
+        message = update_root_discovery_file(root_discovery_file, new_document_entry)
 
+        # 4. Print success output
         result = {
             "status": "success",
             "message": message,
@@ -155,12 +142,12 @@ def main():
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
-    except ArgumentParsingError as e:
-        handle_argument_parsing_error(e)
-        sys.exit(1)
     except Exception as e:
-        handle_unexpected_error(e)
-        sys.exit(1)
+        eprint_error({
+            "status": "error",
+            "message": "An unexpected error occurred.",
+            "details": str(e)
+        })
 
 if __name__ == "__main__":
     main()
