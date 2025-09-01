@@ -107,6 +107,14 @@ def handle_unexpected_error(exception: Exception):
         "details": {"error_type": type(exception).__name__, "error": str(exception)}
     })
 
+# --- Path Sanitization Helper ---
+def _strip_all_wrapping_quotes(s: str) -> str:
+    """
+    文字列を囲む一致する引用符を、なくなるまで繰り返し削除します。
+    """
+    while len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
+        s = s[1:-1]
+    return s
 
 # --- Core Logic ---
 
@@ -296,7 +304,26 @@ def main() -> None:
 
     try:
         args = parser.parse_args()
+        
+        # Sanitize the temp_dir path
+        if sys.platform == "win32":
+            # First, strip leading/trailing whitespace
+            temp_dir_str = args.temp_dir.strip()
+            # Then, strip all wrapping quotes
+            temp_dir_str = _strip_all_wrapping_quotes(temp_dir_str)
+            args.temp_dir = temp_dir_str
+
         setup_logging(args.verbose, args.log_level)
+
+        # Proceed only if the path is not empty after sanitization
+        if not args.temp_dir:
+            logger.error("The provided --temp-dir path is empty after sanitization.")
+            eprint_error({
+                "status": "error",
+                "error_code": "INVALID_PATH_ERROR",
+                "message": "Provided --temp-dir path is empty after removing quotes and spaces.",
+            })
+            sys.exit(1)
 
         temp_dir_path = Path(args.temp_dir)
         temp_dir_path.mkdir(parents=True, exist_ok=True)
@@ -308,9 +335,7 @@ def main() -> None:
         try:
             create_discovery_file(fetcher.fetched_files_map, temp_dir_path)
         except IOError as e:
-            # This is a critical error, might be better to raise or handle
             logger.error("Could not write discovery.json: %s", e)
-            # For now, we will let the program exit via an exception if this fails.
             raise
 
         # Print final JSON report to stdout

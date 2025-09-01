@@ -1,37 +1,37 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import sys
+import subprocess
 import os
-from pathlib import Path
+import shutil
 
-# Add the tools directory to the Python path
-sys.path.append(str(Path(__file__).parent.parent.parent / 'tools'))
+relative_path = "test case 5 dir"
+test_dir = os.path.join("cache", relative_path)
 
-from make_cache_dir import make_cache_dir
+# Clean up before the test
+cache_base = "cache"
+if not os.path.exists(cache_base):
+    os.makedirs(cache_base)
+if os.path.exists(test_dir):
+    shutil.rmtree(test_dir)
 
-def test_case_5():
-    """
-    Test case 5: A path with special characters.
-    """
-    test_path = "!@#$%^&()"
-    make_cache_dir(test_path)
+# Run the script
+try:
+    print(f"Running test for path with internal spaces: '{relative_path}'")
+    subprocess.run(
+        ["python", "tools/make_cache_dir.py", "--relative-path", relative_path],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding='utf-8'
+    )
+except subprocess.CalledProcessError as e:
+    print(f"Test failed: Script returned non-zero exit code {e.returncode}.")
+    print(f"Stdout: {e.stdout}")
+    print(f"Stderr: {e.stderr}")
+    exit(1)
 
-    # Verification
-    cache_dir = Path("cache") / test_path
-    if cache_dir.exists() and cache_dir.is_dir():
-        print(f"Test Case 5 Passed: Directory '{cache_dir}' created successfully.")
-        # Clean up
-        try:
-            os.rmdir(cache_dir)
-        except OSError as e:
-            # Handle cases where the shell might have issues with special characters in rmdir
-            import subprocess
-            subprocess.run(['rm', '-rf', str(cache_dir)])
-            print(f"Cleaned up with rm -rf due to {e}")
+# Verify that the directory was created
+assert os.path.isdir(test_dir), f"Assertion Failed: Directory '{test_dir}' was not created."
 
-    else:
-        print(f"Test Case 5 Failed: Directory '{cache_dir}' was not created.")
-        sys.exit(1)
+print(f"Test passed: Directory '{test_dir}' was created successfully.")
 
-if __name__ == "__main__":
-    test_case_5()
+# Clean up after the test
+shutil.rmtree(test_dir)

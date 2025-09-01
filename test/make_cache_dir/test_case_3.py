@@ -1,31 +1,37 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import sys
+import subprocess
 import os
 import shutil
-from pathlib import Path
 
-# Add the tools directory to the Python path
-sys.path.append(str(Path(__file__).parent.parent.parent / 'tools'))
+# Define the path we are testing with
+relative_path = ""
+cache_dir = "cache"
 
-from make_cache_dir import make_cache_dir
+# Clean up cache dir before test
+if os.path.exists(cache_dir):
+    # Recreate a clean empty cache directory
+    shutil.rmtree(cache_dir)
+os.makedirs(cache_dir)
 
-def test_case_3():
-    """
-    Test case 3: A nested relative path.
-    """
-    test_path = "nested/test/dir"
-    make_cache_dir(test_path)
+# Run the script
+try:
+    print(f"Running test for empty string path...")
+    subprocess.run(
+        ["python", "tools/make_cache_dir.py", "--relative-path", relative_path],
+        check=True, # Should succeed with exit code 0
+        capture_output=True,
+        text=True,
+        encoding='utf-8'
+    )
+except subprocess.CalledProcessError as e:
+    print(f"Test failed: Script returned non-zero exit code {e.returncode}.")
+    print(f"Stdout: {e.stdout}")
+    print(f"Stderr: {e.stderr}")
+    exit(1)
 
-    # Verification
-    cache_dir = Path("cache") / test_path
-    if cache_dir.exists() and cache_dir.is_dir():
-        print(f"Test Case 3 Passed: Directory '{cache_dir}' created successfully.")
-        # Clean up
-        shutil.rmtree(Path("cache") / "nested")
-    else:
-        print(f"Test Case 3 Failed: Directory '{cache_dir}' was not created.")
-        sys.exit(1)
+# Verify that the cache directory is still empty
+assert len(os.listdir(cache_dir)) == 0, f"Assertion Failed: Directory '{cache_dir}' should be empty but is not."
 
-if __name__ == "__main__":
-    test_case_3()
+print(f"Test passed: Script handled empty string correctly and created no directory.")
+
+# Clean up after the test
+shutil.rmtree(cache_dir)

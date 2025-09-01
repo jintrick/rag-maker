@@ -1,34 +1,34 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import sys
+import subprocess
 import os
-from pathlib import Path
+import shutil
 
-# Add the tools directory to the Python path
-sys.path.append(str(Path(__file__).parent.parent.parent / 'tools'))
+relative_path = os.path.join("test_case_2_dir", "subdir")
+test_dir = os.path.join("cache", relative_path)
 
-from make_cache_dir import make_cache_dir
+# Clean up before the test, remove the top-level test dir
+if os.path.exists(os.path.join("cache", "test_case_2_dir")):
+    shutil.rmtree(os.path.join("cache", "test_case_2_dir"))
 
-def test_case_2():
-    """
-    Test case 2: An existing relative path.
-    """
-    test_path = "existing_dir"
-    cache_dir = Path("cache") / test_path
+# Run the script
+try:
+    print(f"Running test for {relative_path}...")
+    subprocess.run(
+        ["python", "tools/make_cache_dir.py", "--relative-path", relative_path],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding='utf-8'
+    )
+except subprocess.CalledProcessError as e:
+    print(f"Test failed: Script returned non-zero exit code {e.returncode}.")
+    print(f"Stdout: {e.stdout}")
+    print(f"Stderr: {e.stderr}")
+    exit(1)
 
-    # Create the directory first
-    cache_dir.mkdir(parents=True, exist_ok=True)
+# Verify that the directory was created
+assert os.path.isdir(test_dir), f"Assertion Failed: Directory '{test_dir}' was not created."
 
-    make_cache_dir(test_path)
+print(f"Test passed: Directory '{test_dir}' was created successfully.")
 
-    # Verification
-    if cache_dir.exists() and cache_dir.is_dir():
-        print(f"Test Case 2 Passed: Directory '{cache_dir}' still exists.")
-        # Clean up
-        os.rmdir(cache_dir)
-    else:
-        print(f"Test Case 2 Failed: Directory '{cache_dir}' was removed or not found.")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    test_case_2()
+# Clean up after the test
+shutil.rmtree(os.path.join("cache", "test_case_2_dir"))

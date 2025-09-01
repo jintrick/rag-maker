@@ -1,43 +1,37 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import sys
+import subprocess
+import os
 import shutil
-from pathlib import Path
 
-# Add the tools directory to the Python path
-sys.path.append(str(Path(__file__).parent.parent.parent / 'tools'))
+# Define the path we are testing with
+relative_path = " "
+cache_dir = "cache"
 
-from make_cache_dir import make_cache_dir
+# Clean up cache dir before test
+if os.path.exists(cache_dir):
+    # Recreate a clean empty cache directory
+    shutil.rmtree(cache_dir)
+os.makedirs(cache_dir)
 
-def test_case_4():
-    """
-    Test case 4: An empty path.
-    """
-    test_path = ""
-    cache_dir = Path("cache")
+# Run the script
+try:
+    print(f"Running test for path containing only a space...")
+    subprocess.run(
+        ["python", "tools/make_cache_dir.py", "--relative-path", relative_path],
+        check=True, # Should succeed with exit code 0
+        capture_output=True,
+        text=True,
+        encoding='utf-8'
+    )
+except subprocess.CalledProcessError as e:
+    print(f"Test failed: Script returned non-zero exit code {e.returncode}.")
+    print(f"Stdout: {e.stdout}")
+    print(f"Stderr: {e.stderr}")
+    exit(1)
 
-    # Ensure the cache directory does not exist before the test
-    if cache_dir.exists():
-        # Get a list of contents to see if anything changes
-        # This is safer than deleting the whole cache dir
-        before_contents = list(cache_dir.iterdir())
-    else:
-        before_contents = []
+# Verify that the cache directory is still empty, as the path should be trimmed to nothing
+assert len(os.listdir(cache_dir)) == 0, f"Assertion Failed: Directory '{cache_dir}' should be empty but is not."
 
-    make_cache_dir(test_path)
+print(f"Test passed: Script handled space-only path correctly and created no directory.")
 
-    # Verification
-    # The function should not create the cache directory or change its contents.
-    if cache_dir.exists():
-        after_contents = list(cache_dir.iterdir())
-    else:
-        after_contents = []
-
-    if before_contents == after_contents:
-        print(f"Test Case 4 Passed: No directory was created for an empty path.")
-    else:
-        print(f"Test Case 4 Failed: The cache directory contents changed for an empty path.")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    test_case_4()
+# Clean up after the test
+shutil.rmtree(cache_dir)

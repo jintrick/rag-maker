@@ -144,13 +144,13 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "relative_path": {
+          "relative-path": {
             "type": "string",
             "description": "cache/内に作成するディレクトリの相対パス。"
           }
         },
         "required": [
-          "relative_path"
+          "relative-path"
         ]
       }
     }

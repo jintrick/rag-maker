@@ -9,3 +9,4 @@ test_data/
 **/.chroma/
 .tmp/
 .cache/
+cache/
