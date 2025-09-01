@@ -1,7 +1,7 @@
 {
   "documents": [
     {
-      "path": ".cache/google-gemini/gemini-cli/",
+      "path": ".cache/google-gemini/",
       "title": "Gemini CLI Documentation",
       "summary": "A RAG database containing the full documentation for the Gemini CLI.",
       "src_type": "github"
@@ -10,6 +10,12 @@
       "path": ".cache/jules-docs/",
       "title": "jules Documentation",
       "summary": "GitHubに接続しPRできるコーディングエージェント、Julesに関するドキュメントです。",
+      "src_type": "web"
+    },
+    {
+      "path": "cache/jules.google_md/",
+      "title": "Julesドキュメント (Web)",
+      "summary": "Julesの公式Webサイトから取得したドキュメントセット。Julesの利用開始、エラー対処、タスク実行、コードレビュー、リポジトリ管理、FAQ、変更履歴、環境設定、フィードバック、プランのレビュー、利用制限とプランに関する情報が含まれます。",
       "src_type": "web"
     }
   ],
