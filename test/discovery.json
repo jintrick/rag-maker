@@ -1,0 +1,147 @@
+{
+  "documents": [
+    {
+      "path": ".cache/google-gemini/gemini-cli/",
+      "title": "Gemini CLI Documentation",
+      "summary": "A RAG database containing the full documentation for the Gemini CLI.",
+      "src_type": "github"
+    },
+    {
+      "path": ".cache/jules-docs/",
+      "title": "jules Documentation",
+      "summary": "GitHubに接続しPRできるコーディングエージェント、Julesに関するドキュメントです。",
+      "src_type": "web"
+    },
+    {
+      "path": ".cache/test/doc",
+      "title": "Test Document",
+      "summary": "This is a test document.",
+      "src_type": "local"
+    }
+  ],
+  "handles": {},
+  "tools": [
+    {
+      "name": "http_fetch",
+      "path": "tools/http_fetch.py",
+      "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "取得対象のWebページのURL。"
+          },
+          "base-url": {
+            "type": "string",
+            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
+          },
+          "temp-dir": {
+            "type": "string",
+            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。"
+          },
+          "recursive": {
+            "type": "boolean",
+            "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
+            "default": true
+          },
+          "depth": {
+            "type": "integer",
+            "description": "再帰探索の最大深度。",
+            "default": 5
+          }
+        },
+        "required": [
+          "url",
+          "base-url",
+          "temp-dir"
+        ]
+      }
+    },
+    {
+      "name": "html_to_markdown",
+      "path": "tools/html_to_markdown.py",
+      "description": "HTMLファイルをMarkdownに変換し、コンテンツを抽出し、リンクを修正するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "input-dir": {
+            "type": "string",
+            "description": "HTMLファイルが含まれる入力ディレクトリ。"
+          },
+          "output-dir": {
+            "type": "string",
+            "description": "Markdownファイルの出力ディレクトリ。"
+          },
+          "base-url": {
+            "type": "string",
+            "description": "相対リンクを絶対リンクに変換するためのベースURL。"
+          }
+        },
+        "required": [
+          "input-dir",
+          "output-dir"
+        ]
+      }
+    },
+    {
+      "name": "ask_dir",
+      "path": "tools/ask_dir.py",
+      "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
+      "parameters": {}
+    },
+    {
+      "name": "github_fetch",
+      "path": "tools/github_fetch.py",
+      "description": "GitHubリポジトリから特定パスのドキュメントを取得し、ファイルとして保存するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repo-url": {
+            "type": "string",
+            "description": "取得対象のGitHubリポジトリのURL。"
+          },
+          "path-in-repo": {
+            "type": "string",
+            "description": "リポジトリ内で収集対象とするディレクトリまたはファイルのパス。"
+          },
+          "temp-dir": {
+            "type": "string",
+            "description": "取得したファイルを保存するディレクトリのパス。"
+          },
+          "branch": {
+            "type": "string",
+            "description": "取得対象のブランチ名。指定されない場合、リポジトリのデフォルトブランチが使われる。"
+          }
+        },
+        "required": [
+          "repo-url",
+          "path-in-repo",
+          "temp-dir"
+        ]
+      }
+    },
+    {
+      "name": "file_sync",
+      "path": "tools/file_sync.py",
+      "description": "指定されたコピー元ディレクトリの内容を、コピー先ディレクトリに高速にコピーするツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source-dir": {
+            "type": "string",
+            "description": "コピー元のディレクトリパス。"
+          },
+          "dest-dir": {
+            "type": "string",
+            "description": "コピー先のディレクトリパス。"
+          }
+        },
+        "required": [
+          "source-dir",
+          "dest-dir"
+        ]
+      }
+    }
+  ]
+}

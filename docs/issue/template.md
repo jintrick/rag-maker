@@ -2,6 +2,8 @@
 
 ## 前提知識
 - docs/Architecture/Architecture.md
+- .gemini/commands/rag.toml
+- .gemini/commands/ask.toml
 
 ## 現状の問題点
 
