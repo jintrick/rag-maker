@@ -2,18 +2,18 @@ import unittest
 import json
 import os
 import sys
-from unittest.mock import patch, mock_open, ANY
+import io
+from unittest.mock import patch, mock_open
 
-# tools ディレクトリを sys.path に追加
+# Add tools directory to sys.path for importing the script under test
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tools')))
 
-# entry_discovery モジュールをインポート
-import entry_discovery # tools/entry_discovery.py がモジュールとしてインポートされる
+import entry_discovery
 
 class TestEntryDiscovery(unittest.TestCase):
 
     def setUp(self):
-        # テスト用のdiscovery.jsonの初期状態
+        """Set up a mock discovery.json content for each test."""
         self.initial_discovery_json = {
             "documents": [
                 {
@@ -30,88 +30,106 @@ class TestEntryDiscovery(unittest.TestCase):
             "handles": {},
             "tools": []
         }
-        # mock_open の read_data に初期JSON文字列を設定
         self.mock_file_content = json.dumps(self.initial_discovery_json, indent=2)
 
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('os.path.join', return_value='mocked_discovery.json')
-    def test_add_new_entry(self, mock_join, mock_open_func):
-        # open() が呼ばれたときに、初期JSONを返すように設定
-        mock_open_func.return_value.read.return_value = self.mock_file_content
+    @patch('sys.argv', [
+        'tools/entry_discovery.py',
+        '--path', '.cache/new_doc/',
+        '--src-type', 'web',
+        '--title', 'New Document',
+        '--summary', 'This is a new document.',
+        '--source-url', 'https://example.com/new'
+    ])
+    @patch('pathlib.Path.exists', return_value=True)
+    @patch('builtins.open')
+    def test_add_new_entry(self, mock_open_func, mock_path_exists):
+        """Test adding a new document entry."""
+        m_open = mock_open(read_data=self.mock_file_content)
+        mock_open_func.side_effect = m_open
 
-        test_path = ".cache/new_doc/"
-        test_title = "New Document"
-        test_summary = "This is a new document."
-        test_src_type = "web"
-        test_source_url = "https://example.com/new"
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            entry_discovery.main()
 
-        # entry_discovery モジュール内の entry_discovery 関数を呼び出す
-        entry_discovery.entry_discovery(test_path, test_title, test_summary, test_src_type, test_source_url)
+            handle = m_open()
+            self.assertTrue(handle.write.called, "File write was not called.")
 
-        # open() が 'r+' モードで呼ばれたことを確認
-        mock_open_func.assert_called_with('mocked_discovery.json', 'r+', encoding='utf-8')
+            written_content = "".join(call.args[0] for call in handle.write.call_args_list)
+            written_data = json.loads(written_content)
 
-        # 書き込まれた内容を検証
-        written_content = mock_open_func.return_value.write.call_args[0][0]
-        written_data = json.loads(written_content)
+            self.assertEqual(len(written_data['documents']), 2)
+            new_entry = written_data['documents'][1]
+            self.assertEqual(new_entry['path'], '.cache/new_doc/')
+            self.assertEqual(new_entry['title'], 'New Document')
+            self.assertEqual(new_entry['source_info']['url'], 'https://example.com/new')
+            self.assertIn('fetched_at', new_entry['source_info'])
+            self.assertIsInstance(new_entry['source_info']['fetched_at'], str)
 
-        self.assertEqual(len(written_data['documents']), 2)
-        self.assertIn({
-            "path": test_path,
-            "title": test_title,
-            "summary": test_summary,
-            "src_type": test_src_type,
-            "source_info": {
-                "url": test_source_url,
-                "fetched_at": ANY
-            }
-        }, written_data['documents'])
+            output_json = json.loads(mock_stdout.getvalue())
+            self.assertEqual(output_json['status'], 'success')
+            self.assertEqual(output_json['message'], 'Entry added successfully.')
+            self.assertEqual(output_json['entry'], new_entry)
 
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('os.path.join', return_value='mocked_discovery.json')
-    def test_update_existing_entry(self, mock_join, mock_open_func):
-        # open() が呼ばれたときに、初期JSONを返すように設定
-        mock_open_func.return_value.read.return_value = self.mock_file_content
+    @patch('sys.argv', [
+        'tools/entry_discovery.py',
+        '--path', '.cache/existing_doc/',
+        '--src-type', 'github',
+        '--title', 'Updated Document',
+        '--summary', 'This is an updated document.',
+        '--source-url', 'https://github.com/user/repo.git'
+    ])
+    @patch('pathlib.Path.exists', return_value=True)
+    @patch('builtins.open')
+    def test_update_existing_entry(self, mock_open_func, mock_path_exists):
+        """Test updating an existing document entry."""
+        m_open = mock_open(read_data=self.mock_file_content)
+        mock_open_func.side_effect = m_open
 
-        test_path = ".cache/existing_doc/"
-        test_title = "Updated Document"
-        test_summary = "This is an updated existing document."
-        test_src_type = "github"
-        test_source_url = "https://github.com/user/repo.git"
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            entry_discovery.main()
 
-        # entry_discovery モジュール内の entry_discovery 関数を呼び出す
-        entry_discovery.entry_discovery(test_path, test_title, test_summary, test_src_type, test_source_url)
+            handle = m_open()
+            self.assertTrue(handle.write.called)
+            written_content = "".join(call.args[0] for call in handle.write.call_args_list)
+            written_data = json.loads(written_content)
 
-        # 書き込まれた内容を検証
-        written_content = mock_open_func.return_value.write.call_args[0][0]
-        written_data = json.loads(written_content)
+            self.assertEqual(len(written_data['documents']), 1)
+            updated_entry = written_data['documents'][0]
+            self.assertEqual(updated_entry['title'], 'Updated Document')
+            self.assertEqual(updated_entry['src_type'], 'github')
+            self.assertEqual(updated_entry['source_info']['url'], 'https://github.com/user/repo.git')
+            self.assertNotEqual(updated_entry['source_info']['fetched_at'], "2023-01-01T00:00:00Z")
 
-        self.assertEqual(len(written_data['documents']), 1) # エントリ数は変わらない
-        self.assertEqual(written_data['documents'][0], {
-            "path": test_path,
-            "title": test_title,
-            "summary": test_summary,
-            "src_type": test_src_type,
-            "source_info": {
-                "url": test_source_url,
-                "fetched_at": ANY
-            }
-        })
+            output_json = json.loads(mock_stdout.getvalue())
+            self.assertEqual(output_json['status'], 'success')
+            self.assertEqual(output_json['message'], 'Entry updated successfully.')
+            self.assertEqual(output_json['entry'], updated_entry)
 
-    @patch('builtins.open', side_effect=FileNotFoundError)
-    @patch('os.path.join', return_value='mocked_discovery.json')
-    @patch('builtins.print') # print出力をキャプチャ
-    def test_file_not_found_error(self, mock_print, mock_join, mock_open_func):
-        entry_discovery.entry_discovery("path", "title", "summary", "type", "url")
-        mock_print.assert_called_with("Error: discovery.json not found at mocked_discovery.json")
+    @patch('sys.argv', [
+        'tools/entry_discovery.py',
+        '--path', '.cache/new_doc/',
+        '--src-type', 'local',
+        '--title', 'New File Entry',
+        '--summary', 'Summary.',
+        '--source-url', './local/new'
+    ])
+    @patch('pathlib.Path.exists', return_value=False)
+    @patch('builtins.open')
+    def test_create_new_discovery_file(self, mock_open_func, mock_path_exists):
+        """Test that a new discovery.json is created if one doesn't exist."""
+        m_open = mock_open()
+        mock_open_func.side_effect = m_open
 
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('os.path.join', return_value='mocked_discovery.json')
-    @patch('builtins.print') # print出力をキャプチャ
-    def test_json_decode_error(self, mock_print, mock_join, mock_open_func):
-        mock_open_func.return_value.read.return_value = "invalid json" # 不正なJSON
-        entry_discovery.entry_discovery("path", "title", "summary", "type", "url")
-        mock_print.assert_called_with("Error: Could not decode JSON from mocked_discovery.json. Check file format.")
+        with patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
+            entry_discovery.main()
+
+            handle = m_open()
+            self.assertTrue(handle.write.called)
+            written_content = "".join(call.args[0] for call in handle.write.call_args_list)
+            written_data = json.loads(written_content)
+
+            self.assertEqual(len(written_data['documents']), 1)
+            self.assertEqual(written_data['documents'][0]['title'], 'New File Entry')
+            self.assertIn('tools', written_data)
 
 if __name__ == '__main__':
     unittest.main()

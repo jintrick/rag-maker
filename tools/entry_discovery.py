@@ -11,6 +11,7 @@ import json
 import logging
 import sys
 from pathlib import Path
+from datetime import datetime, timezone
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -40,11 +41,10 @@ def update_root_discovery_file(root_discovery_path: Path, new_entry: dict):
 
         documents = data.get("documents", [])
         entry_path = new_entry["path"]
-        entry_src_type = new_entry["src_type"]
 
         found_index = -1
         for i, doc in enumerate(documents):
-            if doc.get("path") == entry_path and doc.get("src_type") == entry_src_type:
+            if doc.get("path") == entry_path:
                 found_index = i
                 break
 
@@ -75,18 +75,25 @@ def main():
     parser.add_argument("--src-type", required=True, help="The source type (e.g., local, web, github).")
     parser.add_argument("--title", required=True, help="The title for the document collection.")
     parser.add_argument("--summary", required=True, help="The summary for the document collection.")
+    parser.add_argument("--source-url", required=True, help="The original source URL or path for the document.")
 
     try:
         args = parser.parse_args()
 
         root_discovery_file = Path("discovery.json")
 
+        source_info = {
+            "url": args.source_url,
+            "fetched_at": datetime.now(timezone.utc).isoformat()
+        }
+
         # 1. Prepare the new entry for the root discovery file
         new_document_entry = {
             "path": args.path,
             "title": args.title,
             "summary": args.summary,
-            "src_type": args.src_type
+            "src_type": args.src_type,
+            "source_info": source_info
         }
 
         # 2. Update the root discovery file
