@@ -9,7 +9,7 @@
     {
       "path": "cache/jules.google/",
       "title": "Jules Documentation",
-      "summary": "",
+      "summary": "Comprehensive documentation for Jules, an experimental coding agent, covering setup, task execution, features, usage, and troubleshooting.",
       "src_type": "web"
     },
     {
@@ -17,6 +17,12 @@
       "title": "Getting started",
       "summary": "Julesは、バグ修正、ドキュメント追加、新機能開発を支援する実験的なコーディングエージェントです。GitHubと連携し、コードベースを理解し、非同期で動作します。このガイドでは、Julesのセットアップ方法、GitHubアカウントの接続、最初のタスクの開始方法、AGENTS.mdファイルの活用、通知設定について説明しています。",
       "src_type": "web"
+    },
+    {
+      "path": ".tmp/test_cache/",
+      "title": "New Test Document Title",
+      "summary": "This is a new test summary for the document.",
+      "src_type": "test_source"
     }
   ],
   "handles": {},
