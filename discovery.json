@@ -13,239 +13,239 @@
       "src_type": "web"
     },
     {
-  "documents": [
-    {
-      "path": ".cache/google-gemini/",
-      "title": "Gemini CLI Documentation",
-      "summary": "A RAG database containing the full documentation for the Gemini CLI.",
-      "src_type": "github"
-    },
-    {
-      "path": "cache/jules.google/",
-      "title": "Jules Documentation",
-      "summary": "Comprehensive documentation for Jules, an experimental coding agent, covering setup, task execution, features, usage, and troubleshooting.",
-      "src_type": "web"
-    },
-    {
-      "path": "C:\\Synology Drive\\2way-sync\\work\\rag-maker\\cache\\jules.google",
-      "title": "Getting started",
-      "summary": "Julesは、バグ修正、ドキュメント追加、新機能開発を支援する実験的なコーディングエージェントです。GitHubと連携し、コードベースを理解し、非同期で動作します。このガイドでは、Julesのセットアップ方法、GitHubアカウントの接続、最初のタスクの開始方法、AGENTS.mdファイルの活用、通知設定について説明しています。",
-      "src_type": "web"
-    },
-    {
-      "path": ".tmp/test_cache/",
-      "title": "New Test Document Title",
-      "summary": "This is a new test summary for the document.",
-      "src_type": "test_source"
-    },
-    {
-      "path": "C:\\Synology Drive\\2way-sync\\work\\rag-maker\\cache\\developers.google.com\\gemini-code-assist",
-      "title": "Gemini Code Assist Documentation",
-      "summary": "Comprehensive documentation for Gemini Code Assist, covering setup, features, tools, and troubleshooting.",
-      "src_type": "web",
-      "source_info": {
-        "url": "https://developers.google.com/gemini-code-assist/docs/overview",
-        "fetched_at": "2025-09-03T01:11:20.571885+00:00"
-      }
-    }
-  ],
-  "handles": {},
-  "tools": [
-    {
-      "name": "http_fetch",
-      "path": "tools/http_fetch.py",
-      "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string",
-            "description": "取得対象のWebページのURL。"
-          },
-          "base-url": {
-            "type": "string",
-            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
-          },
-          "temp-dir": {
-            "type": "string",
-            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。"
-          },
-          "recursive": {
-            "type": "boolean",
-            "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
-            "default": true
-          },
-          "depth": {
-            "type": "integer",
-            "description": "再帰探索の最大深度。",
-            "default": 5
+      "documents": [
+        {
+          "path": ".cache/google-gemini/",
+          "title": "Gemini CLI Documentation",
+          "summary": "A RAG database containing the full documentation for the Gemini CLI.",
+          "src_type": "github"
+        },
+        {
+          "path": "cache/jules.google/",
+          "title": "Jules Documentation",
+          "summary": "Comprehensive documentation for Jules, an experimental coding agent, covering setup, task execution, features, usage, and troubleshooting.",
+          "src_type": "web"
+        },
+        {
+          "path": "C:\\Synology Drive\\2way-sync\\work\\rag-maker\\cache\\jules.google",
+          "title": "Getting started",
+          "summary": "Julesは、バグ修正、ドキュメント追加、新機能開発を支援する実験的なコーディングエージェントです。GitHubと連携し、コードベースを理解し、非同期で動作します。このガイドでは、Julesのセットアップ方法、GitHubアカウントの接続、最初のタスクの開始方法、AGENTS.mdファイルの活用、通知設定について説明しています。",
+          "src_type": "web"
+        },
+        {
+          "path": ".tmp/test_cache/",
+          "title": "New Test Document Title",
+          "summary": "This is a new test summary for the document.",
+          "src_type": "test_source"
+        },
+        {
+          "path": "C:\\Synology Drive\\2way-sync\\work\\rag-maker\\cache\\developers.google.com\\gemini-code-assist",
+          "title": "Gemini Code Assist Documentation",
+          "summary": "Comprehensive documentation for Gemini Code Assist, covering setup, features, tools, and troubleshooting.",
+          "src_type": "web",
+          "source_info": {
+            "url": "https://developers.google.com/gemini-code-assist/docs/overview",
+            "fetched_at": "2025-09-03T01:11:20.571885+00:00"
+          }
+        }
+      ],
+      "handles": {},
+      "tools": [
+        {
+          "name": "http_fetch",
+          "path": "tools/http_fetch.py",
+          "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "取得対象のWebページのURL。"
+              },
+              "base-url": {
+                "type": "string",
+                "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
+              },
+              "temp-dir": {
+                "type": "string",
+                "description": "変換結果のHTML文書を一時的に出力するディレクトリ。"
+              },
+              "recursive": {
+                "type": "boolean",
+                "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
+                "default": true
+              },
+              "depth": {
+                "type": "integer",
+                "description": "再帰探索の最大深度。",
+                "default": 5
+              }
+            },
+            "required": [
+              "url",
+              "base-url",
+              "temp-dir"
+            ]
           }
         },
-        "required": [
-          "url",
-          "base-url",
-          "temp-dir"
-        ]
-      }
-    },
-    {
-      "name": "html_to_markdown",
-      "path": "tools/html_to_markdown.py",
-      "description": "HTMLファイルをMarkdownに変換し、コンテンツを抽出し、リンクを修正するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "input-dir": {
-            "type": "string",
-            "description": "HTMLファイルが含まれる入力ディレクトリ。"
-          },
-          "output-dir": {
-            "type": "string",
-            "description": "Markdownファイルの出力ディレクトリ。"
-          },
-          "base-url": {
-            "type": "string",
-            "description": "相対リンクを絶対リンクに変換するためのベースURL。"
+        {
+          "name": "html_to_markdown",
+          "path": "tools/html_to_markdown.py",
+          "description": "HTMLファイルをMarkdownに変換し、コンテンツを抽出し、リンクを修正するツール。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "input-dir": {
+                "type": "string",
+                "description": "HTMLファイルが含まれる入力ディレクトリ。"
+              },
+              "output-dir": {
+                "type": "string",
+                "description": "Markdownファイルの出力ディレクトリ。"
+              },
+              "base-url": {
+                "type": "string",
+                "description": "相対リンクを絶対リンクに変換するためのベースURL。"
+              }
+            },
+            "required": [
+              "input-dir",
+              "output-dir"
+            ]
           }
         },
-        "required": [
-          "input-dir",
-          "output-dir"
-        ]
-      }
-    },
-    {
-      "name": "ask_dir",
-      "path": "tools/ask_dir.py",
-      "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
-      "parameters": {}
-    },
-    {
-      "name": "github_fetch",
-      "path": "tools/github_fetch.py",
-      "description": "GitHubリポジトリから特定パスのドキュメントを取得し、ファイルとして保存するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "repo-url": {
-            "type": "string",
-            "description": "取得対象のGitHubリポジリのURL。"
-          },
-          "path-in-repo": {
-            "type": "string",
-            "description": "リポジトリ内で収集対象とするディレクトリまたはファイルのパス。"
-          },
-          "temp-dir": {
-            "type": "string",
-            "description": "取得したファイルを保存するディレクトリのパス。"
-          },
-          "branch": {
-            "type": "string",
-            "description": "取得対象のブランチ名。指定されない場合、リポジトリのデフォルトブランチが使われる。"
+        {
+          "name": "ask_dir",
+          "path": "tools/ask_dir.py",
+          "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
+          "parameters": {}
+        },
+        {
+          "name": "github_fetch",
+          "path": "tools/github_fetch.py",
+          "description": "GitHubリポジトリから特定パスのドキュメントを取得し、ファイルとして保存するツール。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "repo-url": {
+                "type": "string",
+                "description": "取得対象のGitHubリポジリのURL。"
+              },
+              "path-in-repo": {
+                "type": "string",
+                "description": "リポジトリ内で収集対象とするディレクトリまたはファイルのパス。"
+              },
+              "temp-dir": {
+                "type": "string",
+                "description": "取得したファイルを保存するディレクトリのパス。"
+              },
+              "branch": {
+                "type": "string",
+                "description": "取得対象のブランチ名。指定されない場合、リポジトリのデフォルトブランチが使われる。"
+              }
+            },
+            "required": [
+              "repo-url",
+              "path-in-repo",
+              "temp-dir"
+            ]
           }
         },
-        "required": [
-          "repo-url",
-          "path-in-repo",
-          "temp-dir"
-        ]
-      }
-    },
-    {
-      "name": "file_sync",
-      "path": "tools/file_sync.py",
-      "description": "指定されたコピー元ディレクトリの内容を、コピー先ディレクトリに高速にコピーするツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "source-dir": {
-            "type": "string",
-            "description": "コピー元のディレクトリパス。"
-          },
-          "dest-dir": {
-            "type": "string",
-            "description": "コピー先のディレクトリパス。"
+        {
+          "name": "file_sync",
+          "path": "tools/file_sync.py",
+          "description": "指定されたコピー元ディレクトリの内容を、コピー先ディレクトリに高速にコピーするツール。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "source-dir": {
+                "type": "string",
+                "description": "コピー元のディレクトリパス。"
+              },
+              "dest-dir": {
+                "type": "string",
+                "description": "コピー先のディレクトリパス。"
+              }
+            },
+            "required": [
+              "source-dir",
+              "dest-dir"
+            ]
           }
         },
-        "required": [
-          "source-dir",
-          "dest-dir"
-        ]
-      }
-    },
-    {
-      "name": "make_cache_dir",
-      "path": "tools/make_cache_dir.py",
-      "description": "キャッシュディレクトリを安全に作成するツール。パスにスペースが含まれていても正しく処理します。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "relative-path": {
-            "type": "string",
-            "description": "cache/内に作成するディレクトリの相対パス。"
+        {
+          "name": "make_cache_dir",
+          "path": "tools/make_cache_dir.py",
+          "description": "キャッシュディレクトリを安全に作成するツール。パスにスペースが含まれていても正しく処理します。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "relative-path": {
+                "type": "string",
+                "description": "cache/内に作成するディレクトリの相対パス。"
+              }
+            },
+            "required": [
+              "relative-path"
+            ]
           }
         },
-        "required": [
-          "relative-path"
-        ]
-      }
-    },
-    {
-      "name": "entry_discovery",
-      "path": "tools/entry_discovery.py",
-      "description": "ドキュメントをシステムに登録するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "description": "登録対象のドキュメントが格納されているキャッシュディレクトリの絶対パス。"
-          },
-          "title": {
-            "type": "string",
-            "description": "登録するドキュメント群全体のタイトル。"
-          },
-          "summary": {
-            "type": "string",
-            "description": "登録するドキュメント群全体の要約。"
-          },
-          "src-type": {
-            "type": "string",
-            "description": "ソースのタイプ（例: github, web, localなど）。"
-          },
-          "source-url": {
-            "type": "string",
-            "description": "ドキュメントの元のソースURLまたはパス。"
+        {
+          "name": "entry_discovery",
+          "path": "tools/entry_discovery.py",
+          "description": "ドキュメントをシステムに登録するツール。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "登録対象のドキュメントが格納されているキャッシュディレクトリの絶対パス。"
+              },
+              "title": {
+                "type": "string",
+                "description": "登録するドキュメント群全体のタイトル。"
+              },
+              "summary": {
+                "type": "string",
+                "description": "登録するドキュメント群全体の要約。"
+              },
+              "src-type": {
+                "type": "string",
+                "description": "ソースのタイプ（例: github, web, localなど）。"
+              },
+              "source-url": {
+                "type": "string",
+                "description": "ドキュメントの元のソースURLまたはパス。"
+              }
+            },
+            "required": [
+              "path",
+              "title",
+              "summary",
+              "src-type",
+              "source-url"
+            ]
           }
         },
-        "required": [
-          "path",
-          "title",
-          "summary",
-          "src-type",
-          "source-url"
-        ]
-      }
-    },
-    {
-      "name": "cache_cleanup",
-      "path": "tools/cache_cleanup.py",
-      "description": "指定されたキャッシュディレクトリ内のMarkdownファイルとdiscovery.json以外のすべてのファイルおよびディレクトリを削除するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "target-dir": {
-            "type": "string",
-            "description": "クリーンアップ対象のキャッシュディレクトリのパス。"
+        {
+          "name": "cache_cleanup",
+          "path": "tools/cache_cleanup.py",
+          "description": "指定されたキャッシュディレクトリ内のMarkdownファイルとdiscovery.json以外のすべてのファイルおよびディレクトリを削除するツール。",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "target-dir": {
+                "type": "string",
+                "description": "クリーンアップ対象のキャッシュディレクトリのパス。"
+              }
+            },
+            "required": [
+              "target-dir"
+            ]
           }
-        },
-        "required": [
-          "target-dir"
-        ]
-      }
-    }
-  ]
-},
+        }
+      ]
+    },
     {
       "path": ".tmp/test_cache/",
       "title": "New Test Document Title",
