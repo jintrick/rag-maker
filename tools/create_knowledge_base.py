@@ -56,15 +56,24 @@ def create_knowledge_base(kb_root: Path):
         cache_dir.mkdir(exist_ok=True)
         logger.info(f"Created cache directory at {cache_dir.resolve()}")
 
-        # 4. Create the initial discovery.json
-        discovery_path = kb_root / "discovery.json"
-        # This file serves as a DOCUMENT catalog, not a tool catalog.
-        initial_discovery_content = {
-            "documents": []
-        }
-        with open(discovery_path, 'w', encoding='utf-8') as f:
-            json.dump(initial_discovery_content, f, ensure_ascii=False, indent=2)
-        logger.info(f"Created initial discovery.json at {discovery_path.resolve()}")
+        # 4. Copy the root discovery.json to serve as a template for the new knowledge base.
+        source_discovery_json = project_root / "discovery.json"
+        dest_discovery_json = kb_root / "discovery.json"
+
+        if not source_discovery_json.is_file():
+            raise FileNotFoundError(f"Source discovery.json not found at {source_discovery_json}")
+
+        shutil.copy2(source_discovery_json, dest_discovery_json)
+        logger.info(f"Copied discovery.json template to {dest_discovery_json.resolve()}")
+
+        # After copying, clear the 'documents' list to ensure the new KB is empty.
+        with open(dest_discovery_json, 'r+', encoding='utf-8') as f:
+            data = json.load(f)
+            data['documents'] = []
+            f.seek(0)
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.truncate()
+        logger.info(f"Cleared 'documents' list in new discovery.json")
 
     except (IOError, OSError, FileNotFoundError) as e:
         eprint_error({
