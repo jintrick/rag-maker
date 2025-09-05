@@ -35,17 +35,21 @@ def create_knowledge_base(kb_root: Path):
         kb_root.mkdir(parents=True, exist_ok=True)
         logger.info(f"Knowledge base root created at: {kb_root.resolve()}")
 
-        # 2. Copy the .gemini directory
+        # 2. Copy only the necessary command files (ask.toml) to make the KB self-contained.
         # Assumes this script is in <project_root>/tools/
         project_root = Path(__file__).resolve().parent.parent
-        source_gemini_dir = project_root / ".gemini"
-        dest_gemini_dir = kb_root / ".gemini"
+        
+        source_ask_toml = project_root / ".gemini" / "commands" / "ask.toml"
+        dest_commands_dir = kb_root / ".gemini" / "commands"
 
-        if not source_gemini_dir.is_dir():
-            raise FileNotFoundError(f"Source .gemini directory not found at {source_gemini_dir}")
+        if not source_ask_toml.is_file():
+            raise FileNotFoundError(f"Source command file not found at {source_ask_toml}")
 
-        shutil.copytree(source_gemini_dir, dest_gemini_dir, dirs_exist_ok=True)
-        logger.info(f"Copied .gemini directory to {dest_gemini_dir.resolve()}")
+        # Create the destination directory structure
+        dest_commands_dir.mkdir(parents=True, exist_ok=True)
+
+        shutil.copy2(source_ask_toml, dest_commands_dir / "ask.toml")
+        logger.info(f"Copied ask.toml to {dest_commands_dir.resolve()}")
 
         # 3. Create the cache directory
         cache_dir = kb_root / "cache"
@@ -54,10 +58,9 @@ def create_knowledge_base(kb_root: Path):
 
         # 4. Create the initial discovery.json
         discovery_path = kb_root / "discovery.json"
+        # This file serves as a DOCUMENT catalog, not a tool catalog.
         initial_discovery_content = {
-            "documents": [],
-            "tools": [],
-            "handles": {}
+            "documents": []
         }
         with open(discovery_path, 'w', encoding='utf-8') as f:
             json.dump(initial_discovery_content, f, ensure_ascii=False, indent=2)

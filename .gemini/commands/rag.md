@@ -26,10 +26,10 @@
 フローが完了した後、以下の共通ステップを実行してください。
 1.  **Markdown変換:** `html_to_markdown` を実行し、`--target-dir`に `<KB_ROOT>/cache` を指定してください。(このツールはインプレースで動作し、HTMLソースを削除して`discovery.json`を更新します。)
 2.  **キャッシュクリーンアップ:** `cache_cleanup`ツールを実行し、`--target-dir`に `<KB_ROOT>/cache` を指定してください。これにより、RAGに不可欠なMarkdownファイルと`discovery.json`以外の不要なファイル（例：画像、スクリプトファイルなど）がすべて削除されます。
-3.  **エンリッチ:** キャッシュディレクトリ内の`discovery.json`を完成させます。キャッシュディレクトリ内の文書を順次読み込み、エージェントは、自らの推論能力を用いて、`title` と `summary` 埋めて完成させてください。
+3.  **エンリッチ:** `<KB_ROOT>/cache/discovery.json` を完成させます。キャッシュディレクトリ内の文書を順次読み込み、エージェントは、自らの推論能力を用いて、`title` と `summary` 埋めて完成させてください。
 4.  **システムへの登録:**
     - `entry_discovery`ツールを実行します。
     - **注意:** このツールは `<KB_ROOT>/discovery.json` を更新します。`--path`には `<KB_ROOT>/cache` を指定してください。
     - 必須の引数（`--path`, `--src-type`, `--title`, `--summary`）に加えて、**必ず `--kb-root <KB_ROOT>` と `--source-url` 引数を指定してください。** `--source-url` には `/rag`コマンドで受け取った元のソースURLを指定します。
-    - ツールの詳細な使用方法（引数など）は、`<KB_ROOT>/discovery.json` を参照してください。
+    - ツールの詳細な使用方法（引数など）は、プロジェクトルートの`discovery.json` を参照してください。
 5.  ユーザーに登録完了を告げ、登録した文書の内容に関して何か質問をうながします。
