@@ -1,3 +1,7 @@
 
 readabilipy
 markdownify
+requests
+trafilatura
+beautifulsoup4
+pytest
