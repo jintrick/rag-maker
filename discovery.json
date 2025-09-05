@@ -16,9 +16,9 @@
             "type": "string",
             "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
           },
-          "temp-dir": {
+          "output-dir": {
             "type": "string",
-            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。"
+            "description": "変換結果のHTML文書を出力するディレクトリ。"
           },
           "recursive": {
             "type": "boolean",
@@ -127,11 +127,16 @@
         "properties": {
           "relative-path": {
             "type": "string",
-            "description": "cache/内に作成するディレクトリの相対パス。"
+            "description": "ナレッジベースのcache/ディレクトリ内に作成する、一意のサブディレクトリ名。"
+          },
+          "kb-root": {
+            "type": "string",
+            "description": "ナレッジベースのルートディレクトリへの絶対パス。"
           }
         },
         "required": [
-          "relative-path"
+          "relative-path",
+          "kb-root"
         ]
       }
     },

@@ -8,12 +8,12 @@ AIエージェントによる利用を想定しており、堅牢なエラーハ
 構造化されたJSONによるレポート出力を提供する。
 
 Usage:
-    python web_fetch.py --url <start_url> --base-url <scope_url> --temp-dir <path/to/dir> [--no-recursive] [--depth <N>]
+    python web_fetch.py --url <start_url> --base-url <scope_url> --output-dir <path/to/dir> [--no-recursive] [--depth <N>]
 
 Args:
     --url (str): 収集を開始するWebページのURL。
     --base-url (str):収集対象を制限するためのベースURL。このURL配下のページのみが収集される。
-    --temp-dir (str): 取得したHTMLファイルを保存する一時ディレクトリのパス。
+    --output-dir (str): 取得したHTMLファイルを保存する一時ディレクトリのパス。
     --recursive / --no-recursive (bool, optional): リンクを再帰的にたどるか。デフォルトは --recursive。
     --depth (int, optional): 再帰的に収集する際の最大深度。デフォルトは5。
 
@@ -21,7 +21,7 @@ Returns:
     (stdout): 成功した場合、処理結果をまとめたJSONオブジェクト。
               例: {
                     "status": "success",
-                    "output_dir": "/path/to/temp_output_directory",
+                    "output_dir": "/path/to/output_output_directory",
                     "converted_count": 15,
                     "depth_level": 3
                   }
@@ -133,7 +133,7 @@ class WebFetcher:
         """
         self.start_url = args.url.rstrip('/')
         self.base_url = args.base_url.rstrip('/')
-        self.temp_dir = Path(args.temp_dir)
+        self.output_dir = Path(args.output_dir)
         self.recursive = args.recursive
         self.depth = args.depth
         self.visited_urls = set()
@@ -267,7 +267,7 @@ class WebFetcher:
 
             try:
                 filename = f"page_{page_counter}.html"
-                file_path = self.temp_dir / filename
+                file_path = self.output_dir / filename
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(main_content)
                 
@@ -289,7 +289,7 @@ def main() -> None:
     parser = GracefulArgumentParser(description="Fetch and extract content from web pages.")
     parser.add_argument("--url", required=True, help="The starting URL to fetch.")
     parser.add_argument("--base-url", required=True, help="The base URL to define the scope of the documentation.")
-    parser.add_argument("--temp-dir", required=True, help="Directory to save fetched HTML files.")
+    parser.add_argument("--output-dir", required=True, help="Directory to save fetched HTML files.")
     parser.add_argument("--recursive", action=argparse.BooleanOptionalAction, default=True, help="Recursively fetch linked pages.")
     parser.add_argument("--depth", type=int, default=5, help="Maximum recursion depth.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
@@ -298,35 +298,35 @@ def main() -> None:
     try:
         args = parser.parse_args()
         
-        # Sanitize the temp_dir path
+        # Sanitize the output_dir path
         if sys.platform == "win32":
             # Sanitize only the final component of the path to avoid corrupting the base path.
-            p = Path(args.temp_dir)
+            p = Path(args.output_dir)
             sanitized_name = re.sub(r"['\"]", "", p.name).strip()
             
             # If the sanitized name is empty, it's an invalid path.
             if not sanitized_name:
-                logger.error("The provided --temp-dir path is empty after sanitization.")
+                logger.error("The provided --output-dir path is empty after sanitization.")
                 eprint_error({
                     "status": "error",
                     "error_code": "INVALID_PATH_ERROR",
-                    "message": "Provided --temp-dir path is empty after removing quotes and spaces.",
+                    "message": "Provided --output-dir path is empty after removing quotes and spaces.",
                 })
                 sys.exit(1)
             
-            args.temp_dir = str(p.parent / sanitized_name)
+            args.output_dir = str(p.parent / sanitized_name)
 
         setup_logging(args.verbose, args.log_level)
 
-        temp_dir_path = Path(args.temp_dir)
-        temp_dir_path.mkdir(parents=True, exist_ok=True)
+        output_dir_path = Path(args.output_dir)
+        output_dir_path.mkdir(parents=True, exist_ok=True)
 
         fetcher = WebFetcher(args)
         fetcher.run()
 
         # Write the discovery.json file
         try:
-            create_discovery_file(fetcher.fetched_files_map, temp_dir_path)
+            create_discovery_file(fetcher.fetched_files_map, output_dir_path)
         except IOError as e:
             logger.error("Could not write discovery.json: %s", e)
             raise
@@ -334,7 +334,7 @@ def main() -> None:
         # Print final JSON report to stdout
         result = {
             "status": "success",
-            "output_dir": str(temp_dir_path.resolve()),
+            "output_dir": str(output_dir_path.resolve()),
             "converted_count": len(fetcher.fetched_files_map),
             "depth_level": args.depth
         }
