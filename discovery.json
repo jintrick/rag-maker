@@ -8,33 +8,17 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "url": {
+          "target-dir": {
             "type": "string",
-            "description": "取得対象のWebページのURL。"
+            "description": "HTMLファイルが含まれ、Markdownファイルがインプレースで作成される対象ディレクトリ。"
           },
           "base-url": {
             "type": "string",
-            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
-          },
-          "output-dir": {
-            "type": "string",
-            "description": "変換結果のHTML文書を出力するディレクトリ。"
-          },
-          "recursive": {
-            "type": "boolean",
-            "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
-            "default": true
-          },
-          "depth": {
-            "type": "integer",
-            "description": "再帰探索の最大深度。",
-            "default": 5
+            "description": "相対リンクを絶対リンクに変換するためのベースURL。"
           }
         },
         "required": [
-          "url",
-          "base-url",
-          "temp-dir"
+          "target-dir"
         ]
       }
     },
