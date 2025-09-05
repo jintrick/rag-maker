@@ -119,28 +119,6 @@
       }
     },
     {
-      "name": "make_cache_dir",
-      "path": "tools/make_cache_dir.py",
-      "description": "キャッシュディレクトリを安全に作成するツール。パスにスペースが含まれていても正しく処理します。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "relative-path": {
-            "type": "string",
-            "description": "ナレッジベースのcache/ディレクトリ内に作成する、一意のサブディレクトリ名。"
-          },
-          "kb-root": {
-            "type": "string",
-            "description": "ナレッジベースのルートディレクトリへの絶対パス。"
-          }
-        },
-        "required": [
-          "relative-path",
-          "kb-root"
-        ]
-      }
-    },
-    {
       "name": "entry_discovery",
       "path": "tools/entry_discovery.py",
       "description": "ドキュメントをシステムに登録するツール。",

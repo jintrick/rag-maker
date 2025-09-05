@@ -59,11 +59,15 @@ class TestCreateKnowledgeBase(unittest.TestCase):
         with open(discovery_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        expected_content = {
-            "documents": [],
-            "tools": [],
-            "handles": {}
-        }
+        # The new KB should have a discovery.json that is a copy of the project's root one.
+        # So, we load the root discovery.json to get the expected content.
+        project_root = Path(__file__).resolve().parent.parent
+        with open(project_root / "discovery.json", 'r', encoding='utf-8') as f:
+            expected_content = json.load(f)
+
+        # The create_knowledge_base tool doesn't add any documents, so the documents list should be empty.
+        expected_content["documents"] = []
+
         self.assertEqual(data, expected_content, "discovery.json content is incorrect")
 
 if __name__ == '__main__':
