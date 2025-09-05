@@ -35,21 +35,21 @@ def create_knowledge_base(kb_root: Path):
         kb_root.mkdir(parents=True, exist_ok=True)
         logger.info(f"Knowledge base root created at: {kb_root.resolve()}")
 
-        # 2. Copy only the necessary command files (ask.toml) to make the KB self-contained.
+        # 2. Copy only the necessary command files (e.g., ask.toml) to make the KB self-contained.
         # Assumes this script is in <project_root>/tools/
         project_root = Path(__file__).resolve().parent.parent
-        
-        source_ask_toml = project_root / ".gemini" / "commands" / "ask.toml"
+        source_gemini_dir = project_root / ".gemini"
         dest_commands_dir = kb_root / ".gemini" / "commands"
-
-        if not source_ask_toml.is_file():
-            raise FileNotFoundError(f"Source command file not found at {source_ask_toml}")
 
         # Create the destination directory structure
         dest_commands_dir.mkdir(parents=True, exist_ok=True)
 
-        shutil.copy2(source_ask_toml, dest_commands_dir / "ask.toml")
-        logger.info(f"Copied ask.toml to {dest_commands_dir.resolve()}")
+        # Selectively copy only the 'ask' command definition.
+        source_ask_toml = source_gemini_dir / "commands" / "ask.toml"
+        if source_ask_toml.is_file():
+            shutil.copy2(source_ask_toml, dest_commands_dir / "ask.toml")
+            logger.info(f"Copied ask.toml to {dest_commands_dir.resolve()}")
+
 
         # 3. Create the cache directory
         cache_dir = kb_root / "cache"
