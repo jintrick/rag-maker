@@ -14,7 +14,7 @@ class TestGitHubFetch(unittest.TestCase):
         self.repo_dir.mkdir()
 
         # Initialize a new git repository
-        repo = Repo.init(self.repo_dir)
+        self.repo = Repo.init(self.repo_dir)
 
         # Create a docs directory and a file within it
         docs_dir = self.repo_dir / "docs"
@@ -22,11 +22,12 @@ class TestGitHubFetch(unittest.TestCase):
         (docs_dir / "test_file.md").write_text("hello world")
 
         # Add and commit the file
-        repo.index.add(["docs/test_file.md"])
-        repo.index.commit("Initial commit")
+        self.repo.index.add(["docs/test_file.md"])
+        self.repo.index.commit("Initial commit")
 
     def tearDown(self):
         """Clean up the temporary directory."""
+        self.repo.close()
         self.test_dir.cleanup()
 
     def test_local_repo_fetch_and_dir_creation(self):
