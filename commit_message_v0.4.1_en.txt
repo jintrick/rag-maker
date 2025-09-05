@@ -1,0 +1,19 @@
+feat(kb): Enhance knowledge base independence and self-containment
+
+Based on v0.4.0 specifications, the architecture has been revamped to make the knowledge base completely independent from the project, functioning as a self-contained environment at any user-specified location.
+
+The core of this change is the introduction of the `create_knowledge_base` tool and the accompanying modifications to related components.
+
+### Key Changes
+
+- **Clarification of `create_knowledge_base` tool responsibilities:**
+  - Refactored to copy only `.gemini/commands/ask.toml`, which is essential for `/ask` command execution, during knowledge base creation. This reduces unnecessary file copying and lightens the knowledge base.
+  - The generated `discovery.json` is now initialized as a pure document catalog (`"documents": []`) without tool definitions, thoroughly enforcing architectural role separation.
+
+- **Architecture document update:**
+  - `docs/Architecture/Architecture.md` has been updated to detail knowledge base independence, the two distinct `discovery.json` roles, and the new `/rag` and `/ask` command flows.
+
+- **`/rag` command prompt improvement:**
+  - `.gemini/commands/rag.md` has been updated to instruct the agent to explicitly ask the user whether to create a new knowledge base or use an existing one.
+
+This significantly improves user convenience by allowing them to manage knowledge bases in any directory and execute the `/ask` command directly from that location.
