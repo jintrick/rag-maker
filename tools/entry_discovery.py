@@ -60,7 +60,7 @@ def update_root_discovery_file(root_discovery_path: Path, new_entry: dict):
         with open(root_discovery_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        logger.info(message)
+        logger.info(f"{message} in {root_discovery_path.resolve()}")
         return message
 
     except (IOError, json.JSONDecodeError) as e:
@@ -76,11 +76,17 @@ def main():
     parser.add_argument("--title", required=True, help="The title for the document collection.")
     parser.add_argument("--summary", required=True, help="The summary for the document collection.")
     parser.add_argument("--source-url", required=True, help="The original source URL or path for the document.")
+    parser.add_argument("--kb-root", help="The root directory of the knowledge base. Defaults to the current directory.")
+
 
     try:
         args = parser.parse_args()
 
-        root_discovery_file = Path("discovery.json")
+        if args.kb_root:
+            root_discovery_file = Path(args.kb_root) / "discovery.json"
+        else:
+            root_discovery_file = Path("discovery.json")
+
 
         source_info = {
             "url": args.source_url,
@@ -103,7 +109,8 @@ def main():
         result = {
             "status": "success",
             "message": message,
-            "entry": new_document_entry
+            "entry": new_document_entry,
+            "discovery_file": str(root_discovery_file.resolve())
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
