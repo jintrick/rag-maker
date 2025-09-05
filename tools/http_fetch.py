@@ -31,6 +31,7 @@ Returns:
 import argparse
 import json
 import logging
+import re
 import sys
 from pathlib import Path
 from typing import Optional, List
@@ -106,15 +107,6 @@ def handle_unexpected_error(exception: Exception):
         "remediation_suggestion": "Check the input and environment, then try again.",
         "details": {"error_type": type(exception).__name__, "error": str(exception)}
     })
-
-# --- Path Sanitization Helper ---
-def _strip_all_wrapping_quotes(s: str) -> str:
-    """
-    文字列を囲む一致する引用符を、なくなるまで繰り返し削除します。
-    """
-    while len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
-        s = s[1:-1]
-    return s
 
 # --- Core Logic ---
 
@@ -307,10 +299,9 @@ def main() -> None:
         
         # Sanitize the temp_dir path
         if sys.platform == "win32":
-            # First, strip leading/trailing whitespace
-            temp_dir_str = args.temp_dir.strip()
-            # Then, strip all wrapping quotes
-            temp_dir_str = _strip_all_wrapping_quotes(temp_dir_str)
+            # On Windows, paths from the command line may contain quotes that need to be removed.
+            # We use a regex to remove all single and double quotes, then strip whitespace.
+            temp_dir_str = re.sub(r"['\"]", "", args.temp_dir).strip()
             args.temp_dir = temp_dir_str
 
         setup_logging(args.verbose, args.log_level)
