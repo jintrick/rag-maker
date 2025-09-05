@@ -68,5 +68,27 @@ class TestHttpPathHandlingIntegration(unittest.TestCase):
             with self.subTest(name=name):
                 self.run_test_case(input_part, expected_part)
 
+    def test_empty_path_triggers_exit(self):
+        """
+        Verify that main() calls sys.exit(1) when the path is empty.
+        This test isolates the empty path check logic.
+        """
+        if sys.platform != "win32":
+            self.skipTest("Path sanitization test is for Windows.")
+
+        # Mock args to simulate an empty path after sanitization
+        mock_args = MagicMock()
+        mock_args.temp_dir = "" # This is the crucial part
+        mock_args.verbose = False
+        mock_args.log_level = 'INFO'
+
+        # Patch parse_args to return our controlled args
+        # Patch eprint_error to prevent it from printing during the test
+        with patch('http_fetch.GracefulArgumentParser.parse_args', return_value=mock_args), \
+             patch('http_fetch.eprint_error'):
+            # We expect SystemExit to be raised by sys.exit(1)
+            with self.assertRaises(SystemExit):
+                http_fetch.main()
+
 if __name__ == '__main__':
     unittest.main()

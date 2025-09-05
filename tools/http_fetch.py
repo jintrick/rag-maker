@@ -71,6 +71,7 @@ class GracefulArgumentParser(argparse.ArgumentParser):
 def eprint_error(error_obj: dict):
     """Prints a structured error object as JSON to stderr."""
     print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
+    # Let the caller decide whether to exit.
 
 def handle_argument_parsing_error(exception: Exception):
     """Handles argument parsing errors by printing a structured JSON error."""
@@ -299,22 +300,23 @@ def main() -> None:
         
         # Sanitize the temp_dir path
         if sys.platform == "win32":
-            # On Windows, paths from the command line may contain quotes that need to be removed.
-            # We use a regex to remove all single and double quotes, then strip whitespace.
-            temp_dir_str = re.sub(r"['\"]", "", args.temp_dir).strip()
-            args.temp_dir = temp_dir_str
+            # Sanitize only the final component of the path to avoid corrupting the base path.
+            p = Path(args.temp_dir)
+            sanitized_name = re.sub(r"['\"]", "", p.name).strip()
+            
+            # If the sanitized name is empty, it's an invalid path.
+            if not sanitized_name:
+                logger.error("The provided --temp-dir path is empty after sanitization.")
+                eprint_error({
+                    "status": "error",
+                    "error_code": "INVALID_PATH_ERROR",
+                    "message": "Provided --temp-dir path is empty after removing quotes and spaces.",
+                })
+                sys.exit(1)
+            
+            args.temp_dir = str(p.parent / sanitized_name)
 
         setup_logging(args.verbose, args.log_level)
-
-        # Proceed only if the path is not empty after sanitization
-        if not args.temp_dir:
-            logger.error("The provided --temp-dir path is empty after sanitization.")
-            eprint_error({
-                "status": "error",
-                "error_code": "INVALID_PATH_ERROR",
-                "message": "Provided --temp-dir path is empty after removing quotes and spaces.",
-            })
-            sys.exit(1)
 
         temp_dir_path = Path(args.temp_dir)
         temp_dir_path.mkdir(parents=True, exist_ok=True)
