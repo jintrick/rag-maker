@@ -26,7 +26,7 @@ class TestHttpPathHandlingIntegration(unittest.TestCase):
         
         mock_args = MagicMock()
         # Pass the full path to the script
-        mock_args.temp_dir = full_input_path
+        mock_args.output_dir = full_input_path # FIX: Use 'output_dir' instead of 'temp_dir'
         mock_args.url = "http://example.com"
         mock_args.base_url = "http://example.com"
         mock_args.verbose = False
@@ -46,7 +46,7 @@ class TestHttpPathHandlingIntegration(unittest.TestCase):
                         mock_eprint.assert_called_once_with({
                             "status": "error",
                             "error_code": "INVALID_PATH_ERROR",
-                            "message": "Provided --temp-dir path is empty after removing quotes and spaces.",
+                            "message": "Provided --output-dir path is empty after removing quotes and spaces.",
                         })
                 else:
                     http_fetch.main()
@@ -78,7 +78,7 @@ class TestHttpPathHandlingIntegration(unittest.TestCase):
 
         # Mock args to simulate an empty path after sanitization
         mock_args = MagicMock()
-        mock_args.temp_dir = "" # This is the crucial part
+        mock_args.output_dir = "" # FIX: Use 'output_dir' instead of 'temp_dir'
         mock_args.verbose = False
         mock_args.log_level = 'INFO'
 
