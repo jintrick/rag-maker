@@ -60,25 +60,12 @@ class TestCreateKnowledgeBase(unittest.TestCase):
         with open(discovery_file, 'r', encoding='utf-8') as f:
             generated_data = json.load(f)
 
-        # Load the root discovery.json to get the expected content for tools and handles.
-        project_root = Path(__file__).resolve().parent.parent
-        with open(project_root / "discovery.json", 'r', encoding='utf-8') as f:
-            root_data = json.load(f)
+        # a. Verify that the 'documents' list is empty and is the only key.
+        self.assertEqual(generated_data, {"documents": []}, "The discovery.json content is not '{{\"documents\": []}}'.")
 
-        # a. Verify that the 'documents' list is empty.
-        self.assertEqual(generated_data.get('documents'), [], "The 'documents' list should be empty.")
-
-        # b. Verify that 'tools' and 'handles' are correctly copied from the root.
-        self.assertEqual(generated_data.get('tools'), root_data.get('tools'), "The 'tools' list does not match the root discovery.json.")
-        self.assertEqual(generated_data.get('handles'), root_data.get('handles'), "The 'handles' object does not match the root discovery.json.")
-
-        # c. Verify that no extra project-specific keys were copied.
-        # The set of keys in the new discovery.json should be exactly {'documents', 'handles', 'tools'}.
-        self.assertEqual(
-            set(generated_data.keys()),
-            {'documents', 'handles', 'tools'},
-            "The discovery.json contains unexpected top-level keys."
-        )
+        # b. Verify that 'tools' and 'handles' keys are NOT present.
+        self.assertNotIn('tools', generated_data, "The 'tools' key should not be in discovery.json.")
+        self.assertNotIn('handles', generated_data, "The 'handles' key should not be in discovery.json.")
 
 if __name__ == '__main__':
     unittest.main()
