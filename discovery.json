@@ -1,4 +1,5 @@
 {
+  "documents": [],
   "handles": {},
   "tools": [
     {
@@ -8,17 +9,33 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "target-dir": {
+          "url": {
             "type": "string",
-            "description": "HTMLファイルが含まれ、Markdownファイルがインプレースで作成される対象ディレクトリ。"
+            "description": "取得対象のWebページのURL。"
           },
           "base-url": {
             "type": "string",
-            "description": "相対リンクを絶対リンクに変換するためのベースURL。"
+            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
+          },
+          "temp-dir": {
+            "type": "string",
+            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。"
+          },
+          "recursive": {
+            "type": "boolean",
+            "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
+            "default": true
+          },
+          "depth": {
+            "type": "integer",
+            "description": "再帰探索の最大深度。",
+            "default": 5
           }
         },
         "required": [
-          "target-dir"
+          "url",
+          "base-url",
+          "temp-dir"
         ]
       }
     },
@@ -153,6 +170,23 @@
         },
         "required": [
           "target-dir"
+        ]
+      }
+    },
+    {
+      "name": "create_knowledge_base",
+      "path": "tools/create_knowledge_base.py",
+      "description": "新しい自己完結型のナレッジベースのディレクトリ構造と初期ファイルをセットアップするツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kb-root": {
+            "type": "string",
+            "description": "新しいナレッジベースを作成するルートパス。"
+          }
+        },
+        "required": [
+          "kb-root"
         ]
       }
     }
