@@ -56,24 +56,33 @@ def create_knowledge_base(kb_root: Path):
         cache_dir.mkdir(exist_ok=True)
         logger.info(f"Created cache directory at {cache_dir.resolve()}")
 
-        # 4. Copy the root discovery.json to serve as a template for the new knowledge base.
-        source_discovery_json = project_root / "discovery.json"
-        dest_discovery_json = kb_root / "discovery.json"
+        # 4. Generate a new discovery.json for the knowledge base.
+        # This approach is cleaner than copying and modifying the root discovery.json.
+        source_discovery_json_path = project_root / "discovery.json"
+        dest_discovery_json_path = kb_root / "discovery.json"
 
-        if not source_discovery_json.is_file():
-            raise FileNotFoundError(f"Source discovery.json not found at {source_discovery_json}")
+        if not source_discovery_json_path.is_file():
+            raise FileNotFoundError(f"Source discovery.json not found at {source_discovery_json_path}")
 
-        shutil.copy2(source_discovery_json, dest_discovery_json)
-        logger.info(f"Copied discovery.json template to {dest_discovery_json.resolve()}")
+        # Read tool and handle definitions from the project's root discovery.json.
+        with open(source_discovery_json_path, 'r', encoding='utf-8') as f:
+            root_discovery_data = json.load(f)
 
-        # After copying, clear the 'documents' list to ensure the new KB is empty.
-        with open(dest_discovery_json, 'r+', encoding='utf-8') as f:
-            data = json.load(f)
-            data['documents'] = []
-            f.seek(0)
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.truncate()
-        logger.info(f"Cleared 'documents' list in new discovery.json")
+        tools = root_discovery_data.get('tools', [])
+        handles = root_discovery_data.get('handles', {})
+
+        # Create a new discovery.json structure for the knowledge base.
+        kb_discovery_data = {
+            "documents": [],
+            "handles": handles,
+            "tools": tools
+        }
+
+        # Write the new discovery.json to the knowledge base directory.
+        with open(dest_discovery_json_path, 'w', encoding='utf-8') as f:
+            json.dump(kb_discovery_data, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"Created new discovery.json for the knowledge base at {dest_discovery_json_path.resolve()}")
 
     except (IOError, OSError, FileNotFoundError) as e:
         eprint_error({

@@ -58,18 +58,27 @@ class TestCreateKnowledgeBase(unittest.TestCase):
         self.assertTrue(discovery_file.is_file(), "discovery.json is not a file")
 
         with open(discovery_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            generated_data = json.load(f)
 
-        # The new KB should have a discovery.json that is a copy of the project's root one.
-        # So, we load the root discovery.json to get the expected content.
+        # Load the root discovery.json to get the expected content for tools and handles.
         project_root = Path(__file__).resolve().parent.parent
         with open(project_root / "discovery.json", 'r', encoding='utf-8') as f:
-            expected_content = json.load(f)
+            root_data = json.load(f)
 
-        # The create_knowledge_base tool doesn't add any documents, so the documents list should be empty.
-        expected_content["documents"] = []
+        # a. Verify that the 'documents' list is empty.
+        self.assertEqual(generated_data.get('documents'), [], "The 'documents' list should be empty.")
 
-        self.assertEqual(data, expected_content, "discovery.json content is incorrect")
+        # b. Verify that 'tools' and 'handles' are correctly copied from the root.
+        self.assertEqual(generated_data.get('tools'), root_data.get('tools'), "The 'tools' list does not match the root discovery.json.")
+        self.assertEqual(generated_data.get('handles'), root_data.get('handles'), "The 'handles' object does not match the root discovery.json.")
+
+        # c. Verify that no extra project-specific keys were copied.
+        # The set of keys in the new discovery.json should be exactly {'documents', 'handles', 'tools'}.
+        self.assertEqual(
+            set(generated_data.keys()),
+            {'documents', 'handles', 'tools'},
+            "The discovery.json contains unexpected top-level keys."
+        )
 
 if __name__ == '__main__':
     unittest.main()
