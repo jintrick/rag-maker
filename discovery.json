@@ -63,7 +63,7 @@
     {
       "name": "ask_dir",
       "path": "tools/ask_dir.py",
-      "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
+      "description": "ユーザーにGUIダイアログを表示してディレクトリを選択させ、そのパスを返すツール。",
       "parameters": {}
     },
     {
