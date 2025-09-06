@@ -29,7 +29,7 @@ class TestHttpPathHandlingIntegration(unittest.TestCase):
             "ragmaker-http-fetch",
             "--url", "http://example.com",
             "--base-url", "http://example.com",
-            "--temp-dir", str(full_input_path),
+            "--output-dir", str(full_input_path),
             "--no-recursive"
         ]
 

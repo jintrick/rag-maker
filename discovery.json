@@ -1,10 +1,8 @@
 {
-  "documents": [],
-  "handles": {},
   "tools": [
     {
       "name": "http_fetch",
-      "path": "ragmaker-http-fetch",
+      "command": "ragmaker-http-fetch",
       "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
       "parameters": {
         "type": "object",
@@ -17,9 +15,9 @@
             "type": "string",
             "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
           },
-          "temp-dir": {
+          "output-dir": {
             "type": "string",
-            "description": "変換結果のHTML文書を一時的に出力するディレクトリ。"
+            "description": "取得したHTMLファイルを保存する出力先ディレクトリ。"
           },
           "recursive": {
             "type": "boolean",
@@ -35,13 +33,13 @@
         "required": [
           "url",
           "base-url",
-          "temp-dir"
+          "output-dir"
         ]
       }
     },
     {
       "name": "html_to_markdown",
-      "path": "ragmaker-html-to-markdown",
+      "command": "ragmaker-html-to-markdown",
       "description": "HTMLファイルをMarkdownに変換し、コンテンツを抽出し、リンクを修正するツール。",
       "parameters": {
         "type": "object",
@@ -61,8 +59,14 @@
       }
     },
     {
+      "name": "ask_dir",
+      "command": "ragmaker-ask-dir",
+      "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
+      "parameters": {}
+    },
+    {
       "name": "github_fetch",
-      "path": "ragmaker-github-fetch",
+      "command": "ragmaker-github-fetch",
       "description": "GitHubリポジトリから特定パスのドキュメントを取得し、ファイルとして保存するツール。",
       "parameters": {
         "type": "object",
@@ -75,9 +79,9 @@
             "type": "string",
             "description": "リポジトリ内で収集対象とするディレクトリまたはファイルのパス。"
           },
-          "temp-dir": {
+          "output-dir": {
             "type": "string",
-            "description": "取得したファイルを保存するディレクトリのパス。"
+            "description": "取得したファイルを保存する出力先ディレクトリ。"
           },
           "branch": {
             "type": "string",
@@ -87,13 +91,13 @@
         "required": [
           "repo-url",
           "path-in-repo",
-          "temp-dir"
+          "output-dir"
         ]
       }
     },
     {
       "name": "file_sync",
-      "path": "ragmaker-file-sync",
+      "command": "ragmaker-file-sync",
       "description": "指定されたコピー元ディレクトリの内容を、コピー先ディレクトリに高速にコピーするツール。",
       "parameters": {
         "type": "object",
@@ -115,11 +119,15 @@
     },
     {
       "name": "entry_discovery",
-      "path": "ragmaker-entry-discovery",
+      "command": "ragmaker-entry-discovery",
       "description": "ドキュメントをシステムに登録するツール。",
       "parameters": {
         "type": "object",
         "properties": {
+          "kb-root": {
+            "type": "string",
+            "description": "ドキュメント情報を登録するナレッジベースのルートパス。"
+          },
           "path": {
             "type": "string",
             "description": "登録対象のドキュメントが格納されているキャッシュディレクトリの絶対パス。"
@@ -142,6 +150,7 @@
           }
         },
         "required": [
+          "kb-root",
           "path",
           "title",
           "summary",
@@ -152,7 +161,7 @@
     },
     {
       "name": "cache_cleanup",
-      "path": "ragmaker-cache-cleanup",
+      "command": "ragmaker-cache-cleanup",
       "description": "指定されたキャッシュディレクトリ内のMarkdownファイルとdiscovery.json以外のすべてのファイルおよびディレクトリを削除するツール。",
       "parameters": {
         "type": "object",
@@ -169,7 +178,7 @@
     },
     {
       "name": "create_knowledge_base",
-      "path": "ragmaker-create-knowledge-base",
+      "command": "ragmaker-create-knowledge-base",
       "description": "新しい自己完結型のナレッジベースのディレクトリ構造と初期ファイルをセットアップするツール。",
       "parameters": {
         "type": "object",
@@ -186,7 +195,7 @@
     },
     {
       "name": "path_normalizer",
-      "path": "ragmaker-path-normalizer",
+      "command": "ragmaker-path-normalizer",
       "description": "与えられたパスを正規化し、絶対パスに変換するツール。",
       "parameters": {
         "type": "object",
