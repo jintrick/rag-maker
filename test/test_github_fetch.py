@@ -44,8 +44,7 @@ class TestGitHubFetch(unittest.TestCase):
 
         process = subprocess.run(
             [
-                "python",
-                "tools/github_fetch.py",
+                "ragmaker-github-fetch",
                 "--repo-url", repo_url,
                 "--path-in-repo", path_in_repo,
                 "--temp-dir", str(output_dir)

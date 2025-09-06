@@ -2,7 +2,7 @@
 """
 A tool for synchronizing files between two directories.
 
-This tool uses OS-native commands for high-speed file copying.
+This tool uses shutil.copytree for reliable, cross-platform file copying.
 It is designed for use by AI agents and provides robust error handling
 and structured JSON output.
 
@@ -26,8 +26,7 @@ Returns:
 import argparse
 import json
 import logging
-import platform
-import subprocess
+import shutil
 import sys
 from pathlib import Path
 
@@ -57,17 +56,15 @@ def handle_argument_parsing_error(exception: Exception):
         "details": {"original_error": str(exception)}
     })
 
-def handle_file_sync_error(cmd: list, exception: subprocess.CalledProcessError):
+def handle_file_sync_error(exception: Exception):
     """Handles file synchronization errors by printing a structured JSON error."""
     eprint_error({
         "status": "error",
         "error_code": "FILE_SYNC_ERROR",
         "message": "Failed to synchronize files.",
         "details": {
-            "command": " ".join(cmd),
-            "return_code": exception.returncode,
-            "stdout": exception.stdout,
-            "stderr": exception.stderr
+            "error_type": type(exception).__name__,
+            "error": str(exception)
         }
     })
 
@@ -83,56 +80,25 @@ def handle_unexpected_error(exception: Exception):
 # --- Core Logic ---
 def sync_files(source_dir: Path, dest_dir: Path):
     """
-    Synchronizes files from a source to a destination directory.
-
-    Uses 'rsync' on Linux/macOS and 'robocopy' on Windows.
+    Synchronizes files from a source to a destination directory using shutil.copytree.
     """
     if not source_dir.is_dir():
         raise FileNotFoundError(f"Source directory not found: {source_dir}")
 
-    dest_dir.mkdir(parents=True, exist_ok=True)
-
-    system = platform.system()
-    if system == "Windows":
-        # Robocopy: /E (copy subdirectories, including empty ones), /MIR (mirror a directory tree)
-        cmd = ["robocopy", str(source_dir), str(dest_dir), "/E", "/MIR"]
-    else:
-        # rsync: -a (archive mode), -v (verbose), --delete (delete extraneous files from dest dirs)
-        cmd = ["rsync", "-av", "--delete", f"{source_dir}/", str(dest_dir)]
-
     try:
-        # We don't use check=True because robocopy has non-zero exit codes for success
-        process = subprocess.run(
-            cmd,
-            check=False,  # Important for robocopy
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            errors='ignore'
-        )
+        # Ensure destination exists and is empty for a clean sync
+        if dest_dir.exists():
+            shutil.rmtree(dest_dir)
 
-        # Robocopy returns non-zero codes even on success.
-        # A value of < 8 indicates success (files copied, extra files, etc.)
-        if system == "Windows" and process.returncode >= 8:
-             raise subprocess.CalledProcessError(
-                process.returncode, cmd, output=process.stdout, stderr=process.stderr
-            )
-        # For rsync, 0 is the only success code.
-        elif system != "Windows" and process.returncode != 0:
-            raise subprocess.CalledProcessError(
-                process.returncode, cmd, output=process.stdout, stderr=process.stderr
-            )
+        # dirs_exist_ok=True handles the case where the destination is created
+        # by another process between the rmtree and copytree calls.
+        shutil.copytree(source_dir, dest_dir, dirs_exist_ok=True)
 
         logger.info("File synchronization successful from %s to %s", source_dir, dest_dir)
-        logger.debug("Sync command output:\n%s", process.stdout)
 
-    except subprocess.CalledProcessError as e:
-        handle_file_sync_error(cmd, e)
+    except (shutil.Error, OSError) as e:
+        handle_file_sync_error(e)
         raise  # Re-raise to be caught by the main exception handler
-    except FileNotFoundError as e:
-        # This can happen if rsync/robocopy is not installed
-        handle_unexpected_error(e)
-        raise
 
 # --- Main Execution ---
 def main():
