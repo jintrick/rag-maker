@@ -10,6 +10,7 @@ import logging
 import shutil
 import sys
 from pathlib import Path
+import importlib.resources
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -36,20 +37,14 @@ def create_knowledge_base(kb_root: Path):
         logger.info(f"Knowledge base root created at: {kb_root.resolve()}")
 
         # 2. Copy only the necessary command files (e.g., ask.toml) to make the KB self-contained.
-        # Assumes this script is in <project_root>/tools/
-        project_root = Path(__file__).resolve().parent.parent
-        source_gemini_dir = project_root / ".gemini"
         dest_commands_dir = kb_root / ".gemini" / "commands"
-
-        # Create the destination directory structure
         dest_commands_dir.mkdir(parents=True, exist_ok=True)
 
-        # Selectively copy only the 'ask' command definition.
-        source_ask_toml = source_gemini_dir / "commands" / "ask.toml"
-        if source_ask_toml.is_file():
-            shutil.copy2(source_ask_toml, dest_commands_dir / "ask.toml")
-            logger.info(f"Copied ask.toml to {dest_commands_dir.resolve()}")
-
+        # Use importlib.resources to access the packaged data file
+        with importlib.resources.path("ragmaker.data", "ask.toml") as source_ask_toml:
+            if source_ask_toml.is_file():
+                shutil.copy2(source_ask_toml, dest_commands_dir / "ask.toml")
+                logger.info(f"Copied ask.toml to {dest_commands_dir.resolve()}")
 
         # 3. Create the cache directory
         cache_dir = kb_root / "cache"
@@ -57,16 +52,10 @@ def create_knowledge_base(kb_root: Path):
         logger.info(f"Created cache directory at {cache_dir.resolve()}")
 
         # 4. Create a minimal discovery.json for the knowledge base.
-        # This file will only contain the document catalog. Tool definitions
-        # are centralized in the project's root discovery.json.
         dest_discovery_json_path = kb_root / "discovery.json"
-
-        # Create a new discovery.json structure for the knowledge base.
         kb_discovery_data = {
             "documents": []
         }
-
-        # Write the new discovery.json to the knowledge base directory.
         with open(dest_discovery_json_path, 'w', encoding='utf-8') as f:
             json.dump(kb_discovery_data, f, ensure_ascii=False, indent=2)
 
@@ -86,7 +75,6 @@ def create_knowledge_base(kb_root: Path):
             "message": "An unexpected error occurred.",
             "details": {"error_type": type(e).__name__, "error": str(e)}
         })
-
 
 # --- Main Execution ---
 def main():
@@ -108,8 +96,6 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     except Exception as e:
-        # Errors from create_knowledge_base are already handled and will exit.
-        # This catches errors from argument parsing or other unexpected issues.
         if not isinstance(e, SystemExit):
             eprint_error({
                 "status": "error",

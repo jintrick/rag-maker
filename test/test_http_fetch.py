@@ -20,8 +20,7 @@ class TestHttpFetch(unittest.TestCase):
 
             process = subprocess.run(
                 [
-                    "python",
-                    "tools/http_fetch.py",
+                    "ragmaker-http-fetch",
                     "--url", url,
                     "--base-url", url,
                     "--output-dir", str(output_dir),

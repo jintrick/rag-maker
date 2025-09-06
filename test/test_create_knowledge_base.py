@@ -21,11 +21,9 @@ class TestCreateKnowledgeBase(unittest.TestCase):
         Test that the create_knowledge_base tool correctly creates the
         directory structure and initial files.
         """
-        script_path = Path(__file__).resolve().parent.parent / "tools" / "create_knowledge_base.py"
-
         # Execute the script
         result = subprocess.run(
-            [sys.executable, str(script_path), "--kb-root", str(self.kb_root)],
+            ["ragmaker-create-knowledge-base", "--kb-root", str(self.kb_root)],
             capture_output=True,
             text=True,
             check=False

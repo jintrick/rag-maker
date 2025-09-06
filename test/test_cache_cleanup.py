@@ -1,16 +1,10 @@
 import unittest
 import os
-import sys
 import shutil
 import json
-import io
+import subprocess
 from pathlib import Path
-from unittest.mock import patch
-
-# Add tools directory to sys.path for importing the script under test
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tools')))
-
-import cache_cleanup
+from ragmaker.tools.cache_cleanup import cleanup_directory
 
 class TestCacheCleanup(unittest.TestCase):
 
@@ -45,7 +39,7 @@ class TestCacheCleanup(unittest.TestCase):
     def test_cleanup_logic_directly(self):
         """Test the core cleanup_directory function in isolation."""
         # Act
-        deleted, kept = cache_cleanup.cleanup_directory(self.test_dir)
+        deleted, kept = cleanup_directory(self.test_dir)
 
         # Assert: Check the returned lists (using sets for order-insensitivity)
         self.assertEqual(set(Path(p).name for p in deleted), self.deleted_item_names)
@@ -58,16 +52,19 @@ class TestCacheCleanup(unittest.TestCase):
     def test_main_script_execution(self):
         """Test the full script execution via main(), checking output and side-effects."""
         # Arrange: Set up the command-line arguments to be mocked
-        test_args = [
-            'tools/cache_cleanup.py',
+        args = [
+            'ragmaker-cache-cleanup',
             '--target-dir', str(self.test_dir)
         ]
 
         # Act: Patch sys.argv and capture stdout to check the final JSON output
-        with patch('sys.argv', test_args), \
-             patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            cache_cleanup.main()
-            output = json.loads(mock_stdout.getvalue())
+        process = subprocess.run(args, capture_output=True, text=True, encoding='utf-8')
+
+        if process.returncode != 0:
+            print("STDERR:", process.stderr)
+        self.assertEqual(process.returncode, 0)
+
+        output = json.loads(process.stdout)
 
         # Assert: Check the JSON output from the script
         self.assertEqual(output['status'], 'success')

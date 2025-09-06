@@ -25,8 +25,7 @@ class TestFileSync(unittest.TestCase):
             # 3. Run the file_sync.py tool
             process = subprocess.run(
                 [
-                    "python",
-                    "tools/file_sync.py",
+                    "ragmaker-file-sync",
                     "--source-dir", str(source_dir),
                     "--dest-dir", str(dest_dir)
                 ],

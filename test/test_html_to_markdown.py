@@ -4,13 +4,8 @@ import sys
 import shutil
 import json
 import io
+import subprocess
 from pathlib import Path
-from unittest.mock import patch
-
-# Add tools directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tools')))
-
-import html_to_markdown
 
 class TestHtmlToMarkdown(unittest.TestCase):
 
@@ -61,17 +56,25 @@ class TestHtmlToMarkdown(unittest.TestCase):
         Test that the script converts HTML, deletes the source,
         and updates discovery.json correctly.
         """
-        # Arrange: Set up arguments for the script
-        test_args = [
-            'tools/html_to_markdown.py',
-            '--target-dir', str(self.test_dir)
-        ]
-
         # Act: Run the script's main function
-        with patch('sys.argv', test_args), \
-             patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
-            html_to_markdown.main()
-            output = json.loads(mock_stdout.getvalue())
+        process = subprocess.run(
+            [
+                "ragmaker-html-to-markdown",
+                "--target-dir", str(self.test_dir)
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding='utf-8'
+        )
+
+        try:
+            output = json.loads(process.stdout)
+        except json.JSONDecodeError:
+            print("Failed to decode JSON from stdout:")
+            print("STDOUT:", process.stdout)
+            print("STDERR:", process.stderr)
+            self.fail("JSONDecodeError was raised")
 
         # Assert 1: Check the script's output report
         self.assertEqual(output['status'], 'partial_success')

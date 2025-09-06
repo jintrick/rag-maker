@@ -36,7 +36,7 @@ import sys
 from pathlib import Path
 from typing import Optional, List
 from urllib.parse import urljoin, urlparse
-from utils import create_discovery_file
+from ragmaker.utils import create_discovery_file
 
 # --- Dependency Check ---
 try:

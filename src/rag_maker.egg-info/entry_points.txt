@@ -1,0 +1,10 @@
+[console_scripts]
+ragmaker-ask-dir = ragmaker.tools.ask_dir:main
+ragmaker-cache-cleanup = ragmaker.tools.cache_cleanup:main
+ragmaker-create-knowledge-base = ragmaker.tools.create_knowledge_base:main
+ragmaker-entry-discovery = ragmaker.tools.entry_discovery:main
+ragmaker-file-sync = ragmaker.tools.file_sync:main
+ragmaker-github-fetch = ragmaker.tools.github_fetch:main
+ragmaker-html-to-markdown = ragmaker.tools.html_to_markdown:main
+ragmaker-http-fetch = ragmaker.tools.http_fetch:main
+ragmaker-path-normalizer = ragmaker.tools.path_normalizer:main

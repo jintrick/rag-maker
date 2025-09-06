@@ -34,7 +34,7 @@ import sys
 import os
 from pathlib import Path
 from typing import Optional, List
-from utils import create_discovery_file
+from ragmaker.utils import create_discovery_file
 
 # --- Dependency Check ---
 try:

@@ -4,7 +4,7 @@
   "tools": [
     {
       "name": "http_fetch",
-      "path": "tools/http_fetch.py",
+      "path": "ragmaker-http-fetch",
       "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
       "parameters": {
         "type": "object",
@@ -41,7 +41,7 @@
     },
     {
       "name": "html_to_markdown",
-      "path": "tools/html_to_markdown.py",
+      "path": "ragmaker-html-to-markdown",
       "description": "HTMLファイルをMarkdownに変換し、コンテンツを抽出し、リンクを修正するツール。",
       "parameters": {
         "type": "object",
@@ -61,14 +61,8 @@
       }
     },
     {
-      "name": "ask_dir",
-      "path": "tools/ask_dir.py",
-      "description": "ユーザーにGUIダイアログを表示してディレクトリを選択させ、そのパスを返すツール。",
-      "parameters": {}
-    },
-    {
       "name": "github_fetch",
-      "path": "tools/github_fetch.py",
+      "path": "ragmaker-github-fetch",
       "description": "GitHubリポジトリから特定パスのドキュメントを取得し、ファイルとして保存するツール。",
       "parameters": {
         "type": "object",
@@ -99,7 +93,7 @@
     },
     {
       "name": "file_sync",
-      "path": "tools/file_sync.py",
+      "path": "ragmaker-file-sync",
       "description": "指定されたコピー元ディレクトリの内容を、コピー先ディレクトリに高速にコピーするツール。",
       "parameters": {
         "type": "object",
@@ -121,7 +115,7 @@
     },
     {
       "name": "entry_discovery",
-      "path": "tools/entry_discovery.py",
+      "path": "ragmaker-entry-discovery",
       "description": "ドキュメントをシステムに登録するツール。",
       "parameters": {
         "type": "object",
@@ -158,7 +152,7 @@
     },
     {
       "name": "cache_cleanup",
-      "path": "tools/cache_cleanup.py",
+      "path": "ragmaker-cache-cleanup",
       "description": "指定されたキャッシュディレクトリ内のMarkdownファイルとdiscovery.json以外のすべてのファイルおよびディレクトリを削除するツール。",
       "parameters": {
         "type": "object",
@@ -175,7 +169,7 @@
     },
     {
       "name": "create_knowledge_base",
-      "path": "tools/create_knowledge_base.py",
+      "path": "ragmaker-create-knowledge-base",
       "description": "新しい自己完結型のナレッジベースのディレクトリ構造と初期ファイルをセットアップするツール。",
       "parameters": {
         "type": "object",
@@ -187,6 +181,23 @@
         },
         "required": [
           "kb-root"
+        ]
+      }
+    },
+    {
+      "name": "path_normalizer",
+      "path": "ragmaker-path-normalizer",
+      "description": "与えられたパスを正規化し、絶対パスに変換するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "正規化するパス文字列。"
+          }
+        },
+        "required": [
+          "path"
         ]
       }
     }
