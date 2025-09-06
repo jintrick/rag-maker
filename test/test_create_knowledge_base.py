@@ -58,18 +58,14 @@ class TestCreateKnowledgeBase(unittest.TestCase):
         self.assertTrue(discovery_file.is_file(), "discovery.json is not a file")
 
         with open(discovery_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            generated_data = json.load(f)
 
-        # The new KB should have a discovery.json that is a copy of the project's root one.
-        # So, we load the root discovery.json to get the expected content.
-        project_root = Path(__file__).resolve().parent.parent
-        with open(project_root / "discovery.json", 'r', encoding='utf-8') as f:
-            expected_content = json.load(f)
+        # a. Verify that the 'documents' list is empty and is the only key.
+        self.assertEqual(generated_data, {"documents": []}, "The discovery.json content is not '{{\"documents\": []}}'.")
 
-        # The create_knowledge_base tool doesn't add any documents, so the documents list should be empty.
-        expected_content["documents"] = []
-
-        self.assertEqual(data, expected_content, "discovery.json content is incorrect")
+        # b. Verify that 'tools' and 'handles' keys are NOT present.
+        self.assertNotIn('tools', generated_data, "The 'tools' key should not be in discovery.json.")
+        self.assertNotIn('handles', generated_data, "The 'handles' key should not be in discovery.json.")
 
 if __name__ == '__main__':
     unittest.main()
