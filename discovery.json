@@ -128,10 +128,6 @@
             "type": "string",
             "description": "ドキュメント情報を登録するナレッジベースのルートパス。"
           },
-          "path": {
-            "type": "string",
-            "description": "登録対象のドキュメントが格納されているキャッシュディレクトリの絶対パス。"
-          },
           "title": {
             "type": "string",
             "description": "登録するドキュメント群全体のタイトル。"
@@ -151,7 +147,6 @@
         },
         "required": [
           "kb-root",
-          "path",
           "title",
           "summary",
           "src-type",
