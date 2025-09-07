@@ -51,15 +51,7 @@ def create_knowledge_base(kb_root: Path):
         cache_dir.mkdir(exist_ok=True)
         logger.info(f"Created cache directory at {cache_dir.resolve()}")
 
-        # 4. Create a minimal discovery.json for the knowledge base.
-        dest_discovery_json_path = kb_root / "discovery.json"
-        kb_discovery_data = {
-            "documents": []
-        }
-        with open(dest_discovery_json_path, 'w', encoding='utf-8') as f:
-            json.dump(kb_discovery_data, f, ensure_ascii=False, indent=2)
-
-        logger.info(f"Created minimal discovery.json for the knowledge base at {dest_discovery_json_path.resolve()}")
+        # 4. (DELETED) The creation of discovery.json is now handled by other tools.
 
     except (IOError, OSError, FileNotFoundError) as e:
         eprint_error({
