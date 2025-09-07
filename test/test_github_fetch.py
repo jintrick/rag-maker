@@ -3,6 +3,12 @@ import subprocess
 import tempfile
 import shutil
 from pathlib import Path
+import sys
+import os
+
+# Add src to path to allow importing ragmaker and its dependencies
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+
 from git import Repo
 
 class TestGitHubFetch(unittest.TestCase):

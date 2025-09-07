@@ -4,6 +4,11 @@ import shutil
 import json
 import subprocess
 from pathlib import Path
+import sys
+
+# Add src to path to allow importing ragmaker
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+
 from ragmaker.tools.cache_cleanup import cleanup_directory
 
 class TestCacheCleanup(unittest.TestCase):
