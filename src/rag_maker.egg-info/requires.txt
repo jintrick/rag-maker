@@ -5,5 +5,5 @@ trafilatura
 beautifulsoup4
 GitPython
 
-[dev]
+[test]
 pytest
