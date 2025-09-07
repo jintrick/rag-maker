@@ -106,6 +106,8 @@ def process_discovery_file(
 ) -> Tuple[list, list]:
     """
     Processes conversions based on a discovery.json file.
+    It identifies HTML files by looking for `.html` or `.htm` extensions
+    in the `path` key of each document entry.
     """
     discovery_path = work_dir / "discovery.json"
     if not discovery_path.is_file():
@@ -119,20 +121,17 @@ def process_discovery_file(
     errors = []
 
     for doc in documents:
-        html_path_str = doc.get("html_path")
-        md_path_str = doc.get("path")
+        original_path_str = doc.get("path")
 
-        if not html_path_str:
-            logger.debug(f"Skipping document without 'html_path': {doc.get('title', 'N/A')}")
+        # Skip if path is not a string or doesn't end with .html/.htm
+        if not isinstance(original_path_str, str) or not original_path_str.lower().endswith(('.html', '.htm')):
+            logger.debug(f"Skipping non-HTML entry: {original_path_str}")
             continue
 
-        if not md_path_str:
-            msg = f"Skipping document due to missing 'path' for markdown destination: {doc.get('title', 'N/A')}"
-            logger.warning(msg)
-            errors.append({"document_title": doc.get('title'), "message": msg})
-            continue
+        html_file = work_dir / original_path_str
 
-        html_file = work_dir / html_path_str
+        # Derive the new markdown path
+        md_path_str = Path(original_path_str).with_suffix('.md').as_posix()
         md_file = work_dir / md_path_str
 
         if not html_file.is_file():
@@ -148,12 +147,14 @@ def process_discovery_file(
             md_file.parent.mkdir(parents=True, exist_ok=True)
             md_file.write_text(markdown_content, encoding='utf-8')
 
+            # Delete the original HTML file
             html_file.unlink()
 
-            original_html_path = doc.pop("html_path")
+            # Update the path in the document entry in-place
+            doc["path"] = md_path_str
 
             converted_files_report.append({
-                "original_path": str(original_html_path),
+                "original_path": str(original_path_str),
                 "converted_path": str(md_path_str),
                 "title": doc.get("title")
             })
@@ -162,6 +163,7 @@ def process_discovery_file(
             logger.exception(f"Failed to convert or write {html_file}")
             errors.append({"document_title": doc.get('title'), "file_path": str(html_file), "message": str(e)})
 
+    # Write the updated discovery data back to the file
     with open(discovery_path, 'w', encoding='utf-8') as f:
         json.dump(discovery_data, f, ensure_ascii=False, indent=2)
     logger.info(f"Successfully updated {discovery_path}")
@@ -186,12 +188,25 @@ def main() -> None:
 
         converted, errors = process_discovery_file(target_path, args.base_url)
 
+        # Determine the final status
+        status = "error"
+        if not converted and not errors:
+            status = "no_action_needed"
+        elif converted and not errors:
+            status = "success"
+        elif converted and errors:
+            status = "partial_success"
+        # If only errors, status remains "error"
+
         result = {
-            "status": "success" if not errors else "partial_success",
+            "status": status,
             "target_directory": str(target_path.resolve()),
             "converted_files": converted,
             "errors": errors
         }
+
+        # For "error" or "partial_success", we might want to exit with a non-zero status code
+        # but for now, we just report it in the JSON.
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     except (ArgumentParsingError, FileNotFoundError) as e:
