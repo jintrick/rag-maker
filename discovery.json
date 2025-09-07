@@ -221,6 +221,23 @@
           "path"
         ]
       }
+    },
+    {
+      "name": "read_file",
+      "command": "ragmaker-read-file",
+      "description": "指定されたファイルのパスを受け取り、その内容を読み込んで標準出力に書き出すツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "読み込むファイルのパス。"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
     }
   ]
 }
