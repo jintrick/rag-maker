@@ -204,6 +204,23 @@
           "path"
         ]
       }
+    },
+    {
+      "name": "open_directory",
+      "command": "ragmaker-open-directory",
+      "description": "指定されたディレクトリをOSのデフォルトのファイルマネージャーで開く。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "開きたいディレクトリのパス。"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
     }
   ]
 }
