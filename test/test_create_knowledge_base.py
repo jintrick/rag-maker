@@ -50,20 +50,9 @@ class TestCreateKnowledgeBase(unittest.TestCase):
         self.assertTrue(cache_dir.exists(), "cache directory not created")
         self.assertTrue(cache_dir.is_dir(), "cache is not a directory")
 
-        # 3. Verify discovery.json was created and has correct content
+        # 3. Verify discovery.json was NOT created in the knowledge base root
         discovery_file = self.kb_root / "discovery.json"
-        self.assertTrue(discovery_file.exists(), "discovery.json not created")
-        self.assertTrue(discovery_file.is_file(), "discovery.json is not a file")
-
-        with open(discovery_file, 'r', encoding='utf-8') as f:
-            generated_data = json.load(f)
-
-        # a. Verify that the 'documents' list is empty and is the only key.
-        self.assertEqual(generated_data, {"documents": []}, "The discovery.json content is not '{{\"documents\": []}}'.")
-
-        # b. Verify that 'tools' and 'handles' keys are NOT present.
-        self.assertNotIn('tools', generated_data, "The 'tools' key should not be in discovery.json.")
-        self.assertNotIn('handles', generated_data, "The 'handles' key should not be in discovery.json.")
+        self.assertFalse(discovery_file.exists(), "discovery.json should NOT be created in the kb_root")
 
 if __name__ == '__main__':
     unittest.main()

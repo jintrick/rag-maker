@@ -1,6 +1,5 @@
 import unittest
 import json
-import os
 import tempfile
 import subprocess
 from pathlib import Path
@@ -8,132 +7,119 @@ from pathlib import Path
 class TestEntryDiscovery(unittest.TestCase):
 
     def setUp(self):
-        """Set up a temporary directory to act as a knowledge base."""
+        """Set up a temporary directory to act as a knowledge base root."""
         self.test_dir = tempfile.TemporaryDirectory()
         self.kb_root = Path(self.test_dir.name)
-
-        self.initial_discovery_content = {
-            "documents": [
-                {
-                    "path": "cache/existing_doc/",
-                    "title": "Existing Document",
-                    "summary": "This is an existing document.",
-                    "src_type": "local",
-                    "source_info": {
-                        "url": "./local/source",
-                        "fetched_at": "2023-01-01T00:00:00Z"
-                    }
-                }
-            ],
-            "handles": {},
-            "tools": []
-        }
-
-        # Create an initial discovery.json in the temp KB
-        with open(self.kb_root / "discovery.json", "w") as f:
-            json.dump(self.initial_discovery_content, f, indent=2)
+        # The tool itself should create the cache directory if it doesn't exist
+        # self.cache_dir = self.kb_root / "cache"
+        # self.cache_dir.mkdir()
 
     def tearDown(self):
         """Clean up the temporary directory."""
         self.test_dir.cleanup()
 
-    def test_add_new_entry_with_kb_root(self):
-        """Test adding a new entry using the --kb-root argument."""
+    def test_create_new_discovery_file(self):
+        """
+        Test that a new discovery.json is created in the cache directory
+        with the correct header and an empty documents list.
+        """
+        discovery_file_path = self.kb_root / "cache" / "discovery.json"
+        self.assertFalse(discovery_file_path.exists()) # Ensure it doesn't exist initially
+
         args = [
             'ragmaker-entry-discovery',
             '--kb-root', str(self.kb_root),
-            '--path', 'cache/new_doc/',
+            '--title', 'Test KB',
+            '--summary', 'A test knowledge base.',
             '--src-type', 'web',
-            '--title', 'New Document',
-            '--summary', 'This is a new document.',
-            '--source-url', 'https://example.com/new'
+            '--source-url', 'https://example.com'
         ]
 
-        process = subprocess.run(args, capture_output=True, text=True, encoding='utf-8')
+        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8')
 
-        if process.returncode != 0:
-            print("STDERR:", process.stderr)
-        self.assertEqual(process.returncode, 0)
+        # For debugging
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
 
-        # Verify the discovery.json in kb_root was updated
-        with open(self.kb_root / "discovery.json", 'r') as f:
-            written_data = json.load(f)
+        self.assertEqual(result.returncode, 0, "Script execution failed")
+        self.assertTrue(discovery_file_path.exists(), "discovery.json was not created in the cache directory")
 
-        self.assertEqual(len(written_data['documents']), 2)
-        new_entry = written_data['documents'][1]
-        self.assertEqual(new_entry['path'], 'cache/new_doc/')
-        self.assertEqual(new_entry['title'], 'New Document')
-        self.assertEqual(new_entry['source_info']['url'], 'https://example.com/new')
+        with open(discovery_file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
 
-        # Verify stdout message
-        output_json = json.loads(process.stdout)
+        self.assertIn("header", data)
+        self.assertIn("documents", data)
+        self.assertEqual(len(data["documents"]), 0) # Should have an empty documents list
+        self.assertEqual(data["header"]["title"], "Test KB")
+        self.assertEqual(data["header"]["source_url"], "https://example.com")
+
+        output_json = json.loads(result.stdout)
         self.assertEqual(output_json['status'], 'success')
-        self.assertEqual(output_json['message'], 'Entry added successfully.')
-        self.assertEqual(output_json['discovery_file'], str((self.kb_root / "discovery.json").resolve()))
+        self.assertEqual(output_json['header']['summary'], 'A test knowledge base.')
 
+    def test_update_existing_discovery_header(self):
+        """
+        Test that the header of an existing discovery.json is updated
+        without affecting other keys (like 'documents').
+        """
+        cache_dir = self.kb_root / "cache"
+        cache_dir.mkdir()
+        discovery_file_path = cache_dir / "discovery.json"
 
-    def test_update_existing_entry_with_kb_root(self):
-        """Test updating an existing entry using the --kb-root argument."""
+        # Create a pre-existing discovery.json with some content
+        initial_data = {
+            "header": {
+                "title": "Old Title",
+                "summary": "Old Summary",
+                "src_type": "local",
+                "source_url": "./old/path",
+                "fetched_at": "2023-01-01T00:00:00Z"
+            },
+            "documents": [
+                {"path": "doc1.md", "title": "Document 1"}
+            ]
+        }
+        with open(discovery_file_path, 'w', encoding='utf-8') as f:
+            json.dump(initial_data, f, indent=2)
+
         args = [
             'ragmaker-entry-discovery',
             '--kb-root', str(self.kb_root),
-            '--path', 'cache/existing_doc/',
+            '--title', 'New Title',
+            '--summary', 'New Summary',
             '--src-type', 'github',
-            '--title', 'Updated Document',
-            '--summary', 'This is an updated document.',
             '--source-url', 'https://github.com/user/repo.git'
         ]
 
-        process = subprocess.run(args, capture_output=True, text=True, encoding='utf-8')
+        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8')
 
-        if process.returncode != 0:
-            print("STDERR:", process.stderr)
-        self.assertEqual(process.returncode, 0)
+        self.assertEqual(result.returncode, 0, "Script execution failed")
 
-        # Verify the discovery.json in kb_root was updated
-        with open(self.kb_root / "discovery.json", 'r') as f:
-            written_data = json.load(f)
+        with open(discovery_file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
 
-        self.assertEqual(len(written_data['documents']), 1)
-        updated_entry = written_data['documents'][0]
-        self.assertEqual(updated_entry['title'], 'Updated Document')
-        self.assertEqual(updated_entry['src_type'], 'github')
-        self.assertNotEqual(updated_entry['source_info']['fetched_at'], "2023-01-01T00:00:00Z")
+        # Check that the header is updated
+        self.assertEqual(data["header"]["title"], "New Title")
+        self.assertEqual(data["header"]["src_type"], "github")
+        self.assertNotEqual(data["header"]["fetched_at"], "2023-01-01T00:00:00Z")
 
-        # Verify stdout message
-        output_json = json.loads(process.stdout)
-        self.assertEqual(output_json['status'], 'success')
-        self.assertEqual(output_json['message'], 'Entry updated successfully.')
+        # Check that other keys are untouched
+        self.assertIn("documents", data)
+        self.assertEqual(len(data["documents"]), 1)
+        self.assertEqual(data["documents"][0]["title"], "Document 1")
 
-    def test_create_new_discovery_file_with_kb_root(self):
-        """Test creating a new discovery.json in a specified kb_root."""
-        new_kb_root = self.kb_root / "new_kb"
-        new_kb_root.mkdir()
-
+    def test_missing_required_arguments(self):
+        """Test that the script fails if required arguments are missing."""
         args = [
             'ragmaker-entry-discovery',
-            '--kb-root', str(new_kb_root),
-            '--path', 'cache/some_doc/',
-            '--src-type', 'local',
-            '--title', 'New File Entry',
-            '--summary', 'Summary.',
-            '--source-url', './local/new'
+            '--kb-root', str(self.kb_root),
+            # Missing --title, --summary, etc.
         ]
 
-        process = subprocess.run(args, capture_output=True, text=True, encoding='utf-8')
+        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8')
 
-        if process.returncode != 0:
-            print("STDERR:", process.stderr)
-        self.assertEqual(process.returncode, 0)
-
-        # Verify the new discovery.json was created in the new_kb_root
-        new_discovery_file = new_kb_root / "discovery.json"
-        self.assertTrue(new_discovery_file.exists())
-        with open(new_discovery_file, 'r') as f:
-            written_data = json.load(f)
-
-        self.assertEqual(len(written_data['documents']), 1)
-        self.assertEqual(written_data['documents'][0]['title'], 'New File Entry')
+        self.assertNotEqual(result.returncode, 0, "Script should fail with missing arguments")
+        self.assertIn("the following arguments are required", result.stderr)
 
 if __name__ == '__main__':
     unittest.main()

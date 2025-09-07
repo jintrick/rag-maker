@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-A tool to register a new document entry into the root discovery.json.
-This tool takes a title and summary as arguments and adds or updates
-an entry in the RAGMaker's root discovery.json file.
+A tool to create or update the header metadata in the discovery.json
+file located in the knowledge base's cache directory.
 """
 
 import argparse
@@ -28,98 +27,77 @@ def eprint_error(error_obj: dict):
     sys.exit(1)
 
 # --- Core Logic ---
-def update_root_discovery_file(root_discovery_path: Path, new_entry: dict):
+def update_discovery_header(discovery_path: Path, header_data: dict):
     """
-    Adds or updates an entry in the root discovery.json file.
+    Creates or updates the discovery.json file with new header metadata.
     """
     try:
-        if root_discovery_path.exists():
-            with open(root_discovery_path, 'r', encoding='utf-8') as f:
+        discovery_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if discovery_path.exists():
+            with open(discovery_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
         else:
-            data = {"documents": [], "tools": [], "handles": {}}
+            data = {"documents": []} # Initialize with documents key
 
-        documents = data.get("documents", [])
-        entry_path = new_entry["path"]
+        # Update the header
+        data["header"] = header_data
 
-        found_index = -1
-        for i, doc in enumerate(documents):
-            if doc.get("path") == entry_path:
-                found_index = i
-                break
-
-        if found_index != -1:
-            documents[found_index].update(new_entry)
-            message = "Entry updated successfully."
-        else:
-            documents.append(new_entry)
-            message = "Entry added successfully."
-
-        data["documents"] = documents
-
-        with open(root_discovery_path, 'w', encoding='utf-8') as f:
+        with open(discovery_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        logger.info(f"{message} in {root_discovery_path.resolve()}")
+        message = f"Successfully updated discovery header at {discovery_path.resolve()}"
+        logger.info(message)
         return message
 
     except (IOError, json.JSONDecodeError) as e:
-        logger.error(f"Error processing root discovery file {root_discovery_path}: {e}")
+        logger.error(f"Error processing discovery file {discovery_path}: {e}")
         raise
 
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Register a document entry into the root discovery.json.")
-    parser.add_argument("--path", required=True, help="The path to the document's cache directory.")
+    parser = argparse.ArgumentParser(description="Create or update the header in cache/discovery.json.")
+    parser.add_argument("--kb-root", required=True, help="The root path for the knowledge base.")
+    parser.add_argument("--title", required=True, help="The title for the knowledge base.")
+    parser.add_argument("--summary", required=True, help="The summary for the knowledge base.")
+    parser.add_argument("--source-url", required=True, help="The original source URL or path for the knowledge base.")
     parser.add_argument("--src-type", required=True, help="The source type (e.g., local, web, github).")
-    parser.add_argument("--title", required=True, help="The title for the document collection.")
-    parser.add_argument("--summary", required=True, help="The summary for the document collection.")
-    parser.add_argument("--source-url", required=True, help="The original source URL or path for the document.")
-    parser.add_argument("--kb-root", help="The root directory of the knowledge base. Defaults to the current directory.")
-
 
     try:
         args = parser.parse_args()
 
-        if args.kb_root:
-            root_discovery_file = Path(args.kb_root) / "discovery.json"
-        else:
-            root_discovery_file = Path("discovery.json")
+        kb_root_path = Path(args.kb_root)
+        discovery_file_path = kb_root_path / "cache" / "discovery.json"
 
-
-        source_info = {
-            "url": args.source_url,
-            "fetched_at": datetime.now(timezone.utc).isoformat()
-        }
-
-        # 1. Prepare the new entry for the root discovery file
-        new_document_entry = {
-            "path": args.path,
+        # 1. Prepare the header data
+        header_data = {
             "title": args.title,
             "summary": args.summary,
             "src_type": args.src_type,
-            "source_info": source_info
+            "source_url": args.source_url,
+            "fetched_at": datetime.now(timezone.utc).isoformat()
         }
 
-        # 2. Update the root discovery file
-        message = update_root_discovery_file(root_discovery_file, new_document_entry)
+        # 2. Update the discovery file's header
+        message = update_discovery_header(discovery_file_path, header_data)
 
         # 3. Print success output
         result = {
             "status": "success",
             "message": message,
-            "entry": new_document_entry,
-            "discovery_file": str(root_discovery_file.resolve())
+            "header": header_data,
+            "discovery_file": str(discovery_file_path.resolve())
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     except Exception as e:
-        eprint_error({
-            "status": "error",
-            "message": "An unexpected error occurred.",
-            "details": str(e)
-        })
+        if not isinstance(e, SystemExit):
+            eprint_error({
+                "status": "error",
+                "message": "An unexpected error occurred in main.",
+                "details": str(e)
+            })
 
 if __name__ == "__main__":
     main()
