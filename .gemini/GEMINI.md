@@ -1,1 +1,1 @@
-@docs/Architecure/architecture.md
+@/docs/Architecure/Architecture.md

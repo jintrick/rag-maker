@@ -9,3 +9,4 @@ ragmaker-html-to-markdown = ragmaker.tools.html_to_markdown:main
 ragmaker-http-fetch = ragmaker.tools.http_fetch:main
 ragmaker-open-directory = ragmaker.tools.open_directory:main
 ragmaker-path-normalizer = ragmaker.tools.path_normalizer:main
+ragmaker-read-file = ragmaker.tools.read_file:main
