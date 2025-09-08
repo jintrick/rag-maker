@@ -24,14 +24,29 @@ Returns:
 import json
 import sys
 import logging
+from typing import Any
 
 # --- Dependency Check ---
+try:
+    from ragmaker.io_utils import eprint_error, handle_unexpected_error
+except ImportError:
+    # Fallback if ragmaker is not in the path
+    def eprint_error(data: dict[str, Any]):
+        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
+    def handle_unexpected_error(exception: Exception):
+        eprint_error({
+            "status": "error", "error_code": "UNEXPECTED_ERROR", "message": str(exception)
+        })
+    print(json.dumps({
+        "status": "error", "error_code": "DEPENDENCY_ERROR", "message": "ragmaker not found"
+    }, ensure_ascii=False), file=sys.stderr)
+    sys.exit(1)
+
 try:
     import tkinter as tk
     from tkinter import filedialog
 except ImportError:
-    # `eprint_error` is not yet defined, so print directly.
-    print(json.dumps({
+    eprint_error({
         "status": "error",
         "error_code": "DEPENDENCY_ERROR",
         "message": "Required library 'tkinter' not found.",
@@ -39,18 +54,14 @@ except ImportError:
             "Please install the tkinter library for your Python distribution. "
             "For example, on Debian/Ubuntu, run: sudo apt-get install python3-tk"
         )
-    }, ensure_ascii=False), file=sys.stderr)
+    })
     sys.exit(1)
 
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
 
-# --- Structured Error Handling ---
-def eprint_error(error_obj: dict):
-    """Prints a structured error object as JSON to stderr."""
-    print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
-
+# --- Structured Error Handling (Tool-specific) ---
 def handle_user_cancellation():
     """Handles user cancellation of the dialog."""
     eprint_error({
@@ -60,19 +71,8 @@ def handle_user_cancellation():
         "remediation_suggestion": "Please re-run the command and select a directory."
     })
 
-def handle_unexpected_error(exception: Exception):
-    """Handles unexpected errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "UNEXPECTED_ERROR",
-        "message": "An unexpected error occurred while trying to open the directory dialog.",
-        "remediation_suggestion": "Ensure your environment supports GUI applications.",
-        "details": {"error_type": type(exception).__name__, "error": str(exception)}
-    })
-
 
 # --- Core Logic ---
-
 def ask_for_directory() -> None:
     """
     ディレクトリ選択ダイアログを表示し、ユーザーの選択に基づいて結果を出力する。

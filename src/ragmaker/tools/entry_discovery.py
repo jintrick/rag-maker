@@ -11,6 +11,17 @@ import logging
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Any
+
+try:
+    from ragmaker.io_utils import eprint_error
+except ImportError:
+    # Fallback if ragmaker is not in the path
+    def eprint_error(data: dict[str, Any]):
+        """Prints a structured error object as JSON to stderr."""
+        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
+        sys.exit(1)
+
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -20,14 +31,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- Structured Error Handling ---
-def eprint_error(error_obj: dict):
-    """Prints a structured error object as JSON to stderr."""
-    print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
-    sys.exit(1)
 
 # --- Core Logic ---
-def update_discovery_header(discovery_path: Path, header_data: dict):
+def update_discovery_header(discovery_path: Path, header_data: dict[str, Any]) -> str:
     """
     Creates or updates the discovery.json file with new header metadata.
     """
@@ -71,7 +77,7 @@ def main():
         discovery_file_path = kb_root_path / "cache" / "discovery.json"
 
         # 1. Prepare the header data
-        header_data = {
+        header_data: dict[str, Any] = {
             "title": args.title,
             "summary": args.summary,
             "src_type": args.src_type,

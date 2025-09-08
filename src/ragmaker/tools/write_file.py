@@ -8,7 +8,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from ragmaker.io_utils import print_json_stdout, eprint_json_stderr
+from ragmaker.io_utils import print_json_stdout, eprint_error
 
 def main():
     """
@@ -40,7 +40,7 @@ def main():
             "path": str(file_path),
             "message": f"An I/O error occurred: {e}"
         }
-        eprint_json_stderr(error_data)
+        eprint_error(error_data)
         sys.exit(1)
     except Exception as e:
         error_data = {
@@ -48,7 +48,7 @@ def main():
             "path": str(file_path),
             "message": f"An unexpected error occurred: {e}"
         }
-        eprint_json_stderr(error_data)
+        eprint_error(error_data)
         sys.exit(1)
 
 if __name__ == "__main__":

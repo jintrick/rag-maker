@@ -6,25 +6,24 @@
 """
 
 import json
-from pathlib import Path
-from typing import List, Dict, Any
 import logging
+from pathlib import Path
+from typing import Any
+
+from ragmaker.io_utils import print_json_stdout
 
 logger = logging.getLogger(__name__)
 
 
-from ragmaker.io_utils import print_json_stdout
-
-
-def print_discovery_data(documents: list, metadata: dict) -> None:
+def print_discovery_data(documents: list[dict[str, Any]], metadata: dict[str, Any]) -> None:
     """
     取得したドキュメント情報とメタデータからdiscovery.jsonのデータ構造を構築し、
     標準出力にJSON形式で書き出す。
 
     Args:
-        documents (list):
+        documents (list[dict[str, Any]]):
             ドキュメント情報のリスト。各要素は 'path' と 'url' を含む辞書。
-        metadata (dict):
+        metadata (dict[str, Any]):
             この取得処理に関するメタデータ。'source' キーが必須。
     """
     discovery_data = {

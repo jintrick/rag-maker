@@ -30,32 +30,31 @@ import shutil
 import sys
 from pathlib import Path
 
+try:
+    from ragmaker.io_utils import (
+        ArgumentParsingError,
+        GracefulArgumentParser,
+        eprint_error,
+        handle_argument_parsing_error,
+        handle_unexpected_error,
+    )
+except ImportError:
+    # This is a fallback for when the script is run in an environment
+    # where the ragmaker package is not installed.
+    print(json.dumps({
+        "status": "error",
+        "error_code": "DEPENDENCY_ERROR",
+        "message": "The 'ragmaker' package is not installed or not in the Python path.",
+        "remediation_suggestion": "Please install the package, e.g., via 'pip install .'"
+    }, ensure_ascii=False), file=sys.stderr)
+    sys.exit(1)
+
+
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
-# --- Custom Exception and ArgumentParser ---
-class ArgumentParsingError(Exception):
-    """Custom exception for argument parsing errors."""
 
-class GracefulArgumentParser(argparse.ArgumentParser):
-    """ArgumentParser that raises a custom exception on error."""
-    def error(self, message: str):
-        raise ArgumentParsingError(message)
-
-# --- Structured Error Handling ---
-def eprint_error(error_obj: dict):
-    """Prints a structured error object as JSON to stderr."""
-    print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
-
-def handle_argument_parsing_error(exception: Exception):
-    """Handles argument parsing errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "ARGUMENT_PARSING_ERROR",
-        "message": "Failed to parse command-line arguments.",
-        "details": {"original_error": str(exception)}
-    })
-
+# --- Structured Error Handling (Tool-specific) ---
 def handle_file_sync_error(exception: Exception):
     """Handles file synchronization errors by printing a structured JSON error."""
     eprint_error({
@@ -68,14 +67,6 @@ def handle_file_sync_error(exception: Exception):
         }
     })
 
-def handle_unexpected_error(exception: Exception):
-    """Handles unexpected errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "UNEXPECTED_ERROR",
-        "message": "An unexpected error occurred during processing.",
-        "details": {"error_type": type(exception).__name__, "error": str(exception)}
-    })
 
 # --- Core Logic ---
 def sync_files(source_dir: Path, dest_dir: Path):
@@ -94,7 +85,7 @@ def sync_files(source_dir: Path, dest_dir: Path):
         # by another process between the rmtree and copytree calls.
         shutil.copytree(source_dir, dest_dir, dirs_exist_ok=True)
 
-        logger.info("File synchronization successful from %s to %s", source_dir, dest_dir)
+        logger.info(f"File synchronization successful from {source_dir} to {dest_dir}")
 
     except (shutil.Error, OSError) as e:
         handle_file_sync_error(e)

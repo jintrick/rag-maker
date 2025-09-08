@@ -34,66 +34,55 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import Optional, List
 from urllib.parse import urljoin, urlparse
-
-from ragmaker.io_utils import print_json_stdout
-from ragmaker.utils import print_discovery_data
+from bs4 import Tag
 
 # --- Dependency Check ---
+# `ragmaker` must be in the path. If not, the following imports will fail.
+try:
+    from ragmaker.io_utils import (
+        ArgumentParsingError,
+        GracefulArgumentParser,
+        eprint_error,
+        handle_argument_parsing_error,
+        handle_unexpected_error,
+    )
+    from ragmaker.utils import print_discovery_data
+except ImportError:
+    # This is a fallback for when the script is run in an environment
+    # where the ragmaker package is not installed.
+    print(json.dumps({
+        "status": "error",
+        "error_code": "DEPENDENCY_ERROR",
+        "message": "The 'ragmaker' package is not installed or not in the Python path.",
+        "remediation_suggestion": "Please install the package, e.g., via 'pip install .'"
+    }, ensure_ascii=False), file=sys.stderr)
+    sys.exit(1)
+
 try:
     import requests
     from bs4 import BeautifulSoup
     import trafilatura
 except ImportError:
-    # `eprint_error` and other functions are not yet defined, so print directly.
-    print(json.dumps({
+    eprint_error({
         "status": "error",
         "error_code": "DEPENDENCY_ERROR",
         "message": "Required libraries 'requests', 'beautifulsoup4', or 'trafilatura' not found.",
         "remediation_suggestion": "Please install the required libraries by running: pip install requests beautifulsoup4 trafilatura"
-    }, ensure_ascii=False), file=sys.stderr)
+    })
     sys.exit(1)
 
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
 
-# --- Custom Exception and ArgumentParser ---
-class ArgumentParsingError(Exception):
-    """Custom exception for argument parsing errors."""
-
-class GracefulArgumentParser(argparse.ArgumentParser):
-    """ArgumentParser that raises a custom exception on error."""
-    def error(self, message: str):
-        raise ArgumentParsingError(message)
-
-
-# --- Structured Error Handling ---
-def eprint_error(error_obj: dict):
-    """Prints a structured error object as JSON to stderr."""
-    print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
-    # Let the caller decide whether to exit.
-
-def handle_argument_parsing_error(exception: Exception):
-    """Handles argument parsing errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "ARGUMENT_PARSING_ERROR",
-        "message": "Failed to parse command-line arguments.",
-        "remediation_suggestion": (
-            "Review the command-line parameters and ensure all required "
-            "arguments are provided correctly."
-        ),
-        "details": {"original_error": str(exception)}
-    })
-
+# --- Structured Error Handling (Tool-specific) ---
 def handle_request_error(url: str, exception: Exception):
     """Handles network request errors by printing a structured JSON error."""
     eprint_error({
         "status": "error",
         "error_code": "REQUEST_ERROR",
-        "message": "Failed to fetch content from URL: %s" % url,
+        "message": f"Failed to fetch content from URL: {url}",
         "remediation_suggestion": (
             "Ensure the URL is correct, accessible, and the network "
             "connection is stable."
@@ -101,15 +90,6 @@ def handle_request_error(url: str, exception: Exception):
         "details": {"url": url, "error_type": type(exception).__name__, "error": str(exception)}
     })
 
-def handle_unexpected_error(exception: Exception):
-    """Handles unexpected errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "UNEXPECTED_ERROR",
-        "message": "An unexpected error occurred during processing.",
-        "remediation_suggestion": "Check the input and environment, then try again.",
-        "details": {"error_type": type(exception).__name__, "error": str(exception)}
-    })
 
 # --- Core Logic ---
 
@@ -138,10 +118,10 @@ class WebFetcher:
         self.output_dir = Path(args.output_dir)
         self.recursive = args.recursive
         self.depth = args.depth
-        self.visited_urls = set()
-        self.fetched_files_map = []
+        self.visited_urls: set[str] = set()
+        self.fetched_files_map: list[dict] = []
 
-    def _fetch_html(self, url: str) -> Optional[bytes]:
+    def _fetch_html(self, url: str) -> bytes | None:
         """
         指定されたURLから生のHTMLコンテンツをバイトデータとして取得する。
 
@@ -149,7 +129,7 @@ class WebFetcher:
             url (str): 取得対象のURL。
 
         Returns:
-            Optional[bytes]: 取得したHTMLのバイトデータ。失敗した場合はNone。
+            bytes | None: 取得したHTMLのバイトデータ。失敗した場合はNone。
         """
         try:
             headers = {
@@ -162,8 +142,9 @@ class WebFetcher:
             response = requests.get(url, headers=headers, timeout=15)
             response.raise_for_status()
 
-            if 'text/html' not in response.headers.get('Content-Type', ''):
-                logger.warning("URL %s is not HTML. Content-Type: %s", url, response.headers.get('Content-Type'))
+            content_type = response.headers.get('Content-Type', '')
+            if 'text/html' not in content_type:
+                logger.warning(f"URL {url} is not HTML. Content-Type: {content_type}")
                 return None
             
             return response.content
@@ -193,42 +174,43 @@ class WebFetcher:
         except Exception as e:  # pylint: disable=W0718
             # trafilatura can raise a wide variety of exceptions.
             # Catching a broad exception is necessary for the fallback mechanism.
-            logger.warning("Trafilatura failed for %s: %s. Falling back to raw body.", url, e)
+            logger.warning(f"Trafilatura failed for {url}: {e}. Falling back to raw body.")
             # フォールバックとしてUTF-8でデコードを試みる
             html_content = html_bytes.decode('utf-8', errors='ignore')
             soup = BeautifulSoup(html_content, 'html.parser')
             body = soup.find('body')
             return str(body) if body else html_content
 
-    def _find_links(self, html_content: str, page_url: str) -> List[str]:
+    def _find_links(self, html_content: str, page_url: str) -> list[str]:
         """
-        HTMLコンテンツ内からbase_urlの範囲に収まる有効なリンクをすべて探し出す。
+        HTMLコンテンツ内からリンクをすべて探し出す。
 
         Args:
             html_content (str): リンクを探索するHTMLコンテンツ。
             page_url (str): HTMLコンテンツの取得元URL。
 
         Returns:
-            List[str]: 発見されたURLのリスト。
+            list[str]: 発見されたURLのリスト。
         """
         soup = BeautifulSoup(html_content, 'html.parser')
         links = set()
         for a_tag in soup.find_all('a', href=True):
-            href = a_tag['href']
-            full_url = urljoin(page_url, href)
-            parsed_url = urlparse(full_url)
-            if parsed_url.scheme not in ['http', 'https']:
+            if not isinstance(a_tag, Tag):
                 continue
-            clean_url = parsed_url._replace(fragment="").geturl()
-            if clean_url.startswith(self.base_url):
-                links.add(clean_url)
+            href = a_tag.get('href')
+            if href:
+                # href can be a list, take the first element if so.
+                if isinstance(href, list):
+                    href = href[0]
+                full_url = urljoin(page_url, href)
+                links.add(full_url)
         return list(links)
 
     def run(self):
         """Webページの取得プロセスを実行する。"""
-        logger.info("Starting fetch for URL: %s within base URL: %s", self.start_url, self.base_url)
+        logger.info(f"Starting fetch for URL: {self.start_url} within base URL: {self.base_url}")
         if not self.start_url.startswith(self.base_url):
-            logger.warning("Start URL '%s' is outside the base URL '%s'.", self.start_url, self.base_url)
+            logger.warning(f"Start URL '{self.start_url}' is outside the base URL '{self.base_url}'.")
             return
 
         urls_to_visit = [(self.start_url, 0)]
@@ -241,30 +223,33 @@ class WebFetcher:
             if not self.recursive and len(self.visited_urls) > 0:
                 break
             if self.recursive and current_depth > self.depth:
-                logger.debug("Skipping %s, depth %s > max depth %s", current_url, current_depth, self.depth)
+                logger.debug(f"Skipping {current_url}, depth {current_depth} > max depth {self.depth}")
                 continue
 
-            logger.info("Fetching: %s at depth %s", current_url, current_depth)
+            logger.info(f"Fetching: {current_url} at depth {current_depth}")
             self.visited_urls.add(current_url)
 
             html_bytes = self._fetch_html(current_url)
             if not html_bytes:
                 continue
 
-            # リンク抽出のために一度デコードする (BeautifulSoupは文字列を扱うため)
-            # trafilaturaには生のバイトデータを渡すので、ここではエラーを無視してデコード
             html_for_links = html_bytes.decode('utf-8', errors='ignore')
 
             if self.recursive and current_depth < self.depth:
                 found_links = self._find_links(html_for_links, current_url)
-                logger.debug("Found %d links on %s", len(found_links), current_url)
+                logger.debug(f"Found {len(found_links)} links on {current_url}")
                 for link in found_links:
-                    if link not in self.visited_urls:
-                        urls_to_visit.append((link, current_depth + 1))
+                    parsed_url = urlparse(link)
+                    if parsed_url.scheme not in ['http', 'https']:
+                        continue
+
+                    clean_url = parsed_url._replace(fragment="").geturl()
+                    if clean_url.startswith(self.base_url) and clean_url not in self.visited_urls:
+                        urls_to_visit.append((clean_url, current_depth + 1))
             
             main_content = self._extract_main_content(html_bytes, current_url)
             if not main_content:
-                logger.warning("No main content extracted from %s. Skipping file save.", current_url)
+                logger.warning(f"No main content extracted from {current_url}. Skipping file save.")
                 continue
 
             try:
@@ -277,10 +262,10 @@ class WebFetcher:
                     "url": current_url,
                     "path": filename
                 })
-                logger.debug("Saved content from %s to %s", current_url, file_path)
+                logger.debug(f"Saved content from {current_url} to {file_path}")
                 page_counter += 1
             except IOError as e:
-                logger.error("Failed to write file for %s: %s", current_url, e)
+                logger.error(f"Failed to write file for {current_url}: {e}")
 
 
 
@@ -300,13 +285,10 @@ def main() -> None:
     try:
         args = parser.parse_args()
         
-        # Sanitize the output_dir path
         if sys.platform == "win32":
-            # Sanitize only the final component of the path to avoid corrupting the base path.
             p = Path(args.output_dir)
             sanitized_name = re.sub(r"['\"]", "", p.name).strip()
             
-            # If the sanitized name is empty, it's an invalid path.
             if not sanitized_name:
                 logger.error("The provided --output-dir path is empty after sanitization.")
                 eprint_error({
@@ -326,7 +308,6 @@ def main() -> None:
         fetcher = WebFetcher(args)
         fetcher.run()
 
-        # メタデータを準備
         metadata = {
             "source": "http_fetch",
             "url": args.url,
@@ -334,7 +315,6 @@ def main() -> None:
             "depth": args.depth
         }
 
-        # 新しい共通関数を呼び出してdiscovery.jsonの内容を標準出力に書き出す
         print_discovery_data(fetcher.fetched_files_map, metadata)
 
     except ArgumentParsingError as e:
@@ -343,9 +323,7 @@ def main() -> None:
     except KeyboardInterrupt:
         logger.info("Process interrupted by user.")
         sys.exit(1)
-    except Exception as e:  # pylint: disable=W0718
-        # A top-level catch-all is necessary to ensure any unexpected error
-        # is gracefully handled and reported as a JSON object.
+    except Exception as e:
         logger.exception("An unexpected error occurred.")
         handle_unexpected_error(e)
         sys.exit(1)

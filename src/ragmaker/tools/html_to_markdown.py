@@ -12,36 +12,27 @@ import json
 import logging
 import os
 import sys
-from pathlib import Path
-from typing import Optional, Tuple
-from urllib.parse import urljoin, urlparse
 import re
+from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
-# --- Dependency Check ---
+# --- Dependency and Utility Loading ---
 try:
+    from ragmaker.io_utils import ArgumentParsingError, GracefulArgumentParser, eprint_error
     from readabilipy import simple_json_from_html_string
     from markdownify import markdownify as md
-except ImportError:
+except ImportError as e:
+    # We can't use the fancy error reporting if the base package is missing.
     print(json.dumps({
         "status": "error",
         "error_code": "DEPENDENCY_ERROR",
-        "message": "Required libraries 'readabilipy' or 'markdownify' not found.",
-        "remediation_suggestion": "Please install them via: pip install readabilipy markdownify"
+        "message": f"A required dependency is not installed: {e}. Please run 'pip install -r requirements.txt'."
     }, ensure_ascii=False), file=sys.stderr)
     sys.exit(1)
 
+
 # --- Tool Characteristics & Setup ---
 logger = logging.getLogger(__name__)
-
-class ArgumentParsingError(Exception):
-    pass
-
-class GracefulArgumentParser(argparse.ArgumentParser):
-    def error(self, message: str):
-        raise ArgumentParsingError(message)
-
-def eprint_error(error_obj: dict):
-    print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
 
 def setup_logging(verbose: bool, log_level: str) -> None:
     level = logging.DEBUG if verbose else getattr(logging, log_level.upper(), logging.INFO)
@@ -52,13 +43,13 @@ def setup_logging(verbose: bool, log_level: str) -> None:
         stream=sys.stderr
     )
 
-# --- Core Conversion Logic (mostly unchanged) ---
+# --- Core Conversion Logic ---
 
-def extract_base_url_from_html(html_content: str) -> Optional[str]:
+def extract_base_url_from_html(html_content: str) -> str | None:
     base_match = re.search(r'<base\s+href=["\']([^"\']+)["\']', html_content, re.IGNORECASE)
     return base_match.group(1) if base_match else None
 
-def fix_links_in_markdown(markdown_content: str, base_url: Optional[str] = None) -> str:
+def fix_links_in_markdown(markdown_content: str, base_url: str | None = None) -> str:
     def replace_link(match):
         link_text, link_url = match.groups()
         if link_url.startswith('#') or urlparse(link_url).scheme:
@@ -77,7 +68,7 @@ def read_html_file(file_path: Path) -> str:
             continue
     raise IOError(f"Cannot decode file {file_path} with any supported encoding")
 
-def convert_html_to_markdown(html_file_path: Path, base_url: Optional[str] = None) -> Tuple[str, str]:
+def convert_html_to_markdown(html_file_path: Path, base_url: str | None = None) -> tuple[str, str]:
     html_content = read_html_file(html_file_path)
     effective_base_url = base_url or extract_base_url_from_html(html_content)
     
@@ -98,16 +89,14 @@ def convert_html_to_markdown(html_file_path: Path, base_url: Optional[str] = Non
     
     return title, markdown_content
 
-# --- New Main Logic ---
+# --- Main Logic ---
 
 def process_discovery_file(
     work_dir: Path,
-    base_url: Optional[str] = None
-) -> Tuple[list, list]:
+    base_url: str | None = None
+) -> tuple[list, list]:
     """
     Processes conversions based on a discovery.json file.
-    It identifies HTML files by looking for `.html` or `.htm` extensions
-    in the `path` key of each document entry.
     """
     discovery_path = work_dir / "discovery.json"
     if not discovery_path.is_file():
@@ -123,14 +112,11 @@ def process_discovery_file(
     for doc in documents:
         original_path_str = doc.get("path")
 
-        # Skip if path is not a string or doesn't end with .html/.htm
         if not isinstance(original_path_str, str) or not original_path_str.lower().endswith(('.html', '.htm')):
             logger.debug(f"Skipping non-HTML entry: {original_path_str}")
             continue
 
         html_file = work_dir / original_path_str
-
-        # Derive the new markdown path
         md_path_str = Path(original_path_str).with_suffix('.md').as_posix()
         md_file = work_dir / md_path_str
 
@@ -147,10 +133,7 @@ def process_discovery_file(
             md_file.parent.mkdir(parents=True, exist_ok=True)
             md_file.write_text(markdown_content, encoding='utf-8')
 
-            # Delete the original HTML file
             html_file.unlink()
-
-            # Update the path in the document entry in-place
             doc["path"] = md_path_str
 
             converted_files_report.append({
@@ -163,7 +146,6 @@ def process_discovery_file(
             logger.exception(f"Failed to convert or write {html_file}")
             errors.append({"document_title": doc.get('title'), "file_path": str(html_file), "message": str(e)})
 
-    # Write the updated discovery data back to the file
     with open(discovery_path, 'w', encoding='utf-8') as f:
         json.dump(discovery_data, f, ensure_ascii=False, indent=2)
     logger.info(f"Successfully updated {discovery_path}")
@@ -188,7 +170,6 @@ def main() -> None:
 
         converted, errors = process_discovery_file(target_path, args.base_url)
 
-        # Determine the final status
         status = "error"
         if not converted and not errors:
             status = "no_action_needed"
@@ -196,7 +177,6 @@ def main() -> None:
             status = "success"
         elif converted and errors:
             status = "partial_success"
-        # If only errors, status remains "error"
 
         result = {
             "status": status,
@@ -205,8 +185,6 @@ def main() -> None:
             "errors": errors
         }
 
-        # For "error" or "partial_success", we might want to exit with a non-zero status code
-        # but for now, we just report it in the JSON.
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     except (ArgumentParsingError, FileNotFoundError) as e:
