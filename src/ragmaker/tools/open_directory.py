@@ -8,37 +8,28 @@ import subprocess
 import json
 import argparse
 import logging
-from typing import Any
-
-# Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stderr)
-logger = logging.getLogger(__name__)
 
 try:
-    from ragmaker.io_utils import eprint_error
-except ImportError as e:
-    logger.error(f"Failed to import from ragmaker.io_utils: {e}")
-    def eprint_error(data: dict[str, Any]):
-        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
-        sys.exit(1)
+    from ragmaker.io_utils import (
+        handle_file_not_found_error,
+        handle_command_execution_error,
+        handle_unexpected_error
+    )
+except ImportError:
+    # Fallback for local execution
+    def handle_file_not_found_error(exception: FileNotFoundError): print(json.dumps({"status": "error", "message": f"File not found: {exception}"})); sys.exit(1)
+    def handle_command_execution_error(exception: Exception): print(json.dumps({"status": "error", "message": f"Command failed: {exception}"})); sys.exit(1)
+    def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
 
 
 def open_directory(path: str):
     """
     Opens the specified path in the default file manager.
-
-    Args:
-        path (str): The directory path to open.
     """
-    if not os.path.isdir(path):
-        eprint_error({
-            "status": "error",
-            "error_code": "DIRECTORY_NOT_FOUND",
-            "message": f"The specified directory does not exist: {path}"
-        })
-        sys.exit(1)
-
     try:
+        if not os.path.isdir(path):
+            raise FileNotFoundError(f"The specified directory does not exist: {path}")
+
         if sys.platform == "win32":
             subprocess.run(["explorer", os.path.normpath(path)], check=True)
         elif sys.platform == "darwin":
@@ -52,29 +43,14 @@ def open_directory(path: str):
         }
         print(json.dumps(success_info, ensure_ascii=False))
 
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        eprint_error({
-            "status": "error",
-            "error_code": "COMMAND_EXECUTION_ERROR",
-            "message": "Failed to open the directory using the OS default file manager.",
-            "details": {
-                "platform": sys.platform,
-                "path": path,
-                "error": str(e)
-            }
-        })
+    except FileNotFoundError as e:
+        handle_file_not_found_error(e)
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        handle_command_execution_error(e)
         sys.exit(1)
     except Exception as e:
-        eprint_error({
-            "status": "error",
-            "error_code": "UNEXPECTED_ERROR",
-            "message": "An unexpected error occurred.",
-            "details": {
-                "platform": sys.platform,
-                "path": path,
-                "error": str(e)
-            }
-        })
+        handle_unexpected_error(e)
         sys.exit(1)
 
 

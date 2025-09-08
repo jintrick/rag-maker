@@ -15,15 +15,16 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import Any
 
 try:
-    from ragmaker.io_utils import eprint_error
+    from ragmaker.io_utils import handle_file_not_found_error, handle_unexpected_error
 except ImportError:
-    # Fallback if ragmaker is not in the path
-    def eprint_error(data: dict[str, Any]):
-        """Prints a structured error object as JSON to stderr."""
-        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
+    # Fallback for local execution without installation
+    def handle_file_not_found_error(exception: FileNotFoundError):
+        print(json.dumps({"status": "error", "message": f"File not found: {exception}"}))
+        sys.exit(1)
+    def handle_unexpected_error(exception: Exception):
+        print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"}))
         sys.exit(1)
 
 # --- Setup Logging ---
@@ -47,17 +48,13 @@ def cleanup_directory(target_dir: Path) -> tuple[list[str], list[str]]:
     deleted_items = []
     kept_items = []
 
-    # Use a two-pass approach. First, identify what to delete.
     items_to_delete = []
     for item_path in target_dir.glob('*'):
-        # Keep discovery.json and .md files
         if item_path.name == 'discovery.json' or item_path.suffix == '.md':
             kept_items.append(str(item_path))
             continue
-
         items_to_delete.append(item_path)
 
-    # Second pass: delete the identified items.
     for item_path in items_to_delete:
         try:
             if item_path.is_dir():
@@ -69,7 +66,6 @@ def cleanup_directory(target_dir: Path) -> tuple[list[str], list[str]]:
             deleted_items.append(str(item_path))
         except OSError as e:
             logger.error(f"Error deleting {item_path}: {e}")
-            # For now, we'll log and continue. We could re-raise if needed.
 
     return deleted_items, kept_items
 
@@ -88,25 +84,18 @@ def main():
         result = {
             "status": "success",
             "target_directory": str(target_path.resolve()),
-            "deleted_items": sorted(deleted), # Sort for deterministic output
-            "kept_items": sorted(kept),       # Sort for deterministic output
+            "deleted_items": sorted(deleted),
+            "kept_items": sorted(kept),
             "summary": f"Deleted {len(deleted)} items, kept {len(kept)} items."
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     except FileNotFoundError as e:
-        eprint_error({
-            "status": "error",
-            "error_code": "DIRECTORY_NOT_FOUND",
-            "message": str(e)
-        })
+        handle_file_not_found_error(e)
+        sys.exit(1)
     except Exception as e:
-        eprint_error({
-            "status": "error",
-            "error_code": "UNEXPECTED_ERROR",
-            "message": "An unexpected error occurred during cleanup.",
-            "details": str(e)
-        })
+        handle_unexpected_error(e)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

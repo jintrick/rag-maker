@@ -7,8 +7,22 @@ write_file.py - A tool to write content to a specified file.
 import argparse
 import os
 import sys
+import json
 from pathlib import Path
-from ragmaker.io_utils import print_json_stdout, eprint_error
+from typing import Any
+
+try:
+    from ragmaker.io_utils import (
+        print_json_stdout,
+        handle_io_error,
+        handle_unexpected_error
+    )
+except ImportError:
+    # Fallback for local execution
+    def print_json_stdout(data: dict[str, Any]): print(json.dumps(data))
+    def handle_io_error(exception: IOError): print(json.dumps({"status": "error", "message": f"I/O error: {exception}"})); sys.exit(1)
+    def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
+
 
 def main():
     """
@@ -22,7 +36,6 @@ def main():
     file_path = Path(args.path)
 
     try:
-        # Ensure the parent directory exists
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -35,20 +48,10 @@ def main():
         print_json_stdout(output_data)
 
     except IOError as e:
-        error_data = {
-            "status": "error",
-            "path": str(file_path),
-            "message": f"An I/O error occurred: {e}"
-        }
-        eprint_error(error_data)
+        handle_io_error(e)
         sys.exit(1)
     except Exception as e:
-        error_data = {
-            "status": "error",
-            "path": str(file_path),
-            "message": f"An unexpected error occurred: {e}"
-        }
-        eprint_error(error_data)
+        handle_unexpected_error(e)
         sys.exit(1)
 
 if __name__ == "__main__":

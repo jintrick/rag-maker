@@ -11,15 +11,16 @@ import shutil
 import sys
 from pathlib import Path
 import importlib.resources
-from typing import Any
 
 try:
-    from ragmaker.io_utils import eprint_error
+    from ragmaker.io_utils import handle_io_error, handle_unexpected_error
 except ImportError:
-    # Fallback if ragmaker is not in the path
-    def eprint_error(data: dict[str, Any]):
-        """Prints a structured error object as JSON to stderr."""
-        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
+    # Fallback for local execution without installation
+    def handle_io_error(exception: IOError):
+        print(json.dumps({"status": "error", "message": f"I/O error: {exception}"}))
+        sys.exit(1)
+    def handle_unexpected_error(exception: Exception):
+        print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"}))
         sys.exit(1)
 
 
@@ -38,39 +39,27 @@ def create_knowledge_base(kb_root: Path):
     Sets up the basic directory structure and files for a new knowledge base.
     """
     try:
-        # 1. Create the root directory
         kb_root.mkdir(parents=True, exist_ok=True)
         logger.info(f"Knowledge base root created at: {kb_root.resolve()}")
 
-        # 2. Copy only the necessary command files (e.g., ask.toml) to make the KB self-contained.
         dest_commands_dir = kb_root / ".gemini" / "commands"
         dest_commands_dir.mkdir(parents=True, exist_ok=True)
 
-        # Use importlib.resources to access the packaged data file
         with importlib.resources.path("ragmaker.data", "ask.toml") as source_ask_toml:
             if source_ask_toml.is_file():
                 shutil.copy2(source_ask_toml, dest_commands_dir / "ask.toml")
                 logger.info(f"Copied ask.toml to {dest_commands_dir.resolve()}")
 
-        # 3. Create the cache directory
         cache_dir = kb_root / "cache"
         cache_dir.mkdir(exist_ok=True)
         logger.info(f"Created cache directory at {cache_dir.resolve()}")
 
     except (IOError, OSError, FileNotFoundError) as e:
-        eprint_error({
-            "status": "error",
-            "error_code": "FILE_OPERATION_ERROR",
-            "message": f"An error occurred during file operations: {e}",
-            "details": {"error_type": type(e).__name__, "error": str(e)}
-        })
+        handle_io_error(e)
+        raise
     except Exception as e:
-        eprint_error({
-            "status": "error",
-            "error_code": "UNEXPECTED_ERROR",
-            "message": "An unexpected error occurred.",
-            "details": {"error_type": type(e).__name__, "error": str(e)}
-        })
+        handle_unexpected_error(e)
+        raise
 
 # --- Main Execution ---
 def main():
@@ -93,11 +82,8 @@ def main():
 
     except Exception as e:
         if not isinstance(e, SystemExit):
-            eprint_error({
-                "status": "error",
-                "message": "An unexpected error occurred in main.",
-                "details": str(e)
-            })
+            handle_unexpected_error(e)
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()

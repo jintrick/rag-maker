@@ -8,7 +8,20 @@ import argparse
 import os
 import json
 import sys
-from ragmaker.io_utils import print_json_stdout, eprint_error
+from typing import Any
+
+try:
+    from ragmaker.io_utils import (
+        print_json_stdout,
+        handle_file_not_found_error,
+        handle_unexpected_error
+    )
+except ImportError:
+    # Fallback for local execution
+    def print_json_stdout(data: dict[str, Any]): print(json.dumps(data))
+    def handle_file_not_found_error(exception: FileNotFoundError): print(json.dumps({"status": "error", "message": f"File not found: {exception}"})); sys.exit(1)
+    def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
+
 
 def main():
     """
@@ -41,18 +54,10 @@ def main():
         print_json_stdout(output_data)
 
     except FileNotFoundError as e:
-        error_data = {
-            "status": "error",
-            "message": str(e)
-        }
-        eprint_error(error_data)
+        handle_file_not_found_error(e)
         sys.exit(1)
     except Exception as e:
-        error_data = {
-            "status": "error",
-            "message": f"An unexpected error occurred: {e}"
-        }
-        eprint_error(error_data)
+        handle_unexpected_error(e)
         sys.exit(1)
 
 if __name__ == "__main__":
