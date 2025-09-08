@@ -225,7 +225,7 @@
     {
       "name": "read_file",
       "command": "ragmaker-read-file",
-      "description": "指定されたファイルのパスを受け取り、その内容を読み込んで標準出力に書き出すツール。",
+      "description": "指定されたファイルのパスを受け取り、その内容を読み込んでJSON形式で標準出力に書き出すツール。",
       "parameters": {
         "type": "object",
         "properties": {
@@ -240,19 +240,24 @@
       }
     },
     {
-      "name": "read_file",
-      "command": "ragmaker-read-file",
-      "description": "指定されたファイルのパスを受け取り、その内容を読み込んでJSON形式で標準出力に書き出すツール。",
+      "name": "enrich_discovery",
+      "command": "ragmaker-enrich-discovery",
+      "description": "複数のドキュメント情報を一括で更新するためのバッチ処理ツール。",
       "parameters": {
         "type": "object",
         "properties": {
-          "path": {
+          "discovery-path": {
             "type": "string",
-            "description": "読み込むファイルのパス。"
+            "description": "変更対象の discovery.json ファイルのフルパス。"
+          },
+          "updates": {
+            "type": "string",
+            "description": "更新内容を含むJSON文字列。'path', 'title', 'summary' をキーに持つオブジェクトの配列。"
           }
         },
         "required": [
-          "path"
+          "discovery-path",
+          "updates"
         ]
       }
     }
