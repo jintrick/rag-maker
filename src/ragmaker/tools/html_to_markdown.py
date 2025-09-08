@@ -19,8 +19,8 @@ from urllib.parse import urljoin, urlparse
 # --- Dependency and Utility Loading ---
 try:
     from ragmaker.io_utils import ArgumentParsingError, GracefulArgumentParser, eprint_error
-    from readabilipy import simple_json_from_html_string
-    from markdownify import markdownify as md
+    from readabilipy import simple_json_from_html_string  # type: ignore
+    from markdownify import markdownify as md  # type: ignore
 except ImportError as e:
     # We can't use the fancy error reporting if the base package is missing.
     print(json.dumps({

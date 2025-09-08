@@ -6,14 +6,19 @@ import json
 from pathlib import Path
 import sys
 import os
+from typing import Any, Type, Optional
 
 # Add src to path to allow importing ragmaker and its dependencies
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
+# Define Repo as Any initially to satisfy mypy if GitPython is not installed
+Repo: Any = None
+
 try:
-    from git import Repo
+    from git import Repo as GitRepoType
+    Repo = GitRepoType
 except ImportError:
-    Repo = None
+    pass
 
 @unittest.skipIf(Repo is None, "GitPython is not installed, skipping TestGitHubFetch")
 class TestGitHubFetch(unittest.TestCase):
