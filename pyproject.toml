@@ -39,6 +39,8 @@ ragmaker-http-fetch = "ragmaker.tools.http_fetch:main"
 ragmaker-open-directory = "ragmaker.tools.open_directory:main"
 ragmaker-path-normalizer = "ragmaker.tools.path_normalizer:main"
 ragmaker-read-file = "ragmaker.tools.read_file:main"
+ragmaker-write-file = "ragmaker.tools.write_file:main"
+ragmaker-move-file = "ragmaker.tools.move_file:main"
 
 [tool.setuptools.package-data]
 "ragmaker.data" = ["*.toml"]

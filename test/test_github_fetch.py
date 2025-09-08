@@ -2,6 +2,7 @@ import unittest
 import subprocess
 import tempfile
 import shutil
+import json
 from pathlib import Path
 import sys
 import os
@@ -9,8 +10,12 @@ import os
 # Add src to path to allow importing ragmaker and its dependencies
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from git import Repo
+try:
+    from git import Repo
+except ImportError:
+    Repo = None
 
+@unittest.skipIf(Repo is None, "GitPython is not installed, skipping TestGitHubFetch")
 class TestGitHubFetch(unittest.TestCase):
 
     def setUp(self):
@@ -26,48 +31,79 @@ class TestGitHubFetch(unittest.TestCase):
         docs_dir = self.repo_dir / "docs"
         docs_dir.mkdir()
         (docs_dir / "test_file.md").write_text("hello world")
+        (self.repo_dir / "README.md").write_text("# Test Repo")
+
 
         # Add and commit the file
-        self.repo.index.add(["docs/test_file.md"])
+        self.repo.index.add(["docs/test_file.md", "README.md"])
         self.repo.index.commit("Initial commit")
+        self.main_branch = self.repo.active_branch.name
+
 
     def tearDown(self):
         """Clean up the temporary directory."""
         self.repo.close()
         self.test_dir.cleanup()
 
-    def test_local_repo_fetch_and_dir_creation(self):
+    def test_fetch_and_stdout_json(self):
         """
-        Test that github_fetch.py can fetch from a local repo
-        and creates the temp directory if it does not exist.
+        Test that github_fetch can fetch from a local repo
+        and prints the discovery JSON to stdout.
         """
         output_dir = Path(self.test_dir.name) / "output"
         self.assertFalse(output_dir.exists())
 
         # Use the local repository with the file:// protocol
-        repo_url = f"file://{self.repo_dir}"
+        # Using as_uri() is more robust for path handling across OSes
+        repo_url = self.repo_dir.as_uri()
         path_in_repo = "docs"
 
         process = subprocess.run(
             [
-                "ragmaker-github-fetch",
+                "python", "-m", "src.ragmaker.tools.github_fetch",
                 "--repo-url", repo_url,
                 "--path-in-repo", path_in_repo,
-                "--temp-dir", str(output_dir)
+                "--temp-dir", str(output_dir),
+                "--branch", self.main_branch
             ],
             capture_output=True,
-            text=True
+            text=True,
+            encoding='utf-8'
         )
 
-        if process.returncode != 0:
-            print("GitHubFetch STDERR:", process.stderr)
+        # Check for successful execution
+        self.assertEqual(process.returncode, 0, f"github_fetch.py script failed with stderr: {process.stderr}")
 
-        self.assertEqual(process.returncode, 0, "github_fetch.py script failed")
-
-        # The tool should create the directory.
+        # The tool should still create the output directory and fetch the files.
         self.assertTrue(output_dir.exists())
-        # And it should contain the fetched file.
         self.assertTrue((output_dir / "docs" / "test_file.md").exists())
+        # It should NOT fetch files outside the sparse checkout path
+        self.assertFalse((output_dir / "README.md").exists())
+
+        # Verify the stdout is a valid JSON with the correct structure
+        try:
+            stdout_json = json.loads(process.stdout)
+        except json.JSONDecodeError:
+            self.fail(f"Stdout was not valid JSON.\nStdout: {process.stdout}")
+
+        # Check for discovery data structure
+        self.assertIn("documents", stdout_json)
+        self.assertIn("metadata", stdout_json)
+        self.assertIsInstance(stdout_json["documents"], list)
+        self.assertEqual(len(stdout_json["documents"]), 1)
+
+        # Check the content of the discovery data
+        document_info = stdout_json["documents"][0]
+        self.assertEqual(document_info["path"], "docs/test_file.md")
+        # The URL should be constructed correctly, even for a local file URI
+        self.assertIn("test_repo/blob", document_info["url"])
+        self.assertIn(self.main_branch, document_info["url"])
+        self.assertIn("docs/test_file.md", document_info["url"])
+
+        # Check metadata
+        self.assertEqual(stdout_json["metadata"]["source"], "github_fetch")
+        self.assertEqual(stdout_json["metadata"]["repo_url"], repo_url)
+
 
 if __name__ == '__main__':
     unittest.main()
