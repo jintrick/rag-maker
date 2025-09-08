@@ -28,8 +28,16 @@
     -   キャプチャした標準出力の内容を `content` として、`write_file` ツールを呼び出します。
     -   `--path`には、一時的な場所として `.tmp/discovery.json` を指定します。
 
-### 2. データ変換
-1.  **Markdown変換:** (Webソースの場合など) `html_to_markdown`ツールを実行し、`{{kb_root}}/cache/` 内のHTMLファイルをMarkdownに変換します。このツールはインプレースで動作し、`discovery.json`も自動で更新します。
+### 2. データ変換 (リファクタリング後)
+1.  **Markdown変換の実行:**
+    -   WebソースなどのHTMLファイルを変換する必要がある場合、`html_to_markdown` ツールを呼び出します。
+    -   `--input-dir`にはHTMLファイルが格納されている `{{kb_root}}/cache/` を指定します。
+    -   `--discovery-path`には、更新のベースとなる `.tmp/discovery.json` を指定します。
+    -   このツールは、変換後の `discovery.json` の内容全体を**標準出力**に返します。この出力をキャプチャしてください。
+2.  **一時ファイルの更新:**
+    -   キャプチャした標準出力の内容を `content` として、`write_file` ツールを再度呼び出します。
+    -   `--path` に `.tmp/discovery.json` を指定し、ファイルを**上書き**します。
+    -   これにより、`discovery.json` への変更が `.tmp/` ディレクトリ内で完結します。
 
 ### 3. キャッシュクリーンアップ
 1.  **不要ファイルの削除:** `cache_cleanup`ツールを実行し、RAGに不要な中間ファイル（HTMLソースなど）を削除して、`{{kb_root}}/cache/` ディレクトリを整理します。

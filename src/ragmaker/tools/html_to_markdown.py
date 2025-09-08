@@ -18,7 +18,9 @@ from urllib.parse import urljoin, urlparse
 
 # --- Dependency and Utility Loading ---
 try:
-    from ragmaker.io_utils import ArgumentParsingError, GracefulArgumentParser, eprint_error
+    from ragmaker.io_utils import (
+        ArgumentParsingError, GracefulArgumentParser, eprint_error, print_json_stdout
+    )
     from readabilipy import simple_json_from_html_string  # type: ignore
     from markdownify import markdownify as md  # type: ignore
 except ImportError as e:
@@ -91,23 +93,21 @@ def convert_html_to_markdown(html_file_path: Path, base_url: str | None = None) 
 
 # --- Main Logic ---
 
-def process_discovery_file(
-    work_dir: Path,
+def process_and_update_discovery(
+    discovery_path: Path,
+    input_dir: Path,
     base_url: str | None = None
-) -> tuple[list, list]:
+) -> dict:
     """
-    Processes conversions based on a discovery.json file.
+    Processes conversions based on a discovery file, returning the updated data.
     """
-    discovery_path = work_dir / "discovery.json"
     if not discovery_path.is_file():
-        raise FileNotFoundError(f"discovery.json not found in {work_dir}")
+        raise FileNotFoundError(f"Discovery file not found at {discovery_path}")
 
     with open(discovery_path, 'r', encoding='utf-8') as f:
         discovery_data = json.load(f)
 
     documents = discovery_data.get("documents", [])
-    converted_files_report = []
-    errors = []
 
     for doc in documents:
         original_path_str = doc.get("path")
@@ -116,14 +116,14 @@ def process_discovery_file(
             logger.debug(f"Skipping non-HTML entry: {original_path_str}")
             continue
 
-        html_file = work_dir / original_path_str
+        html_file = input_dir / original_path_str
         md_path_str = Path(original_path_str).with_suffix('.md').as_posix()
-        md_file = work_dir / md_path_str
+        md_file = input_dir / md_path_str
 
         if not html_file.is_file():
             msg = f"HTML source file not found, skipping: {html_file}"
             logger.error(msg)
-            errors.append({"document_title": doc.get('title'), "file_path": str(html_file), "message": msg})
+            # We log the error but continue processing, the path remains unchanged.
             continue
 
         try:
@@ -134,29 +134,22 @@ def process_discovery_file(
             md_file.write_text(markdown_content, encoding='utf-8')
 
             html_file.unlink()
-            doc["path"] = md_path_str
-
-            converted_files_report.append({
-                "original_path": str(original_path_str),
-                "converted_path": str(md_path_str),
-                "title": doc.get("title")
-            })
+            doc["path"] = md_path_str # Update path in the dictionary
 
         except Exception as e:
             logger.exception(f"Failed to convert or write {html_file}")
-            errors.append({"document_title": doc.get('title'), "file_path": str(html_file), "message": str(e)})
+            # Log and continue, leaving the original path in place.
 
-    with open(discovery_path, 'w', encoding='utf-8') as f:
-        json.dump(discovery_data, f, ensure_ascii=False, indent=2)
-    logger.info(f"Successfully updated {discovery_path}")
-
-    return converted_files_report, errors
+    return discovery_data
 
 
 def main() -> None:
     """Main entry point."""
-    parser = GracefulArgumentParser(description="Convert HTML to Markdown based on discovery.json.")
-    parser.add_argument("--target-dir", required=True, help="Target directory containing discovery.json and HTML files.")
+    parser = GracefulArgumentParser(
+        description="Reads a discovery.json, converts linked HTML files to Markdown, and prints the updated discovery JSON to stdout."
+    )
+    parser.add_argument("--discovery-path", required=True, help="Path to the discovery.json file to process.")
+    parser.add_argument("--input-dir", required=True, help="Directory where HTML files are located.")
     parser.add_argument("--base-url", help="Base URL for converting relative links.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output.")
     parser.add_argument("--log-level", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help="Set logging level")
@@ -165,27 +158,15 @@ def main() -> None:
         args = parser.parse_args()
         setup_logging(args.verbose, args.log_level)
 
-        target_path = Path(args.target_dir)
-        logger.info(f"Processing directory: {target_path}")
+        discovery_path = Path(args.discovery_path)
+        input_dir = Path(args.input_dir)
 
-        converted, errors = process_discovery_file(target_path, args.base_url)
+        logger.info(f"Processing discovery file: {discovery_path}")
+        logger.info(f"Reading HTML files from: {input_dir}")
 
-        status = "error"
-        if not converted and not errors:
-            status = "no_action_needed"
-        elif converted and not errors:
-            status = "success"
-        elif converted and errors:
-            status = "partial_success"
+        updated_discovery_data = process_and_update_discovery(discovery_path, input_dir, args.base_url)
 
-        result = {
-            "status": status,
-            "target_directory": str(target_path.resolve()),
-            "converted_files": converted,
-            "errors": errors
-        }
-
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        print_json_stdout(updated_discovery_data)
 
     except (ArgumentParsingError, FileNotFoundError) as e:
         eprint_error({"status": "error", "error_code": "BAD_REQUEST", "message": str(e)})
