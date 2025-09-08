@@ -38,7 +38,7 @@ from typing import Optional, List
 from urllib.parse import urljoin, urlparse
 
 from ragmaker.io_utils import print_json_stdout
-from ragmaker.utils import create_discovery_file
+from ragmaker.utils import print_discovery_data
 
 # --- Dependency Check ---
 try:
@@ -326,19 +326,16 @@ def main() -> None:
         fetcher = WebFetcher(args)
         fetcher.run()
 
-        # Instead of writing to a file, prepare the discovery data
-        discovery_data = {
-            "documents": fetcher.fetched_files_map,
-            "metadata": {
-                "source": "http_fetch",
-                "url": args.url,
-                "base_url": args.base_url,
-                "depth": args.depth
-            }
+        # メタデータを準備
+        metadata = {
+            "source": "http_fetch",
+            "url": args.url,
+            "base_url": args.base_url,
+            "depth": args.depth
         }
 
-        # Print the discovery data to stdout
-        print_json_stdout(discovery_data)
+        # 新しい共通関数を呼び出してdiscovery.jsonの内容を標準出力に書き出す
+        print_discovery_data(fetcher.fetched_files_map, metadata)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)
