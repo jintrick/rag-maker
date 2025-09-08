@@ -10,21 +10,23 @@ from pathlib import Path
 class TestHtmlToMarkdown(unittest.TestCase):
 
     def setUp(self):
-        """Set up a temporary directory for each test."""
-        # Create a unique temporary directory for the test run
-        self.test_dir = Path(tempfile.mkdtemp(prefix="html_test_"))
+        """Set up temporary directories for each test."""
+        self.base_dir = Path(tempfile.mkdtemp(prefix="html_test_base_"))
+        self.input_dir = self.base_dir / "input"
+        self.input_dir.mkdir()
 
     def tearDown(self):
-        """Remove the temporary directory after each test."""
-        shutil.rmtree(self.test_dir)
+        """Remove the temporary directories after each test."""
+        shutil.rmtree(self.base_dir)
 
-    def _run_script(self, target_dir):
+    def _run_script(self, discovery_path: Path, input_dir: Path):
         """
         Helper to run the script as a subprocess and capture the output.
         """
         command = [
             "ragmaker-html-to-markdown",
-            "--target-dir", str(target_dir),
+            "--discovery-path", str(discovery_path),
+            "--input-dir", str(input_dir),
             "--verbose"
         ]
 
@@ -35,102 +37,96 @@ class TestHtmlToMarkdown(unittest.TestCase):
             encoding='utf-8'
         )
 
-        # It's better to return the parsed JSON and the raw stderr
-        # for easier debugging in the tests.
         try:
-            output_json = json.loads(process.stdout)
+            output_json = json.loads(process.stdout) if process.stdout else None
         except json.JSONDecodeError:
-            output_json = None # Or handle as a test failure right away
+            output_json = None
 
         return output_json, process.stderr
 
     def test_successful_conversion(self):
         """
-        Test case for a successful conversion of a single HTML file.
+        Test that the script correctly converts HTML, updates the discovery JSON in stdout,
+        and modifies files in the input directory.
         """
         # Arrange
-        discovery_data = {
+        discovery_path = self.base_dir / "discovery.json"
+        original_discovery_data = {
             "documents": [
                 {"title": "Page 1", "url": "http://example.com/page1", "path": "page1.html"},
                 {"title": "Page 2 - Not HTML", "url": "http://example.com/page2", "path": "page2.txt"}
             ]
         }
-        (self.test_dir / "discovery.json").write_text(json.dumps(discovery_data), encoding='utf-8')
-        (self.test_dir / "page1.html").write_text("<html><body><h1>Title</h1><p>Content.</p></body></html>", encoding='utf-8')
+        discovery_path.write_text(json.dumps(original_discovery_data), encoding='utf-8')
+        (self.input_dir / "page1.html").write_text("<html><body><h1>Title</h1><p>Content.</p></body></html>", encoding='utf-8')
+        (self.input_dir / "page2.txt").write_text("This is a text file.", encoding='utf-8')
 
         # Act
-        output, stderr = self._run_script(self.test_dir)
+        output_json, stderr = self._run_script(discovery_path=discovery_path, input_dir=self.input_dir)
 
-        # Assert
-        self.assertIsNotNone(output, f"Script produced non-JSON output. STDERR: {stderr}")
-        self.assertEqual(output['status'], 'success', f"STDERR: {stderr}")
-        self.assertEqual(len(output['converted_files']), 1)
-        self.assertEqual(len(output['errors']), 0)
-        self.assertEqual(output['converted_files'][0]['original_path'], 'page1.html')
-        self.assertEqual(output['converted_files'][0]['converted_path'], 'page1.md')
+        # Assert JSON output
+        self.assertIsNotNone(output_json, f"Script produced non-JSON output. STDERR: {stderr}")
+        self.assertEqual(len(output_json['documents']), 2)
+        self.assertEqual(output_json['documents'][0]['path'], 'page1.md')
+        self.assertEqual(output_json['documents'][1]['path'], 'page2.txt')
 
-        self.assertFalse((self.test_dir / "page1.html").exists())
-        self.assertTrue((self.test_dir / "page1.md").exists())
-        md_content = (self.test_dir / "page1.md").read_text(encoding='utf-8')
-        self.assertIn("# Title", md_content)
+        # Assert file system changes
+        self.assertFalse((self.input_dir / "page1.html").exists(), "Original HTML file should be deleted")
+        self.assertTrue((self.input_dir / "page1.md").exists(), "Markdown file should be created")
+        md_content = (self.input_dir / "page1.md").read_text(encoding='utf-8')
+        self.assertIn("# Title", md_content, "Markdown content is incorrect")
 
-        updated_discovery = json.loads((self.test_dir / "discovery.json").read_text(encoding='utf-8'))
-        self.assertEqual(updated_discovery['documents'][0]['path'], 'page1.md')
-        self.assertEqual(updated_discovery['documents'][1]['path'], 'page2.txt')
+        # Assert original discovery file is untouched
+        untouched_discovery_data = json.loads(discovery_path.read_text(encoding='utf-8'))
+        self.assertEqual(original_discovery_data, untouched_discovery_data, "Original discovery file should not be modified")
 
-    def test_no_action_needed(self):
+    def test_no_html_to_convert(self):
         """
-        Test case where no HTML files are found in discovery.json.
+        Test that the script correctly handles a discovery file with no HTML entries.
         """
         # Arrange
-        discovery_data = {
+        discovery_path = self.base_dir / "discovery.json"
+        original_discovery_data = {
             "documents": [{"title": "Doc 1", "path": "doc1.md"}]
         }
-        (self.test_dir / "discovery.json").write_text(json.dumps(discovery_data), encoding='utf-8')
+        discovery_path.write_text(json.dumps(original_discovery_data), encoding='utf-8')
 
         # Act
-        output, stderr = self._run_script(self.test_dir)
+        output_json, stderr = self._run_script(discovery_path=discovery_path, input_dir=self.input_dir)
 
         # Assert
-        self.assertIsNotNone(output, f"Script produced non-JSON output. STDERR: {stderr}")
-        self.assertEqual(output['status'], 'no_action_needed', f"STDERR: {stderr}")
-        self.assertEqual(len(output['converted_files']), 0)
-        self.assertEqual(len(output['errors']), 0)
+        self.assertIsNotNone(output_json, f"Script produced non-JSON output. STDERR: {stderr}")
+        self.assertEqual(output_json, original_discovery_data, "Output JSON should be identical to input when no action is needed")
 
-        final_data = json.loads((self.test_dir / "discovery.json").read_text(encoding='utf-8'))
-        self.assertEqual(discovery_data, final_data)
-
-    def test_partial_success_with_missing_file(self):
+    def test_missing_html_file(self):
         """
-        Test case where one file converts successfully and another is missing.
+        Test that the script logs an error for a missing file but still returns
+        the discovery data with the missing path unchanged.
         """
         # Arrange
-        discovery_data = {
+        discovery_path = self.base_dir / "discovery.json"
+        original_discovery_data = {
             "documents": [
                 {"title": "Convert Me", "path": "convert.html"},
                 {"title": "Missing", "path": "missing.html"}
             ]
         }
-        (self.test_dir / "discovery.json").write_text(json.dumps(discovery_data), encoding='utf-8')
-        (self.test_dir / "convert.html").write_text("<html><body><p>I exist.</p></body></html>", encoding='utf-8')
+        discovery_path.write_text(json.dumps(original_discovery_data), encoding='utf-8')
+        (self.input_dir / "convert.html").write_text("<html><body><p>I exist.</p></body></html>", encoding='utf-8')
 
         # Act
-        output, stderr = self._run_script(self.test_dir)
+        output_json, stderr = self._run_script(discovery_path=discovery_path, input_dir=self.input_dir)
 
-        # Assert
-        self.assertIsNotNone(output, f"Script produced non-JSON output. STDERR: {stderr}")
-        self.assertEqual(output['status'], 'partial_success', f"STDERR: {stderr}")
-        self.assertEqual(len(output['converted_files']), 1)
-        self.assertEqual(len(output['errors']), 1)
-        self.assertEqual(output['converted_files'][0]['original_path'], 'convert.html')
-        self.assertEqual(output['errors'][0]['document_title'], 'Missing')
+        # Assert JSON output
+        self.assertIsNotNone(output_json, f"Script produced non-JSON output. STDERR: {stderr}")
+        self.assertEqual(len(output_json['documents']), 2)
+        self.assertEqual(output_json['documents'][0]['path'], 'convert.md')
+        self.assertEqual(output_json['documents'][1]['path'], 'missing.html', "Path for the missing file should remain unchanged")
 
-        self.assertFalse((self.test_dir / "convert.html").exists())
-        self.assertTrue((self.test_dir / "convert.md").exists())
-
-        updated_discovery = json.loads((self.test_dir / "discovery.json").read_text(encoding='utf-8'))
-        self.assertEqual(updated_discovery['documents'][0]['path'], 'convert.md')
-        self.assertEqual(updated_discovery['documents'][1]['path'], 'missing.html')
+        # Assert file system changes
+        self.assertFalse((self.input_dir / "convert.html").exists(), "Existing HTML file should be deleted")
+        self.assertTrue((self.input_dir / "convert.md").exists(), "Markdown file for existing HTML should be created")
+        self.assertIn("HTML source file not found, skipping", stderr, "An error for the missing file should be logged to stderr")
 
 if __name__ == '__main__':
     unittest.main()

@@ -36,22 +36,27 @@ class GracefulArgumentParser(argparse.ArgumentParser):
 
 def print_json_stdout(data: dict[str, Any]):
     """
-    Prints a dictionary as a JSON string to standard output, handling encoding.
+    Prints a dictionary as a JSON string to standard output.
 
-    This function ensures that the output is correctly encoded as UTF-8
-    before being written to the standard output buffer. This avoids
-    UnicodeEncodeError on Windows environments where the default encoding
-    might be 'cp932'.
+    This function serializes the dictionary to a JSON string and prints it
+    to standard output. The `print` function handles the necessary encoding
+    based on the environment's locale settings (e.g., `sys.stdout.encoding`),
+    which is generally a robust approach.
 
     Args:
         data (dict[str, Any]): The dictionary to be printed as JSON.
     """
     try:
         json_string = json.dumps(data, ensure_ascii=False, indent=2)
-        sys.stdout.buffer.write(json_string.encode('utf-8'))
+        print(json_string)
     except Exception as e:
-        # Fallback for environments where buffer writing might fail
-        fallback_data = {"status": "error", "message": "Failed to write to stdout buffer", "details": str(e)}
+        # Fallback in case of serialization errors.
+        fallback_data = {
+            "status": "error",
+            "error_code": "JSON_SERIALIZATION_ERROR",
+            "message": "Failed to serialize data to JSON for stdout.",
+            "details": str(e)
+        }
         print(json.dumps(fallback_data, ensure_ascii=False))
 
 def eprint_error(data: dict[str, Any]):
