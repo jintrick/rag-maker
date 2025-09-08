@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import unittest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock
 import sys
 import os
 import json
@@ -13,44 +13,38 @@ from ragmaker.tools import open_directory
 
 class TestOpenDirectory(unittest.TestCase):
 
-    @patch('ragmaker.tools.open_directory.os.path.isdir')
     @patch('ragmaker.tools.open_directory.subprocess.run')
-    @patch('ragmaker.tools.open_directory.sys.platform', 'darwin') # macOS
-    def test_open_directory_mac(self, mock_subprocess_run, mock_isdir):
-        """Test that 'open' is called on macOS."""
-        mock_isdir.return_value = True
+    @patch('ragmaker.tools.open_directory.os.path.isdir', return_value=True)
+    def test_open_directory_platform(self, mock_isdir, mock_subprocess_run):
+        """Test that the correct command is called on different platforms."""
         test_path = "/test/dir"
-        open_directory.open_directory(test_path)
-        mock_subprocess_run.assert_called_once_with(["open", test_path], check=True)
 
-    @patch('ragmaker.tools.open_directory.os.path.isdir')
-    @patch('ragmaker.tools.open_directory.subprocess.run')
-    @patch('ragmaker.tools.open_directory.sys.platform', 'win32') # Windows
-    def test_open_directory_windows(self, mock_subprocess_run, mock_isdir):
-        """Test that 'explorer' is called on Windows."""
-        mock_isdir.return_value = True
-        test_path = "C:\\test\\dir"
-        open_directory.open_directory(test_path)
-        mock_subprocess_run.assert_called_once_with(["explorer", os.path.normpath(test_path)], check=True)
+        # Test macOS
+        with patch('sys.platform', 'darwin'):
+            open_directory.open_directory(test_path)
+            mock_subprocess_run.assert_called_with(["open", test_path], check=True)
 
-    @patch('ragmaker.tools.open_directory.os.path.isdir')
-    @patch('ragmaker.tools.open_directory.subprocess.run')
-    @patch('ragmaker.tools.open_directory.sys.platform', 'linux') # Linux
-    def test_open_directory_linux(self, mock_subprocess_run, mock_isdir):
-        """Test that 'xdg-open' is called on Linux."""
-        mock_isdir.return_value = True
-        test_path = "/test/dir"
-        open_directory.open_directory(test_path)
-        mock_subprocess_run.assert_called_once_with(["xdg-open", test_path], check=True)
+        # Test Windows
+        with patch('sys.platform', 'win32'):
+            open_directory.open_directory(test_path)
+            mock_subprocess_run.assert_called_with(["explorer", os.path.normpath(test_path)], check=True)
 
-    @patch('ragmaker.tools.open_directory.os.path.isdir')
+        # Test Linux
+        with patch('sys.platform', 'linux'):
+            open_directory.open_directory(test_path)
+            mock_subprocess_run.assert_called_with(["xdg-open", test_path], check=True)
+
+
+    @patch('ragmaker.tools.open_directory.os.path.isdir', return_value=False)
     @patch('sys.stderr', new_callable=io.StringIO)
     def test_directory_not_found(self, mock_stderr, mock_isdir):
         """Test that an error is printed to stderr if the directory does not exist."""
-        mock_isdir.return_value = False
         test_path = "/non/existent/dir"
-        with self.assertRaises(SystemExit) as cm:
-            open_directory.open_directory(test_path)
+
+        # We need to test the main function to ensure the correct eprint_error is called
+        with patch.object(sys, 'argv', ['prog_name', '--path', test_path]):
+            with self.assertRaises(SystemExit) as cm:
+                open_directory.main()
 
         self.assertEqual(cm.exception.code, 1)
 

@@ -11,6 +11,17 @@ import shutil
 import sys
 from pathlib import Path
 import importlib.resources
+from typing import Any
+
+try:
+    from ragmaker.io_utils import eprint_error
+except ImportError:
+    # Fallback if ragmaker is not in the path
+    def eprint_error(data: dict[str, Any]):
+        """Prints a structured error object as JSON to stderr."""
+        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
+        sys.exit(1)
+
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -20,11 +31,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- Structured Error Handling ---
-def eprint_error(error_obj: dict):
-    """Prints a structured error object as JSON to stderr."""
-    print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
-    sys.exit(1)
 
 # --- Core Logic ---
 def create_knowledge_base(kb_root: Path):
@@ -50,8 +56,6 @@ def create_knowledge_base(kb_root: Path):
         cache_dir = kb_root / "cache"
         cache_dir.mkdir(exist_ok=True)
         logger.info(f"Created cache directory at {cache_dir.resolve()}")
-
-        # 4. (DELETED) The creation of discovery.json is now handled by other tools.
 
     except (IOError, OSError, FileNotFoundError) as e:
         eprint_error({

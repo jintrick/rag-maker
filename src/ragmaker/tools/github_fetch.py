@@ -33,54 +33,42 @@ import logging
 import sys
 import os
 from pathlib import Path
-from typing import Optional, List
-from ragmaker.io_utils import print_json_stdout
-from ragmaker.utils import print_discovery_data
 
 # --- Dependency Check ---
 try:
-    from git import Repo, GitCommandError
+    from ragmaker.io_utils import (
+        ArgumentParsingError,
+        GracefulArgumentParser,
+        eprint_error,
+        handle_argument_parsing_error,
+        handle_unexpected_error,
+    )
+    from ragmaker.utils import print_discovery_data
 except ImportError:
     print(json.dumps({
         "status": "error",
         "error_code": "DEPENDENCY_ERROR",
+        "message": "The 'ragmaker' package is not installed or not in the Python path.",
+        "remediation_suggestion": "Please install the package, e.g., via 'pip install .'"
+    }, ensure_ascii=False), file=sys.stderr)
+    sys.exit(1)
+
+try:
+    from git import Repo, GitCommandError
+except ImportError:
+    eprint_error({
+        "status": "error",
+        "error_code": "DEPENDENCY_ERROR",
         "message": "Required library 'GitPython' not found.",
         "remediation_suggestion": "Please install the required library by running: pip install GitPython"
-    }, ensure_ascii=False), file=sys.stderr)
+    })
     sys.exit(1)
 
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
 
-# --- Custom Exception and ArgumentParser ---
-class ArgumentParsingError(Exception):
-    """Custom exception for argument parsing errors."""
-
-class GracefulArgumentParser(argparse.ArgumentParser):
-    """ArgumentParser that raises a custom exception on error."""
-    def error(self, message: str):
-        raise ArgumentParsingError(message)
-
-
-# --- Structured Error Handling ---
-def eprint_error(error_obj: dict):
-    """Prints a structured error object as JSON to stderr."""
-    print(json.dumps(error_obj, ensure_ascii=False), file=sys.stderr)
-
-def handle_argument_parsing_error(exception: Exception):
-    """Handles argument parsing errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "ARGUMENT_PARSING_ERROR",
-        "message": "Failed to parse command-line arguments.",
-        "remediation_suggestion": (
-            "Review the command-line parameters and ensure all required "
-            "arguments are provided correctly."
-        ),
-        "details": {"original_error": str(exception)}
-    })
-
+# --- Structured Error Handling (Tool-specific) ---
 def handle_git_error(exception: Exception):
     """Handles Git-related errors by printing a structured JSON error."""
     eprint_error({
@@ -91,16 +79,6 @@ def handle_git_error(exception: Exception):
             "Ensure the repository URL is correct, the branch exists, "
             "and you have the necessary permissions. Also check if Git is installed."
         ),
-        "details": {"error_type": type(exception).__name__, "error": str(exception)}
-    })
-
-def handle_unexpected_error(exception: Exception):
-    """Handles unexpected errors by printing a structured JSON error."""
-    eprint_error({
-        "status": "error",
-        "error_code": "UNEXPECTED_ERROR",
-        "message": "An unexpected error occurred during processing.",
-        "remediation_suggestion": "Check the input and environment, then try again.",
         "details": {"error_type": type(exception).__name__, "error": str(exception)}
     })
 
@@ -119,14 +97,13 @@ class GitHubFetcher:
         self.repo_url = args.repo_url
         self.path_in_repo = args.path_in_repo
         self.temp_dir = Path(args.temp_dir)
-        self.branch = args.branch
-        self.fetched_files_map = []
+        self.branch: str | None = args.branch
+        self.fetched_files_map: list[dict] = []
 
     def run(self):
         """リポジトリの取得とファイルの処理を実行する。"""
-        logger.info("Starting fetch for repo: %s", self.repo_url)
+        logger.info(f"Starting fetch for repo: {self.repo_url}")
         try:
-            # 1. リポジトリを一時ディレクトリにクローン（ただし、オブジェクトのみ）
             repo = Repo.init(self.temp_dir)
             if not repo.remotes:
                 origin = repo.create_remote('origin', self.repo_url)
@@ -136,32 +113,27 @@ class GitHubFetcher:
 
             origin.fetch()
 
-            # 2. スパースチェックアウトの設定
             repo.git.execute(['git', 'config', 'core.sparseCheckout', 'true'])
             sparse_checkout_path = self.temp_dir / '.git' / 'info' / 'sparse-checkout'
-
-            # Ensure the .git/info directory exists
             sparse_checkout_path.parent.mkdir(exist_ok=True)
 
             with open(sparse_checkout_path, 'w', encoding='utf-8') as f:
                 f.write(f"{self.path_in_repo.strip('/')}/*\n")
                 f.write(f"{self.path_in_repo.strip('/')}\n")
 
-
-            # 3. 指定されたブランチ（またはデフォルト）をチェックアウト
             branch_to_checkout = self.branch
             if not branch_to_checkout:
-                # デフォルトブランチを取得 (e.g., 'origin/main' or 'origin/master')
                 symref = repo.git.execute(['git', 'symbolic-ref', 'refs/remotes/origin/HEAD'])
                 branch_to_checkout = symref.split('/')[-1].strip()
-                logger.info("No branch specified, using default branch: %s", branch_to_checkout)
+                logger.info(f"No branch specified, using default branch: {branch_to_checkout}")
+
+            self.branch = branch_to_checkout # Update branch if it was auto-detected
 
             repo.git.execute(['git', 'checkout', branch_to_checkout])
-            logger.info("Successfully checked out branch '%s' with sparse checkout for path '%s'", branch_to_checkout, self.path_in_repo)
+            logger.info(f"Successfully checked out branch '{branch_to_checkout}' with sparse checkout for path '{self.path_in_repo}'")
 
         except GitCommandError as e:
             handle_git_error(e)
-            # Re-raise or exit to stop execution
             raise
         except Exception as e:
             handle_unexpected_error(e)
@@ -174,23 +146,19 @@ class GitHubFetcher:
         チェックアウトされたディレクトリをスキャンし、対象ファイルを特定して
         `fetched_files_map` に格納する。
         """
-        logger.info("Discovering files in %s", self.temp_dir)
+        logger.info(f"Discovering files in {self.temp_dir}")
         target_path = self.temp_dir / self.path_in_repo
         allowed_extensions = {".md", ".mdx", ".txt", ".py", ".html", ".htm"}
 
         if not target_path.exists():
-            logger.warning("Target path %s does not exist after checkout. It might be empty or incorrect.", target_path)
+            logger.warning(f"Target path {target_path} does not exist after checkout. It might be empty or incorrect.")
             return
 
         for root, _, files in os.walk(target_path):
             for file in files:
                 file_path = Path(root) / file
                 if file_path.suffix.lower() in allowed_extensions:
-                    # Create a repo-relative path for the discovery file
                     relative_path = file_path.relative_to(self.temp_dir).as_posix()
-
-                    # Construct the GitHub URL
-                    # Assumes a standard github.com URL structure
                     base_repo_url = self.repo_url.replace(".git", "")
                     file_url = f"{base_repo_url}/blob/{self.branch}/{relative_path}"
 
@@ -198,7 +166,7 @@ class GitHubFetcher:
                         "url": file_url,
                         "path": relative_path
                     })
-        logger.info("Discovered %d relevant files.", len(self.fetched_files_map))
+        logger.info(f"Discovered {len(self.fetched_files_map)} relevant files.")
 
 
 def setup_logging(verbose: bool, log_level: str) -> None:
@@ -228,33 +196,25 @@ def main() -> None:
         args = parser.parse_args()
         setup_logging(args.verbose, args.log_level)
 
-        # Core logic will be added here in the next steps.
-        # For now, just print a success message if parsing is successful.
-
-        # Create the temporary directory if it doesn't exist
         temp_dir_path = Path(args.temp_dir)
         temp_dir_path.mkdir(parents=True, exist_ok=True)
 
-        # Create and run the fetcher
         fetcher = GitHubFetcher(args)
         fetcher.run()
 
-        # メタデータを準備
         metadata = {
             "source": "github_fetch",
             "repo_url": args.repo_url,
             "path_in_repo": args.path_in_repo,
-            "branch": fetcher.branch  # Use the determined branch
+            "branch": fetcher.branch
         }
 
-        # 新しい共通関数を呼び出してdiscovery.jsonの内容を標準出力に書き出す
         print_discovery_data(fetcher.fetched_files_map, metadata)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)
         sys.exit(1)
-    except GitCommandError as e:
-        # Already handled in the fetcher, but exit here.
+    except GitCommandError:
         sys.exit(1)
     except KeyboardInterrupt:
         logger.info("Process interrupted by user.")

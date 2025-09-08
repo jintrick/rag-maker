@@ -7,6 +7,21 @@ import os
 import subprocess
 import json
 import argparse
+import logging
+from typing import Any
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stderr)
+logger = logging.getLogger(__name__)
+
+try:
+    from ragmaker.io_utils import eprint_error
+except ImportError as e:
+    logger.error(f"Failed to import from ragmaker.io_utils: {e}")
+    def eprint_error(data: dict[str, Any]):
+        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
+        sys.exit(1)
+
 
 def open_directory(path: str):
     """
@@ -16,17 +31,15 @@ def open_directory(path: str):
         path (str): The directory path to open.
     """
     if not os.path.isdir(path):
-        error_info = {
+        eprint_error({
             "status": "error",
             "error_code": "DIRECTORY_NOT_FOUND",
             "message": f"The specified directory does not exist: {path}"
-        }
-        print(json.dumps(error_info, ensure_ascii=False), file=sys.stderr)
+        })
         sys.exit(1)
 
     try:
         if sys.platform == "win32":
-            # Windowsでは、パスを正規化しないとexplorerが正しく解釈できない場合がある
             subprocess.run(["explorer", os.path.normpath(path)], check=True)
         elif sys.platform == "darwin":
             subprocess.run(["open", path], check=True)
@@ -40,7 +53,7 @@ def open_directory(path: str):
         print(json.dumps(success_info, ensure_ascii=False))
 
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        error_info = {
+        eprint_error({
             "status": "error",
             "error_code": "COMMAND_EXECUTION_ERROR",
             "message": "Failed to open the directory using the OS default file manager.",
@@ -49,11 +62,10 @@ def open_directory(path: str):
                 "path": path,
                 "error": str(e)
             }
-        }
-        print(json.dumps(error_info, ensure_ascii=False), file=sys.stderr)
+        })
         sys.exit(1)
     except Exception as e:
-        error_info = {
+        eprint_error({
             "status": "error",
             "error_code": "UNEXPECTED_ERROR",
             "message": "An unexpected error occurred.",
@@ -62,8 +74,7 @@ def open_directory(path: str):
                 "path": path,
                 "error": str(e)
             }
-        }
-        print(json.dumps(error_info, ensure_ascii=False), file=sys.stderr)
+        })
         sys.exit(1)
 
 

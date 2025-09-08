@@ -8,7 +8,7 @@ import argparse
 import os
 import json
 import sys
-from ragmaker.io_utils import print_json_stdout, eprint_json_stderr
+from ragmaker.io_utils import print_json_stdout, eprint_error
 
 def main():
     """
@@ -45,14 +45,14 @@ def main():
             "status": "error",
             "message": str(e)
         }
-        eprint_json_stderr(error_data)
+        eprint_error(error_data)
         sys.exit(1)
     except Exception as e:
         error_data = {
             "status": "error",
             "message": f"An unexpected error occurred: {e}"
         }
-        eprint_json_stderr(error_data)
+        eprint_error(error_data)
         sys.exit(1)
 
 if __name__ == "__main__":
