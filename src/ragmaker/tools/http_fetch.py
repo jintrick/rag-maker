@@ -36,6 +36,8 @@ import sys
 from pathlib import Path
 from typing import Optional, List
 from urllib.parse import urljoin, urlparse
+
+from ragmaker.io_utils import print_json_stdout
 from ragmaker.utils import create_discovery_file
 
 # --- Dependency Check ---
@@ -324,21 +326,19 @@ def main() -> None:
         fetcher = WebFetcher(args)
         fetcher.run()
 
-        # Write the discovery.json file
-        try:
-            create_discovery_file(fetcher.fetched_files_map, output_dir_path)
-        except IOError as e:
-            logger.error("Could not write discovery.json: %s", e)
-            raise
-
-        # Print final JSON report to stdout
-        result = {
-            "status": "success",
-            "output_dir": str(output_dir_path.resolve()),
-            "converted_count": len(fetcher.fetched_files_map),
-            "depth_level": args.depth
+        # Instead of writing to a file, prepare the discovery data
+        discovery_data = {
+            "documents": fetcher.fetched_files_map,
+            "metadata": {
+                "source": "http_fetch",
+                "url": args.url,
+                "base_url": args.base_url,
+                "depth": args.depth
+            }
         }
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+
+        # Print the discovery data to stdout
+        print_json_stdout(discovery_data)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)

@@ -34,6 +34,7 @@ import sys
 import os
 from pathlib import Path
 from typing import Optional, List
+from ragmaker.io_utils import print_json_stdout
 from ragmaker.utils import create_discovery_file
 
 # --- Dependency Check ---
@@ -238,21 +239,19 @@ def main() -> None:
         fetcher = GitHubFetcher(args)
         fetcher.run()
 
-        # Write the discovery.json file
-        try:
-            create_discovery_file(fetcher.fetched_files_map, temp_dir_path)
-        except IOError as e:
-            logger.error("Could not write discovery.json: %s", e)
-            # This is a critical error, so we'll let it be caught by the main exception handler
-            raise
-
-        # Print final JSON report to stdout
-        result = {
-            "status": "success",
-            "output_dir": str(temp_dir_path.resolve()),
-            "fetched_count": len(fetcher.fetched_files_map)
+        # Instead of writing to a file, prepare the discovery data
+        discovery_data = {
+            "documents": fetcher.fetched_files_map,
+            "metadata": {
+                "source": "github_fetch",
+                "repo_url": args.repo_url,
+                "path_in_repo": args.path_in_repo,
+                "branch": args.branch
+            }
         }
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+
+        # Print the discovery data to stdout
+        print_json_stdout(discovery_data)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)

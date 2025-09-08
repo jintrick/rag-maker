@@ -32,8 +32,7 @@
         },
         "required": [
           "url",
-          "base-url",
-          "output-dir"
+          "base-url"
         ]
       }
     },
@@ -79,9 +78,9 @@
             "type": "string",
             "description": "リポジトリ内で収集対象とするディレクトリまたはファイルのパス。"
           },
-          "output-dir": {
+          "temp-dir": {
             "type": "string",
-            "description": "取得したファイルを保存する出力先ディレクトリ。"
+            "description": "取得したファイルを保存する一時ディレクトリのパス。"
           },
           "branch": {
             "type": "string",
@@ -90,8 +89,7 @@
         },
         "required": [
           "repo-url",
-          "path-in-repo",
-          "output-dir"
+          "path-in-repo"
         ]
       }
     },
@@ -225,13 +223,16 @@
     {
       "name": "read_file",
       "command": "ragmaker-read-file",
-      "description": "指定されたファイルのパスを受け取り、その内容を読み込んでJSON形式で標準出力に書き出すツール。",
+      "description": "指定された複数のファイルのパスを受け取り、その内容をまとめて読み込んで単一のJSON形式で標準出力に書き出すツール。",
       "parameters": {
         "type": "object",
         "properties": {
           "path": {
-            "type": "string",
-            "description": "読み込むファイルのパス。"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "読み込むファイルのパス。この引数は複数回指定可能。"
           }
         },
         "required": [
@@ -258,6 +259,50 @@
         "required": [
           "discovery-path",
           "updates"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "command": "ragmaker-write-file",
+      "description": "指定されたパスに指定された内容を書き込むツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "書き込み先のファイルパス。"
+          },
+          "content": {
+            "type": "string",
+            "description": "ファイルに書き込む内容。"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    },
+    {
+      "name": "move_file",
+      "command": "ragmaker-move-file",
+      "description": "ファイルを指定された場所に移動するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "移動元のファイルパス。"
+          },
+          "destination": {
+            "type": "string",
+            "description": "移動先のファイルパス。"
+          }
+        },
+        "required": [
+          "source",
+          "destination"
         ]
       }
     }
