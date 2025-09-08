@@ -113,3 +113,39 @@ def handle_unexpected_error(exception: Exception):
         "remediation_suggestion": "Check the input and environment, then try again.",
         "details": {"error_type": type(exception).__name__, "error": str(exception)}
     })
+
+def handle_file_not_found_error(exception: FileNotFoundError):
+    """Handles file not found errors by printing a structured JSON error."""
+    eprint_error({
+        "status": "error",
+        "error_code": "FILE_NOT_FOUND",
+        "message": str(exception),
+        "details": {"error_type": type(exception).__name__}
+    })
+
+def handle_io_error(exception: IOError):
+    """Handles general I/O errors by printing a structured JSON error."""
+    eprint_error({
+        "status": "error",
+        "error_code": "IO_ERROR",
+        "message": "An I/O error occurred while reading or writing a file.",
+        "details": {"error_type": type(exception).__name__, "error": str(exception)}
+    })
+
+def handle_value_error(exception: ValueError):
+    """Handles value errors, often from parsing, by printing a structured JSON error."""
+    eprint_error({
+        "status": "error",
+        "error_code": "VALUE_ERROR",
+        "message": "An invalid value was encountered.",
+        "details": {"error_type": type(exception).__name__, "error": str(exception)}
+    })
+
+def handle_command_execution_error(exception: Exception):
+    """Handles errors from subprocess command execution."""
+    eprint_error({
+        "status": "error",
+        "error_code": "COMMAND_EXECUTION_ERROR",
+        "message": "A command failed to execute.",
+        "details": {"error_type": type(exception).__name__, "error": str(exception)}
+    })

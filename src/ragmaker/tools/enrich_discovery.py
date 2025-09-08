@@ -7,7 +7,21 @@ import argparse
 import json
 import sys
 import os
-from ragmaker.io_utils import print_json_stdout, eprint_error
+from typing import Any
+
+try:
+    from ragmaker.io_utils import (
+        print_json_stdout,
+        handle_file_not_found_error,
+        handle_value_error,
+        handle_unexpected_error
+    )
+except ImportError:
+    # Fallback for local execution
+    def print_json_stdout(data: dict[str, Any]): print(json.dumps(data))
+    def handle_file_not_found_error(exception: FileNotFoundError): print(json.dumps({"status": "error", "message": f"File not found: {exception}"})); sys.exit(1)
+    def handle_value_error(exception: ValueError): print(json.dumps({"status": "error", "message": f"Invalid value: {exception}"})); sys.exit(1)
+    def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
 
 def main():
     """
@@ -21,14 +35,12 @@ def main():
     discovery_path = args.discovery_path
 
     try:
-        # 1. Load and parse the discovery.json file
         if not os.path.exists(discovery_path):
             raise FileNotFoundError(f"The discovery file was not found at the specified path: {discovery_path}")
 
         with open(discovery_path, 'r', encoding='utf-8') as f:
             discovery_data = json.load(f)
 
-        # 2. Parse the updates JSON string
         try:
             updates = json.loads(args.updates)
             if not isinstance(updates, list):
@@ -36,16 +48,14 @@ def main():
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON format for --updates argument.")
 
-        # 3. Create a dictionary for efficient lookup
         documents_dict = {doc['path']: doc for doc in discovery_data.get('documents', [])}
 
-        # 4. Loop through updates and apply them
         updated_paths = []
         not_found_paths = []
         for update in updates:
             path = update.get('path')
             if not path:
-                continue # or handle error if path is mandatory in an update
+                continue
 
             if path in documents_dict:
                 doc_to_update = documents_dict[path]
@@ -58,7 +68,6 @@ def main():
         if not_found_paths:
             raise FileNotFoundError(f"The following document paths from the updates were not found in {discovery_path}: {', '.join(not_found_paths)}")
 
-        # 5. Write the updated data back to the file
         with open(discovery_path, 'w', encoding='utf-8') as f:
             json.dump(discovery_data, f, ensure_ascii=False, indent=2)
 
@@ -69,21 +78,14 @@ def main():
         }
         print_json_stdout(output_data)
 
-    except (FileNotFoundError, ValueError) as e:
-        error_data = {
-            "status": "error",
-            "path": discovery_path,
-            "message": str(e)
-        }
-        eprint_error(error_data)
+    except FileNotFoundError as e:
+        handle_file_not_found_error(e)
+        sys.exit(1)
+    except ValueError as e:
+        handle_value_error(e)
         sys.exit(1)
     except Exception as e:
-        error_data = {
-            "status": "error",
-            "path": discovery_path,
-            "message": f"An unexpected error occurred: {e}"
-        }
-        eprint_error(error_data)
+        handle_unexpected_error(e)
         sys.exit(1)
 
 if __name__ == "__main__":

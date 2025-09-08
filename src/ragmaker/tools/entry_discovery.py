@@ -14,13 +14,12 @@ from datetime import datetime, timezone
 from typing import Any
 
 try:
-    from ragmaker.io_utils import eprint_error
+    from ragmaker.io_utils import handle_unexpected_error, handle_io_error, handle_value_error
 except ImportError:
-    # Fallback if ragmaker is not in the path
-    def eprint_error(data: dict[str, Any]):
-        """Prints a structured error object as JSON to stderr."""
-        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
-        sys.exit(1)
+    # Fallback for local execution
+    def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
+    def handle_io_error(exception: IOError): print(json.dumps({"status": "error", "message": f"I/O error: {exception}"})); sys.exit(1)
+    def handle_value_error(exception: ValueError): print(json.dumps({"status": "error", "message": f"Value error: {exception}"})); sys.exit(1)
 
 
 # --- Setup Logging ---
@@ -44,9 +43,8 @@ def update_discovery_header(discovery_path: Path, header_data: dict[str, Any]) -
             with open(discovery_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
         else:
-            data = {"documents": []} # Initialize with documents key
+            data = {"documents": []}
 
-        # Update the header
         data["header"] = header_data
 
         with open(discovery_path, 'w', encoding='utf-8') as f:
@@ -56,8 +54,14 @@ def update_discovery_header(discovery_path: Path, header_data: dict[str, Any]) -
         logger.info(message)
         return message
 
-    except (IOError, json.JSONDecodeError) as e:
-        logger.error(f"Error processing discovery file {discovery_path}: {e}")
+    except IOError as e:
+        handle_io_error(e)
+        raise
+    except json.JSONDecodeError as e:
+        handle_value_error(e)
+        raise
+    except Exception as e:
+        handle_unexpected_error(e)
         raise
 
 # --- Main Execution ---
@@ -76,7 +80,6 @@ def main():
         kb_root_path = Path(args.kb_root)
         discovery_file_path = kb_root_path / "cache" / "discovery.json"
 
-        # 1. Prepare the header data
         header_data: dict[str, Any] = {
             "title": args.title,
             "summary": args.summary,
@@ -85,10 +88,8 @@ def main():
             "fetched_at": datetime.now(timezone.utc).isoformat()
         }
 
-        # 2. Update the discovery file's header
         message = update_discovery_header(discovery_file_path, header_data)
 
-        # 3. Print success output
         result = {
             "status": "success",
             "message": message,
@@ -99,11 +100,8 @@ def main():
 
     except Exception as e:
         if not isinstance(e, SystemExit):
-            eprint_error({
-                "status": "error",
-                "message": "An unexpected error occurred in main.",
-                "details": str(e)
-            })
+            handle_unexpected_error(e)
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()

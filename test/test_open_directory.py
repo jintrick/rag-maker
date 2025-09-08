@@ -50,7 +50,7 @@ class TestOpenDirectory(unittest.TestCase):
 
         error_output = json.loads(mock_stderr.getvalue())
         self.assertEqual(error_output['status'], 'error')
-        self.assertEqual(error_output['error_code'], 'DIRECTORY_NOT_FOUND')
+        self.assertEqual(error_output['error_code'], 'FILE_NOT_FOUND')
         self.assertIn(test_path, error_output['message'])
 
 
