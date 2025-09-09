@@ -52,7 +52,6 @@ def print_json_stdout(data: dict[str, Any]):
         # text stream, including those expecting cp932.
         json_string = json.dumps(data, ensure_ascii=True, indent=2)
         print(json_string)
-        sys.stdout.flush()
     except Exception as e:
         # Fallback in case of serialization errors.
         fallback_data = {
@@ -62,7 +61,6 @@ def print_json_stdout(data: dict[str, Any]):
             "details": str(e)
         }
         print(json.dumps(fallback_data, ensure_ascii=True))
-        sys.stdout.flush()
 
 def eprint_error(data: dict[str, Any]):
     """
