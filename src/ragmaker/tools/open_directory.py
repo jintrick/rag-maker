@@ -12,13 +12,11 @@ import logging
 try:
     from ragmaker.io_utils import (
         handle_file_not_found_error,
-        handle_command_execution_error,
         handle_unexpected_error
     )
 except ImportError:
     # Fallback for local execution
     def handle_file_not_found_error(exception: FileNotFoundError): print(json.dumps({"status": "error", "message": f"File not found: {exception}"})); sys.exit(1)
-    def handle_command_execution_error(exception: Exception): print(json.dumps({"status": "error", "message": f"Command failed: {exception}"})); sys.exit(1)
     def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
 
 
@@ -31,11 +29,15 @@ def open_directory(path: str):
             raise FileNotFoundError(f"The specified directory does not exist: {path}")
 
         if sys.platform == "win32":
-            subprocess.run(["explorer", os.path.normpath(path)], check=True)
+            command = ["explorer", os.path.normpath(path)]
         elif sys.platform == "darwin":
-            subprocess.run(["open", path], check=True)
+            command = ["open", path]
         else: # Assuming Linux or other Unix-like OS
-            subprocess.run(["xdg-open", path], check=True)
+            command = ["xdg-open", path]
+
+        # check=False ensures that the script doesn't raise an exception
+        # even if the command returns a non-zero exit code.
+        subprocess.run(command, check=False)
 
         success_info = {
             "status": "success",
@@ -45,9 +47,6 @@ def open_directory(path: str):
 
     except FileNotFoundError as e:
         handle_file_not_found_error(e)
-        sys.exit(1)
-    except subprocess.CalledProcessError as e:
-        handle_command_execution_error(e)
         sys.exit(1)
     except Exception as e:
         handle_unexpected_error(e)
