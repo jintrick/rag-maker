@@ -169,11 +169,22 @@ def main() -> None:
         print_json_stdout(updated_discovery_data)
 
     except (ArgumentParsingError, FileNotFoundError) as e:
-        eprint_error({"status": "error", "error_code": "BAD_REQUEST", "message": str(e)})
+        logger.error(f"A handled error occurred: {e}")
+        eprint_error({
+            "status": "error",
+            "error_code": "BAD_REQUEST",
+            "message": "A file or argument error occurred.",
+            "details": {"error_type": type(e).__name__, "error_message": str(e)}
+        })
         sys.exit(1)
     except Exception as e:
         logger.exception("An unexpected error occurred.")
-        eprint_error({"status": "error", "error_code": "UNEXPECTED_ERROR", "message": str(e)})
+        eprint_error({
+            "status": "error",
+            "error_code": "UNEXPECTED_ERROR",
+            "message": "An unexpected error occurred during processing.",
+            "details": {"error_type": type(e).__name__, "error_message": str(e)}
+        })
         sys.exit(1)
 
 if __name__ == "__main__":
