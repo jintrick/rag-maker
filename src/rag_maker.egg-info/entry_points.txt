@@ -2,6 +2,7 @@
 ragmaker-ask-dir = ragmaker.tools.ask_dir:main
 ragmaker-cache-cleanup = ragmaker.tools.cache_cleanup:main
 ragmaker-create-knowledge-base = ragmaker.tools.create_knowledge_base:main
+ragmaker-enrich-discovery = ragmaker.tools.enrich_discovery:main
 ragmaker-entry-discovery = ragmaker.tools.entry_discovery:main
 ragmaker-file-sync = ragmaker.tools.file_sync:main
 ragmaker-github-fetch = ragmaker.tools.github_fetch:main

@@ -43,7 +43,7 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "target-dir": {
+          "input-dir": {
             "type": "string",
             "description": "HTMLファイルが含まれ、Markdownファイルがインプレースで作成される対象ディレクトリ。"
           },
