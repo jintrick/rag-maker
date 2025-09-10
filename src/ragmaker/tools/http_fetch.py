@@ -178,7 +178,7 @@ class WebFetcher:
             for element in soup.find_all(_is_noise_element):
                 element.decompose()
 
-          logger.debug(f"HTML before cleaning:\n{html_content}")
+            logger.debug(f"HTML before cleaning:\n{html_content}")
 
             # --- Manual Cleaning Step ---
             # readable-cli is not as effective as expected, so we add a manual

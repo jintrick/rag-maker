@@ -166,6 +166,7 @@ def main() -> None:
 
         updated_discovery_data = process_and_update_discovery(discovery_path, input_dir, args.base_url)
 
+        logger.info("About to print final JSON.")
         print_json_stdout(updated_discovery_data)
 
     except (ArgumentParsingError, FileNotFoundError) as e:
