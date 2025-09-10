@@ -111,6 +111,20 @@ def setup_logging(verbose: bool, log_level: str) -> None:
         stream=sys.stderr
     )
 
+def _is_noise_element(tag: Tag) -> bool:
+    """ノイズ要素（広告、コメントなど）である可能性が高いかどうかを判定する。"""
+    # キーワードリスト
+    noise_keywords = ['ad', 'advert', 'comment', 'share', 'social', 'extra', 'sidebar']
+
+    # 判定1: classやidにキーワードが含まれるか
+    for attr in ['class', 'id']:
+        values = tag.get(attr, [])
+        if any(keyword in v for v in values for keyword in noise_keywords):
+            # 判定2: 本文コンテナの外側にあるか
+            if not tag.find_parent('article') and not tag.find_parent('main'):
+                return True
+    return False
+
 class WebFetcher:
     """Webページの取得とMarkdown変換のロジックをカプセル化するクラス。"""
 
@@ -159,7 +173,12 @@ class WebFetcher:
             title = article_json.get('title', '')
             html_content = article_json['html-content']
 
-            logger.debug(f"HTML before cleaning:\n{html_content}")
+            # --- Smart Cleaning Step ---
+            soup = BeautifulSoup(html_content, 'html.parser')
+            for element in soup.find_all(_is_noise_element):
+                element.decompose()
+
+          logger.debug(f"HTML before cleaning:\n{html_content}")
 
             # --- Manual Cleaning Step ---
             # readable-cli is not as effective as expected, so we add a manual
