@@ -50,6 +50,87 @@ class TestGitHubFetch(unittest.TestCase):
         self.repo.close()
         self.test_dir.cleanup()
 
+    def test_html_conversion_and_copying(self):
+        """
+        Test that HTML files are converted to Markdown, and other files are copied.
+        """
+        output_dir = Path(self.test_dir.name) / "output_html"
+        repo_url = self.repo_dir.as_uri()
+        path_in_repo = "html_docs"
+
+        # Create files for HTML conversion test
+        html_docs_dir = self.repo_dir / path_in_repo
+        html_docs_dir.mkdir(exist_ok=True)
+        (html_docs_dir / "test.html").write_text("""
+        <!DOCTYPE html>
+        <html>
+        <head><title>My Test Page</title></head>
+        <body>
+            <header><h1>Header</h1></header>
+            <div class="ad">An ad</div>
+            <article>
+                <p>This is the main content.</p>
+            </article>
+            <footer>Footer</footer>
+        </body>
+        </html>
+        """)
+        (html_docs_dir / "plain.txt").write_text("This is a plain text file.")
+
+        # Add and commit these new files
+        self.repo.index.add([f"{path_in_repo}/test.html", f"{path_in_repo}/plain.txt"])
+        self.repo.index.commit("Add files for html conversion test")
+
+
+        process = subprocess.run(
+            [
+                "python", "-m", "src.ragmaker.tools.github_fetch",
+                "--repo-url", repo_url,
+                "--path-in-repo", path_in_repo,
+                "--temp-dir", str(output_dir),
+                "--branch", self.main_branch,
+                "--log-level", "DEBUG" # for easier debugging
+            ],
+            capture_output=True,
+            text=True,
+            encoding='utf-8'
+        )
+
+        self.assertEqual(process.returncode, 0, f"Script failed: {process.stderr}")
+
+        # Check that output directory and files exist
+        self.assertTrue(output_dir.exists())
+        converted_md = output_dir / path_in_repo / "test.md"
+        copied_txt = output_dir / path_in_repo / "plain.txt"
+        original_html = output_dir / path_in_repo / "test.html"
+
+        self.assertTrue(converted_md.exists(), f"Markdown file was not created. Stderr: {process.stderr}")
+        self.assertTrue(copied_txt.exists(), "Text file was not copied.")
+        self.assertFalse(original_html.exists(), "Original HTML file should not be present in the preserved structure.")
+
+        # Check content of converted markdown
+        md_content = converted_md.read_text()
+        self.assertIn("# My Test Page", md_content)
+        self.assertIn("This is the main content.", md_content)
+        self.assertNotIn("An ad", md_content) # Check that cleaning happened
+        self.assertNotIn("Header", md_content)
+        self.assertNotIn("Footer", md_content)
+
+        # Check content of copied text file
+        self.assertEqual(copied_txt.read_text(), "This is a plain text file.")
+
+        # Check JSON output
+        try:
+            stdout_json = json.loads(process.stdout)
+        except json.JSONDecodeError:
+            self.fail(f"Stdout was not valid JSON.\nStdout: {process.stdout}\nStderr: {process.stderr}")
+
+        self.assertEqual(len(stdout_json["documents"]), 2)
+
+        paths = {doc["path"] for doc in stdout_json["documents"]}
+        self.assertIn("html_docs/test.md", paths)
+        self.assertIn("html_docs/plain.txt", paths)
+
     def test_fetch_and_stdout_json(self):
         """
         Test that github_fetch can fetch from a local repo

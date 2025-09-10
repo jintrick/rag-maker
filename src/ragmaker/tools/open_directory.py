@@ -35,9 +35,7 @@ def open_directory(path: str):
         else: # Assuming Linux or other Unix-like OS
             command = ["xdg-open", path]
 
-        # check=False ensures that the script doesn't raise an exception
-        # even if the command returns a non-zero exit code.
-        subprocess.run(command, check=False)
+        subprocess.run(command, check=True)
 
         success_info = {
             "status": "success",
