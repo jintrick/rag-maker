@@ -8,6 +8,7 @@ ragmaker-file-sync = ragmaker.tools.file_sync:main
 ragmaker-github-fetch = ragmaker.tools.github_fetch:main
 ragmaker-html-to-markdown = ragmaker.tools.html_to_markdown:main
 ragmaker-http-fetch = ragmaker.tools.http_fetch:main
+ragmaker-init-cache = ragmaker.tools.init_cache:main
 ragmaker-move-file = ragmaker.tools.move_file:main
 ragmaker-open-directory = ragmaker.tools.open_directory:main
 ragmaker-path-normalizer = ragmaker.tools.path_normalizer:main

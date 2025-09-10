@@ -21,6 +21,7 @@ src/ragmaker/tools/file_sync.py
 src/ragmaker/tools/github_fetch.py
 src/ragmaker/tools/html_to_markdown.py
 src/ragmaker/tools/http_fetch.py
+src/ragmaker/tools/init_cache.py
 src/ragmaker/tools/move_file.py
 src/ragmaker/tools/open_directory.py
 src/ragmaker/tools/path_normalizer.py
@@ -34,6 +35,7 @@ test/test_file_sync.py
 test/test_github_fetch.py
 test/test_html_to_markdown.py
 test/test_http_fetch.py
+test/test_init_cache.py
 test/test_move_file.py
 test/test_open_directory.py
 test/test_path_handling.py

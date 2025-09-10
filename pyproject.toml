@@ -20,6 +20,7 @@ dependencies = [
     "trafilatura",
     "beautifulsoup4",
     "GitPython",
+    "markitdown",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +31,7 @@ test = [
 [project.scripts]
 ragmaker-ask-dir = "ragmaker.tools.ask_dir:main"
 ragmaker-cache-cleanup = "ragmaker.tools.cache_cleanup:main"
+ragmaker-init-cache = "ragmaker.tools.init_cache:main"
 ragmaker-create-knowledge-base = "ragmaker.tools.create_knowledge_base:main"
 ragmaker-enrich-discovery = "ragmaker.tools.enrich_discovery:main"
 ragmaker-entry-discovery = "ragmaker.tools.entry_discovery:main"
