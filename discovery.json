@@ -37,27 +37,6 @@
       }
     },
     {
-      "name": "html_to_markdown",
-      "command": "ragmaker-html-to-markdown",
-      "description": "HTMLファイルをMarkdownに変換し、コンテンツを抽出し、リンクを修正するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "input-dir": {
-            "type": "string",
-            "description": "HTMLファイルが含まれ、Markdownファイルがインプレースで作成される対象ディレクトリ。"
-          },
-          "base-url": {
-            "type": "string",
-            "description": "相対リンクを絶対リンクに変換するためのベースURL。"
-          }
-        },
-        "required": [
-          "target-dir"
-        ]
-      }
-    },
-    {
       "name": "ask_dir",
       "command": "ragmaker-ask-dir",
       "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
@@ -149,23 +128,6 @@
           "summary",
           "src-type",
           "source-url"
-        ]
-      }
-    },
-    {
-      "name": "cache_cleanup",
-      "command": "ragmaker-cache-cleanup",
-      "description": "指定されたキャッシュディレクトリ内のMarkdownファイルとdiscovery.json以外のすべてのファイルおよびディレクトリを削除するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "target-dir": {
-            "type": "string",
-            "description": "クリーンアップ対象のキャッシュディレクトリのパス。"
-          }
-        },
-        "required": [
-          "target-dir"
         ]
       }
     },

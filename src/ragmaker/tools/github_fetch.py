@@ -132,11 +132,8 @@ class HTMLProcessor:
             soup = BeautifulSoup(html_snippet, 'html.parser')
             for element in soup.find_all(_is_noise_element):
                 element.decompose()
-            for ad_div in soup.select('div.ad, .ad, [class*="advert"], [id*="advert"]'):
-                ad_div.decompose()
-            for comments_section in soup.select('section.comments, #comments, [class*="comment"]'):
-                comments_section.decompose()
-
+            # The rest of the function continues after this block...
+            # The following lines are part of the original function and should be kept.
             cleaned_html = str(soup)
             markdown_content = md(cleaned_html, heading_style="ATX")
 
