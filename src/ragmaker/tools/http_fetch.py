@@ -1,29 +1,34 @@
 #!/usr/bin/env python3
 """
-Webページを取得し、コンテンツをファイルとして保存するツール。
+Webページを取得し、高品質なMarkdownコンテンツとして保存するツール。
 
-指定されたURLからWebページを再帰的に取得し、主要なコンテンツを抽出して
-一時ディレクトリにHTMLファイルとして保存する。
+指定されたURLからWebページを再帰的に取得し、MozillaのReadability.jsエンジンを
+利用して本文を抽出し、Markdown形式に変換して保存する。
 AIエージェントによる利用を想定しており、堅牢なエラーハンドリングと
 構造化されたJSONによるレポート出力を提供する。
 
 Usage:
-    python web_fetch.py --url <start_url> --base-url <scope_url> --output-dir <path/to/dir> [--no-recursive] [--depth <N>]
+    python http_fetch.py --url <start_url> --base-url <scope_url> --output-dir <path/to/dir> [--no-recursive] [--depth <N>]
 
 Args:
     --url (str): 収集を開始するWebページのURL。
-    --base-url (str):収集対象を制限するためのベースURL。このURL配下のページのみが収集される。
-    --output-dir (str): 取得したHTMLファイルを保存する一時ディレクトリのパス。
+    --base-url (str): 収集対象を制限するためのベースURL。このURL配下のページのみが収集される。
+    --output-dir (str): 取得したMarkdownファイルを保存するディレクトリのパス。
     --recursive / --no-recursive (bool, optional): リンクを再帰的にたどるか。デフォルトは --recursive。
     --depth (int, optional): 再帰的に収集する際の最大深度。デフォルトは5。
 
 Returns:
     (stdout): 成功した場合、処理結果をまとめたJSONオブジェクト。
               例: {
-                    "status": "success",
-                    "output_dir": "/path/to/output_output_directory",
-                    "converted_count": 15,
-                    "depth_level": 3
+                    "metadata": {
+                      "url": "http://example.com/page",
+                      "base_url": "http://example.com",
+                      "depth": 5,
+                      "fetched_at": "2024-05-21T12:34:56.789Z"
+                    },
+                    "documents": [
+                      { "source_url": "http://example.com/page", "path": "page_0.md" }
+                    ]
                   }
     (stderr): エラーが発生した場合、エラーコードと詳細を含むJSONオブジェクト。
 """
@@ -33,8 +38,11 @@ import json
 import logging
 import re
 import sys
+import shutil
+import subprocess
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
+from datetime import datetime, timezone
 from bs4 import Tag
 
 # --- Dependency Check ---
@@ -46,8 +54,8 @@ try:
         eprint_error,
         handle_argument_parsing_error,
         handle_unexpected_error,
+        print_json_stdout,
     )
-    from ragmaker.utils import print_discovery_data
 except ImportError:
     # This is a fallback for when the script is run in an environment
     # where the ragmaker package is not installed.
@@ -62,13 +70,13 @@ except ImportError:
 try:
     import requests
     from bs4 import BeautifulSoup
-    import trafilatura
+    from markdownify import markdownify as md
 except ImportError:
     eprint_error({
         "status": "error",
         "error_code": "DEPENDENCY_ERROR",
-        "message": "Required libraries 'requests', 'beautifulsoup4', or 'trafilatura' not found.",
-        "remediation_suggestion": "Please install the required libraries by running: pip install requests beautifulsoup4 trafilatura"
+        "message": "Required libraries 'requests', 'beautifulsoup4', or 'markdownify' not found.",
+        "remediation_suggestion": "Please ensure required libraries are installed."
     })
     sys.exit(1)
 
@@ -103,95 +111,91 @@ def setup_logging(verbose: bool, log_level: str) -> None:
         stream=sys.stderr
     )
 
-# pylint: disable=R0903
-class WebFetcher:
-    """Webページの取得と処理のロジックをカプセル化するクラス。"""
-    def __init__(self, args: argparse.Namespace):
-        """
-        WebFetcherのインスタンスを初期化する。
+def _is_noise_element(tag: Tag) -> bool:
+    """ノイズ要素（広告、コメントなど）である可能性が高いかどうかを判定する。"""
+    # キーワードリスト
+    noise_keywords = ['ad', 'advert', 'comment', 'share', 'social', 'extra', 'sidebar']
 
-        Args:
-            args (argparse.Namespace): コマンドライン引数を格納したオブジェクト。
-        """
+    # 判定1: classやidにキーワードが含まれるか
+    for attr in ['class', 'id']:
+        values = tag.get(attr, [])
+        if any(keyword in v for v in values for keyword in noise_keywords):
+            # 判定2: 本文コンテナの外側にあるか
+            if not tag.find_parent('article') and not tag.find_parent('main'):
+                return True
+    return False
+
+class WebFetcher:
+    """Webページの取得とMarkdown変換のロジックをカプセル化するクラス。"""
+
+    def __init__(self, args: argparse.Namespace):
         self.start_url = args.url.rstrip('/')
         self.base_url = args.base_url.rstrip('/')
         self.output_dir = Path(args.output_dir)
         self.recursive = args.recursive
         self.depth = args.depth
         self.visited_urls: set[str] = set()
-        self.fetched_files_map: list[dict] = []
+        self.documents: list[dict] = []
 
-    def _fetch_html(self, url: str) -> bytes | None:
-        """
-        指定されたURLから生のHTMLコンテンツをバイトデータとして取得する。
-
-        Args:
-            url (str): 取得対象のURL。
-
-        Returns:
-            bytes | None: 取得したHTMLのバイトデータ。失敗した場合はNone。
-        """
+    def _fetch_html_for_links(self, url: str) -> str | None:
+        """指定されたURLからリンク探索用のHTMLを文字列として取得する。"""
         try:
             headers = {
-                'User-Agent': (
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                    'AppleWebKit/537.36 (KHTML, like Gecko) '
-                    'Chrome/91.0.4472.124 Safari/537.36'
-                )
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
             response = requests.get(url, headers=headers, timeout=15)
             response.raise_for_status()
-
             content_type = response.headers.get('Content-Type', '')
             if 'text/html' not in content_type:
                 logger.warning(f"URL {url} is not HTML. Content-Type: {content_type}")
                 return None
-            
-            return response.content
-
+            return response.text
         except requests.exceptions.RequestException as e:
             handle_request_error(url, e)
             return None
 
-    def _extract_main_content(self, html_bytes: bytes, url: str) -> str:
-        """
-        trafilaturaを使用してHTMLのバイトデータから主要なコンテンツを抽出する。
-        これにより、trafilaturaがエンコーディング検出を処理する。
-
-        Args:
-            html_bytes (bytes): 処理対象のHTML（バイトデータ）。
-            url (str): コンテンツの取得元URL。
-
-        Returns:
-            str: 抽出された主要コンテンツのHTML（文字列）。
-        """
+    def _extract_and_convert(self, url: str) -> str | None:
+        """readable-cliを使ってURLから本文を抽出し、Markdownに変換する。"""
         try:
-            # trafilaturaにバイトデータを直接渡してエンコーディングを自動解決させる
-            extracted_html = trafilatura.extract(
-                html_bytes, url=url, output_format="html", include_links=True
+            process = subprocess.run(
+                ['readable', url, '--json', '--properties', 'html-content', 'title', '--keep-classes'],
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                check=True
             )
-            return extracted_html if extracted_html else ""
-        except Exception as e:  # pylint: disable=W0718
-            # trafilatura can raise a wide variety of exceptions.
-            # Catching a broad exception is necessary for the fallback mechanism.
-            logger.warning(f"Trafilatura failed for {url}: {e}. Falling back to raw body.")
-            # フォールバックとしてUTF-8でデコードを試みる
-            html_content = html_bytes.decode('utf-8', errors='ignore')
+            article_json = json.loads(process.stdout)
+
+            if not article_json or not article_json.get('html-content'):
+                logger.warning(f"readable-cli could not extract content from {url}.")
+                return None
+
+            title = article_json.get('title', '')
+            html_content = article_json['html-content']
+
+            # --- Smart Cleaning Step ---
             soup = BeautifulSoup(html_content, 'html.parser')
-            body = soup.find('body')
-            return str(body) if body else html_content
+            for element in soup.find_all(_is_noise_element):
+                element.decompose()
+
+            cleaned_html = str(soup)
+
+            markdown_content = md(cleaned_html, heading_style="ATX")
+
+            if title and not markdown_content.strip().startswith('#'):
+                 markdown_content = f"# {title}\n\n{markdown_content}"
+
+            return markdown_content
+
+        except subprocess.CalledProcessError as e:
+            logger.error(f"readable-cli failed for {url}. Stderr: {e.stderr}")
+            return None
+        except (json.JSONDecodeError, Exception) as e:
+            logger.error(f"Failed during content extraction or conversion for {url}: {e}")
+            return None
 
     def _find_links(self, html_content: str, page_url: str) -> list[str]:
-        """
-        HTMLコンテンツ内からリンクをすべて探し出す。
-
-        Args:
-            html_content (str): リンクを探索するHTMLコンテンツ。
-            page_url (str): HTMLコンテンツの取得元URL。
-
-        Returns:
-            list[str]: 発見されたURLのリスト。
-        """
+        """HTMLコンテンツ内からリンクをすべて探し出す。"""
         soup = BeautifulSoup(html_content, 'html.parser')
         links = set()
         for a_tag in soup.find_all('a', href=True):
@@ -199,7 +203,6 @@ class WebFetcher:
                 continue
             href = a_tag.get('href')
             if href:
-                # href can be a list, take the first element if so.
                 if isinstance(href, list):
                     href = href[0]
                 full_url = urljoin(page_url, href)
@@ -207,7 +210,7 @@ class WebFetcher:
         return list(links)
 
     def run(self):
-        """Webページの取得プロセスを実行する。"""
+        """Webページの取得と変換プロセスを実行する。"""
         logger.info(f"Starting fetch for URL: {self.start_url} within base URL: {self.base_url}")
         if not self.start_url.startswith(self.base_url):
             logger.warning(f"Start URL '{self.start_url}' is outside the base URL '{self.base_url}'.")
@@ -226,40 +229,37 @@ class WebFetcher:
                 logger.debug(f"Skipping {current_url}, depth {current_depth} > max depth {self.depth}")
                 continue
 
-            logger.info(f"Fetching: {current_url} at depth {current_depth}")
+            logger.info(f"Fetching and processing: {current_url} at depth {current_depth}")
             self.visited_urls.add(current_url)
 
-            html_bytes = self._fetch_html(current_url)
-            if not html_bytes:
-                continue
-
-            html_for_links = html_bytes.decode('utf-8', errors='ignore')
-
+            # --- Link finding (if recursive) ---
             if self.recursive and current_depth < self.depth:
-                found_links = self._find_links(html_for_links, current_url)
-                logger.debug(f"Found {len(found_links)} links on {current_url}")
-                for link in found_links:
-                    parsed_url = urlparse(link)
-                    if parsed_url.scheme not in ['http', 'https']:
-                        continue
-
-                    clean_url = parsed_url._replace(fragment="").geturl()
-                    if clean_url.startswith(self.base_url) and clean_url not in self.visited_urls:
-                        urls_to_visit.append((clean_url, current_depth + 1))
+                html_for_links = self._fetch_html_for_links(current_url)
+                if html_for_links:
+                    found_links = self._find_links(html_for_links, current_url)
+                    logger.debug(f"Found {len(found_links)} links on {current_url}")
+                    for link in found_links:
+                        parsed_url = urlparse(link)
+                        if parsed_url.scheme not in ['http', 'https']:
+                            continue
+                        clean_url = parsed_url._replace(fragment="").geturl()
+                        if clean_url.startswith(self.base_url) and clean_url not in self.visited_urls:
+                            urls_to_visit.append((clean_url, current_depth + 1))
             
-            main_content = self._extract_main_content(html_bytes, current_url)
-            if not main_content:
-                logger.warning(f"No main content extracted from {current_url}. Skipping file save.")
+            # --- Content extraction and conversion ---
+            markdown_content = self._extract_and_convert(current_url)
+            if not markdown_content:
+                logger.warning(f"No content extracted from {current_url}. Skipping file save.")
                 continue
 
             try:
-                filename = f"page_{page_counter}.html"
+                filename = f"page_{page_counter}.md"
                 file_path = self.output_dir / filename
                 with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(main_content)
+                    f.write(markdown_content)
                 
-                self.fetched_files_map.append({
-                    "url": current_url,
+                self.documents.append({
+                    "source_url": current_url,
                     "path": filename
                 })
                 logger.debug(f"Saved content from {current_url} to {file_path}")
@@ -271,12 +271,10 @@ class WebFetcher:
 
 def main() -> None:
     """Main entry point."""
-    setup_logging(verbose=False, log_level='INFO')
-
-    parser = GracefulArgumentParser(description="Fetch and extract content from web pages.")
+    parser = GracefulArgumentParser(description="Fetch web pages, extract main content, and convert to Markdown.")
     parser.add_argument("--url", required=True, help="The starting URL to fetch.")
     parser.add_argument("--base-url", required=True, help="The base URL to define the scope of the documentation.")
-    parser.add_argument("--output-dir", required=True, help="Directory to save fetched HTML files.")
+    parser.add_argument("--output-dir", required=True, help="Directory to save Markdown files.")
     parser.add_argument("--recursive", action=argparse.BooleanOptionalAction, default=True, help="Recursively fetch linked pages.")
     parser.add_argument("--depth", type=int, default=5, help="Maximum recursion depth.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
@@ -284,6 +282,17 @@ def main() -> None:
 
     try:
         args = parser.parse_args()
+        setup_logging(args.verbose, args.log_level)
+
+        # --- Dependency Check: readability-cli ---
+        if not shutil.which('readable'):
+            eprint_error({
+                "status": "error",
+                "error_code": "DEPENDENCY_ERROR",
+                "message": "The 'readable' command (from readability-cli) is not found in the system's PATH.",
+                "remediation_suggestion": "Please install it globally via 'npm install -g readability-cli'."
+            })
+            sys.exit(1)
         
         if sys.platform == "win32":
             p = Path(args.output_dir)
@@ -300,22 +309,23 @@ def main() -> None:
             
             args.output_dir = str(p.parent / sanitized_name)
 
-        setup_logging(args.verbose, args.log_level)
-
         output_dir_path = Path(args.output_dir)
         output_dir_path.mkdir(parents=True, exist_ok=True)
 
         fetcher = WebFetcher(args)
         fetcher.run()
 
-        metadata = {
-            "source": "http_fetch",
-            "url": args.url,
-            "base_url": args.base_url,
-            "depth": args.depth
+        # --- Final JSON Output ---
+        result = {
+            "metadata": {
+                "url": args.url,
+                "base_url": args.base_url,
+                "depth": args.depth,
+                "fetched_at": datetime.now(timezone.utc).isoformat()
+            },
+            "documents": fetcher.documents
         }
-
-        print_discovery_data(fetcher.fetched_files_map, metadata)
+        print_json_stdout(result)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)
