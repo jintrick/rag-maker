@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page with Invalid CSS</title>
+    <style>
+        /* This is some intentionally broken CSS */
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            invalid-property: some-value; /* This should cause a parse error */
+        }
+        article {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>A Test Article</h1>
+    </header>
+    <article>
+        <h2>Main Content Title</h2>
+        <p>This is the main content of the article that should be extracted successfully by the readability tool.</p>
+        <p>The presence of invalid CSS in the style tag should not prevent this content from being extracted.</p>
+    </article>
+    <footer>
+        <p>Some footer content that might be ignored.</p>
+    </footer>
+</body>
+</html>

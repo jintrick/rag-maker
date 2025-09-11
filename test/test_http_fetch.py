@@ -108,25 +108,49 @@ class TestHttpFetchTool(unittest.TestCase):
             self.assertNotIn("Comments", content)
             self.assertNotIn("My News Site", content)
 
-    @patch('shutil.which', return_value=None)
-    def test_readability_cli_not_found(self, mock_which):
+
+
+    def test_fetch_with_invalid_css_succeeds(self):
         """
-        Test that the tool exits gracefully with an error if readable-cli is not found.
+        Tests that fetching a page with invalid CSS still extracts content
+        successfully using the new BeautifulSoup-based logic.
         """
-        args = [
-            "--url", "http://example.com",
-            "--base-url", "http://example.com",
-            "--output-dir", "dummy_dir"
-        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_dir = Path(temp_dir) / "fetch_output_invalid_css"
+            url = f"http://localhost:{PORT}/invalid_css.html"
 
-        stdout, stderr = self.run_tool(args)
+            args = [
+                "--url", url,
+                "--base-url", f"http://localhost:{PORT}/",
+                "--output-dir", str(output_dir),
+                "--no-recursive",
+                "--log-level", "ERROR"
+            ]
 
-        self.assertEqual(stdout, "")
-        self.assertNotEqual(stderr, "")
+            # Run the tool
+            stdout, stderr = self.run_tool(args)
 
-        stderr_json = json.loads(stderr)
-        self.assertEqual(stderr_json["error_code"], "DEPENDENCY_ERROR")
-        self.assertIn("'readable' command (from readability-cli) is not found", stderr_json["message"])
+            # Assert that no unexpected errors were printed to stderr
+            self.assertEqual(stderr.strip(), "", f"Tool printed to stderr unexpectedly: {stderr}")
+
+            # Verify that stdout contains the expected JSON output
+            try:
+                stdout_json = json.loads(stdout)
+            except json.JSONDecodeError:
+                self.fail(f"Stdout was not valid JSON.\nStdout: {stdout}")
+
+            self.assertEqual(len(stdout_json["documents"]), 1)
+            doc_info = stdout_json["documents"][0]
+            md_file_path = output_dir / doc_info["path"]
+            self.assertTrue(md_file_path.exists())
+
+            # Verify the content of the created Markdown file
+            with open(md_file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            self.assertIn("## Main Content Title", content)
+            self.assertIn("This is the main content of the article", content)
+            self.assertNotIn("Some footer content", content)
 
 
 if __name__ == '__main__':

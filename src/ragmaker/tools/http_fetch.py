@@ -39,7 +39,6 @@ import logging
 import re
 import sys
 import shutil
-import subprocess
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 from datetime import datetime, timezone
@@ -155,44 +154,54 @@ class WebFetcher:
             return None
 
     def _extract_and_convert(self, url: str) -> str | None:
-        """readable-cliを使ってURLから本文を抽出し、Markdownに変換する。"""
+        """BeautifulSoupを使ってURLから本文を抽出し、Markdownに変換する。"""
         try:
-            process = subprocess.run(
-                ['readable', url, '--json', '--properties', 'html-content', 'title', '--keep-classes'],
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                check=True
-            )
-            article_json = json.loads(process.stdout)
+            # 1. Fetch HTML content
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=15)
+            response.raise_for_status()
+            html_content_raw = response.text
 
-            if not article_json or not article_json.get('html-content'):
-                logger.warning(f"readable-cli could not extract content from {url}.")
+            # 2. Parse with BeautifulSoup
+            soup = BeautifulSoup(html_content_raw, 'html.parser')
+
+            # 3. Find article or fallback to body
+            article_tag = soup.find('article')
+            if article_tag:
+                content_to_clean = article_tag
+            else:
+                content_to_clean = soup.body
+
+            if not content_to_clean:
+                logger.warning(f"Could not find <article> or <body> in {url}.")
                 return None
 
-            title = article_json.get('title', '')
-            html_content = article_json['html-content']
+            # 4. Get title
+            title_tag = soup.find('title')
+            title = title_tag.string if title_tag else ''
 
-            # --- Smart Cleaning Step ---
-            soup = BeautifulSoup(html_content, 'html.parser')
-            for element in soup.find_all(_is_noise_element):
-                element.decompose()
+            # 5. Extract paragraphs, headings, and code blocks
+            good_stuff = []
+            for tag in content_to_clean.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'code']):
+                good_stuff.append(str(tag))
 
-            # The rest of the function continues after this block...
-            # The following lines are part of the original function and should be kept.
-            cleaned_html = str(soup)
+            cleaned_html = "".join(good_stuff)
 
+            # 6. Convert to Markdown
             markdown_content = md(cleaned_html, heading_style="ATX")
 
+            # 7. Prepend title
             if title and not markdown_content.strip().startswith('#'):
                  markdown_content = f"# {title}\n\n{markdown_content}"
 
             return markdown_content
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"readable-cli failed for {url}. Stderr: {e.stderr}")
+        except requests.exceptions.RequestException as e:
+            handle_request_error(url, e)
             return None
-        except (json.JSONDecodeError, Exception) as e:
+        except Exception as e:
             logger.error(f"Failed during content extraction or conversion for {url}: {e}")
             return None
 
@@ -286,15 +295,6 @@ def main() -> None:
         args = parser.parse_args()
         setup_logging(args.verbose, args.log_level)
 
-        # --- Dependency Check: readability-cli ---
-        if not shutil.which('readable'):
-            eprint_error({
-                "status": "error",
-                "error_code": "DEPENDENCY_ERROR",
-                "message": "The 'readable' command (from readability-cli) is not found in the system's PATH.",
-                "remediation_suggestion": "Please install it globally via 'npm install -g readability-cli'."
-            })
-            sys.exit(1)
         
         if sys.platform == "win32":
             p = Path(args.output_dir)
