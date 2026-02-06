@@ -31,12 +31,13 @@ class TestEnrichDiscovery(unittest.TestCase):
 
     def run_script(self, updates_json):
         result = subprocess.run(
-            [sys.executable, "-m", "src.ragmaker.tools.enrich_discovery",
-             "--discovery-path", str(self.discovery_path),
+            [sys.executable, "-m", "ragmaker.tools.enrich_discovery",
+             "--catalog-path", str(self.discovery_path),
              "--updates", updates_json],
             capture_output=True,
             text=True,
-            encoding='utf-8'
+            encoding='utf-8',
+            env={**os.environ, "PYTHONPATH": os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'))}
         )
         return result
 

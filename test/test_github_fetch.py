@@ -11,16 +11,8 @@ from typing import Any, Type, Optional
 # Add src to path to allow importing ragmaker and its dependencies
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-# Define Repo as Any initially to satisfy mypy if GitPython is not installed
-Repo: Any = None
+from git import Repo
 
-try:
-    from git import Repo as GitRepoType
-    Repo = GitRepoType
-except ImportError:
-    pass
-
-@unittest.skip("src/ragmaker/tools/github_fetch.py is missing")
 class TestGitHubFetch(unittest.TestCase):
 
     def setUp(self):

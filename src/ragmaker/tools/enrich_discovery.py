@@ -29,18 +29,18 @@ def main():
     Main function to batch update a catalog.json file.
     """
     parser = argparse.ArgumentParser(description="Batch updates a catalog.json file with titles and summaries.")
-    parser.add_argument("--discovery-path", required=True, help="Full path to the catalog.json file to be updated.")
+    parser.add_argument("--catalog-path", required=True, help="Full path to the catalog.json file to be updated.")
     parser.add_argument("--updates", required=True, help="A JSON string or path to a JSON file containing an array of update objects.")
     args = parser.parse_args()
 
-    discovery_path = args.discovery_path
+    catalog_path = args.catalog_path
 
     try:
-        if not os.path.exists(discovery_path):
-            raise FileNotFoundError(f"The discovery file was not found at the specified path: {discovery_path}")
+        if not os.path.exists(catalog_path):
+            raise FileNotFoundError(f"The catalog file was not found at the specified path: {catalog_path}")
 
-        with open(discovery_path, 'r', encoding='utf-8') as f:
-            discovery_data = json.load(f)
+        with open(catalog_path, 'r', encoding='utf-8') as f:
+            catalog_data = json.load(f)
 
         # Handle --updates as a file path or a JSON string
         updates_raw = args.updates
@@ -60,7 +60,7 @@ def main():
         if not isinstance(updates, list):
             raise ValueError("--updates must be a JSON array of objects.")
 
-        documents_dict = {doc['path']: doc for doc in discovery_data.get('documents', [])}
+        documents_dict = {doc['path']: doc for doc in catalog_data.get('documents', [])}
 
         updated_paths = []
         not_found_paths = []
@@ -82,16 +82,16 @@ def main():
             # Actually the original code raised FileNotFoundError. Let's keep it consistent but maybe more descriptive.
             print(json.dumps({
                 "status": "warning",
-                "message": f"Some document paths from the updates were not found in {discovery_path}.",
+                "message": f"Some document paths from the updates were not found in {catalog_path}.",
                 "not_found_paths": not_found_paths
             }, ensure_ascii=False), file=sys.stderr)
 
-        with open(discovery_path, 'w', encoding='utf-8') as f:
-            json.dump(discovery_data, f, ensure_ascii=False, indent=2)
+        with open(catalog_path, 'w', encoding='utf-8') as f:
+            json.dump(catalog_data, f, ensure_ascii=False, indent=2)
 
         output_data = {
             "status": "success",
-            "message": f"Successfully updated {len(updated_paths)} documents in {discovery_path}.",
+            "message": f"Successfully updated {len(updated_paths)} documents in {catalog_path}.",
             "updated_paths": updated_paths
         }
         print_json_stdout(output_data)
