@@ -46,11 +46,11 @@ class TestHtmlToMarkdown(unittest.TestCase):
 
     def test_successful_conversion(self):
         """
-        Test that the script correctly converts HTML, updates the discovery JSON in stdout,
+        Test that the script correctly converts HTML, updates the catalog JSON in stdout,
         and modifies files in the input directory.
         """
         # Arrange
-        discovery_path = self.base_dir / "discovery.json"
+        discovery_path = self.base_dir / "catalog.json"
         original_discovery_data = {
             "documents": [
                 {"title": "Page 1", "url": "http://example.com/page1", "path": "page1.html"},
@@ -82,10 +82,10 @@ class TestHtmlToMarkdown(unittest.TestCase):
 
     def test_no_html_to_convert(self):
         """
-        Test that the script correctly handles a discovery file with no HTML entries.
+        Test that the script correctly handles a catalog file with no HTML entries.
         """
         # Arrange
-        discovery_path = self.base_dir / "discovery.json"
+        discovery_path = self.base_dir / "catalog.json"
         original_discovery_data = {
             "documents": [{"title": "Doc 1", "path": "doc1.md"}]
         }
@@ -101,10 +101,10 @@ class TestHtmlToMarkdown(unittest.TestCase):
     def test_missing_html_file(self):
         """
         Test that the script logs an error for a missing file but still returns
-        the discovery data with the missing path unchanged.
+        the catalog data with the missing path unchanged.
         """
         # Arrange
-        discovery_path = self.base_dir / "discovery.json"
+        discovery_path = self.base_dir / "catalog.json"
         original_discovery_data = {
             "documents": [
                 {"title": "Convert Me", "path": "convert.html"},

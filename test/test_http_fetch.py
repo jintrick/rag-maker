@@ -44,9 +44,10 @@ class TestHttpFetchTool(unittest.TestCase):
         time.sleep(1)
 
         # Ensure npm global bin is in PATH for readable-cli
-        npm_path = os.path.join(os.getenv('APPDATA'), 'npm')
-        if npm_path not in os.environ['PATH']:
-            os.environ['PATH'] += os.pathsep + npm_path
+        if os.getenv('APPDATA'):
+            npm_path = os.path.join(os.getenv('APPDATA'), 'npm')
+            if npm_path not in os.environ['PATH']:
+                os.environ['PATH'] += os.pathsep + npm_path
 
     @classmethod
     def tearDownClass(cls):

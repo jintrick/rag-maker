@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-enrich_discovery.py - A tool to batch update discovery.json with enriched data.
+enrich_discovery.py - A tool to batch update catalog.json with enriched data.
 """
 
 import argparse
@@ -26,10 +26,10 @@ except ImportError:
 
 def main():
     """
-    Main function to batch update a discovery.json file.
+    Main function to batch update a catalog.json file.
     """
-    parser = argparse.ArgumentParser(description="Batch updates a discovery.json file with titles and summaries.")
-    parser.add_argument("--discovery-path", required=True, help="Full path to the discovery.json file to be updated.")
+    parser = argparse.ArgumentParser(description="Batch updates a catalog.json file with titles and summaries.")
+    parser.add_argument("--discovery-path", required=True, help="Full path to the catalog.json file to be updated.")
     parser.add_argument("--updates", required=True, help="A JSON string or path to a JSON file containing an array of update objects.")
     args = parser.parse_args()
 

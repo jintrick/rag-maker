@@ -17,9 +17,9 @@ class TestEntryDiscovery(unittest.TestCase):
 
     def test_creates_initial_discovery_file(self):
         """
-        Test that a new discovery.json is created with the correct 'unknowns' entry.
+        Test that a new catalog.json is created with the correct 'unknowns' entry.
         """
-        discovery_file_path = self.test_path / "discovery.json"
+        discovery_file_path = self.test_path / "catalog.json"
         source_uri = "https://example.com/my-knowledge-source"
 
         self.assertFalse(discovery_file_path.exists()) # Ensure it doesn't exist initially
@@ -37,7 +37,7 @@ class TestEntryDiscovery(unittest.TestCase):
         print("STDERR:", result.stderr)
 
         self.assertEqual(result.returncode, 0, "Script execution failed")
-        self.assertTrue(discovery_file_path.exists(), "discovery.json was not created")
+        self.assertTrue(discovery_file_path.exists(), "catalog.json was not created")
 
         # Verify the content of the created file
         with open(discovery_file_path, 'r', encoding='utf-8') as f:
@@ -49,7 +49,7 @@ class TestEntryDiscovery(unittest.TestCase):
                 {"uri": source_uri}
             ]
         }
-        self.assertEqual(data, expected_data, "The content of discovery.json is incorrect")
+        self.assertEqual(data, expected_data, "The content of catalog.json is incorrect")
 
         # Verify the success message from stdout
         output_json = json.loads(result.stdout)
@@ -58,9 +58,9 @@ class TestEntryDiscovery(unittest.TestCase):
 
     def test_creates_discovery_with_metadata(self):
         """
-        Test that discovery.json is created with top-level metadata.
+        Test that catalog.json is created with top-level metadata.
         """
-        discovery_file_path = self.test_path / "discovery_meta.json"
+        discovery_file_path = self.test_path / "catalog_meta.json"
         source_uri = "https://github.com/user/repo"
         title = "My Knowledge Base"
         summary = "A test summary"

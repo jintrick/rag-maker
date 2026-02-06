@@ -211,7 +211,7 @@
         "properties": {
           "discovery-path": {
             "type": "string",
-            "description": "変更対象の discovery.json ファイルのフルパス。"
+            "description": "変更対象の catalog.json ファイルのフルパス。"
           },
           "updates": {
             "type": "string",
@@ -265,6 +265,33 @@
         "required": [
           "source",
           "destination"
+        ]
+      }
+    },
+    {
+      "name": "install_kb",
+      "command": "ragmaker-install-kb",
+      "description": "既存のKBをインストール先ディレクトリにコピーし、パスを正規化してセットアップするツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "インストール元となるKBのルートパス。"
+          },
+          "target-kb-root": {
+            "type": "string",
+            "description": "インストール先となるディレクトリのパス。"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "インストール先が存在する場合に上書きを許可するかどうか。",
+            "default": false
+          }
+        },
+        "required": [
+          "source",
+          "target-kb-root"
         ]
       }
     }

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 このモジュールは、RAGMakerアプリケーションで利用される共通のユーティリティ関数を提供します。
-これには、discovery.jsonファイルの生成や、その他の補助的な機能が含まれます。
+これには、catalog.jsonファイルの生成や、その他の補助的な機能が含まれます。
 """
 
 import json
@@ -21,7 +21,7 @@ def print_discovery_data(
     output_dir: Optional[Path] = None
 ) -> None:
     """
-    取得したドキュメント情報とメタデータからdiscovery.jsonのデータ構造を構築し、
+    取得したドキュメント情報とメタデータからcatalog.jsonのデータ構造を構築し、
     標準出力にJSON形式で書き出す。output_dirが指定されている場合はファイルにも保存する。
 
     Args:
@@ -30,7 +30,7 @@ def print_discovery_data(
         metadata (dict[str, Any]):
             この取得処理に関するメタデータ。'source' キーが必須。
         output_dir (Path, optional):
-            discovery.jsonを保存するディレクトリのパス。
+            catalog.jsonを保存するディレクトリのパス。
     """
     discovery_data = {
         "documents": documents,
@@ -39,7 +39,7 @@ def print_discovery_data(
     
     if output_dir:
         try:
-            output_path = output_dir / "discovery.json"
+            output_path = output_dir / "catalog.json"
             output_path.write_text(
                 json.dumps(discovery_data, ensure_ascii=False, indent=2),
                 encoding='utf-8'

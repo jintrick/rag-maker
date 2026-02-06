@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-A tool to create an initial discovery.json file for the workflow.
+A tool to create an initial catalog.json file for the workflow.
 This file starts with metadata and an 'unknowns' entry containing the initial source URI.
 """
 
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 # --- Core Logic ---
 def create_initial_discovery(discovery_path: Path, uri: str, title: str = None, summary: str = None, src_type: str = None) -> str:
     """
-    Creates a new discovery.json file with metadata and an 'unknowns' entry.
+    Creates a new catalog.json file with metadata and an 'unknowns' entry.
     If the file exists, it updates the metadata.
     """
     try:
@@ -88,8 +88,8 @@ def create_initial_discovery(discovery_path: Path, uri: str, title: str = None, 
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Create or update discovery.json with metadata and source URI.")
-    parser.add_argument("--discovery-path", required=True, help="The full path where the discovery.json file will be created.")
+    parser = argparse.ArgumentParser(description="Create or update catalog.json with metadata and source URI.")
+    parser.add_argument("--discovery-path", required=True, help="The full path where the catalog.json file will be created.")
     parser.add_argument("--uri", required=False, help="The initial source URI/URL.") # Made optional for updates, but logic handles it.
     parser.add_argument("--source-url", required=False, help="Alias for --uri.")
     

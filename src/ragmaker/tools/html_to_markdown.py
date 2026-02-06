@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-html_to_markdown.py - HTML to Markdown Converter driven by discovery.json
+html_to_markdown.py - HTML to Markdown Converter driven by catalog.json
 
-This tool processes a cache directory based on a discovery.json file.
-It converts specified HTML files to Markdown, updates the discovery.json
+This tool processes a cache directory based on a catalog.json file.
+It converts specified HTML files to Markdown, updates the catalog.json
 to reflect the changes, and removes the original HTML source files.
 """
 
@@ -146,9 +146,9 @@ def process_and_update_discovery(
 def main() -> None:
     """Main entry point."""
     parser = GracefulArgumentParser(
-        description="Reads a discovery.json, converts linked HTML files to Markdown, and prints the updated discovery JSON to stdout."
+        description="Reads a catalog.json, converts linked HTML files to Markdown, and prints the updated discovery JSON to stdout."
     )
-    parser.add_argument("--discovery-path", required=True, help="Path to the discovery.json file to process.")
+    parser.add_argument("--discovery-path", required=True, help="Path to the catalog.json file to process.")
     parser.add_argument("--input-dir", required=True, help="Directory where HTML files are located.")
     parser.add_argument("--base-url", help="Base URL for converting relative links.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output.")
