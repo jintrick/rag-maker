@@ -1,0 +1,272 @@
+{
+  "tools": [
+    {
+      "name": "http_fetch",
+      "command": "ragmaker-http-fetch",
+      "description": "指定されたURLのWebページコンテンツを収集し、一時ディレクトリに保存するツール。パスベースのドキュメント範囲判定と、trafilaturaによる主要コンテンツ抽出を強化。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "取得対象のWebページのURL。"
+          },
+          "base-url": {
+            "type": "string",
+            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
+          },
+          "output-dir": {
+            "type": "string",
+            "description": "取得したHTMLファイルを保存する出力先ディレクトリ。"
+          },
+          "recursive": {
+            "type": "boolean",
+            "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
+            "default": true
+          },
+          "depth": {
+            "type": "integer",
+            "description": "再帰探索の最大深度。",
+            "default": 5
+          }
+        },
+        "required": [
+          "url",
+          "base-url"
+        ]
+      }
+    },
+    {
+      "name": "ask_dir",
+      "command": "ragmaker-ask-dir",
+      "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
+      "parameters": {}
+    },
+    {
+      "name": "github_fetch",
+      "command": "ragmaker-github-fetch",
+      "description": "GitHubリポジトリから特定パスのドキュメントを取得し、ファイルとして保存するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repo-url": {
+            "type": "string",
+            "description": "取得対象のGitHubリポジリのURL。"
+          },
+          "path-in-repo": {
+            "type": "string",
+            "description": "リポジトリ内で収集対象とするディレクトリまたはファイルのパス。"
+          },
+          "temp-dir": {
+            "type": "string",
+            "description": "取得したファイルを保存する一時ディレクトリのパス。"
+          },
+          "branch": {
+            "type": "string",
+            "description": "取得対象のブランチ名。指定されない場合、リポジトリのデフォルトブランチが使われる。"
+          }
+        },
+        "required": [
+          "repo-url",
+          "path-in-repo"
+        ]
+      }
+    },
+    {
+      "name": "file_sync",
+      "command": "ragmaker-file-sync",
+      "description": "指定されたコピー元ディレクトリの内容を、コピー先ディレクトリに高速にコピーするツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source-dir": {
+            "type": "string",
+            "description": "コピー元のディレクトリパス。"
+          },
+          "dest-dir": {
+            "type": "string",
+            "description": "コピー先のディレクトリパス。"
+          }
+        },
+        "required": [
+          "source-dir",
+          "dest-dir"
+        ]
+      }
+    },
+    {
+      "name": "entry_discovery",
+      "command": "ragmaker-entry-discovery",
+      "description": "ドキュメントをシステムに登録するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kb-root": {
+            "type": "string",
+            "description": "ドキュメント情報を登録するナレッジベースのルートパス。"
+          },
+          "title": {
+            "type": "string",
+            "description": "登録するドキュメント群全体のタイトル。"
+          },
+          "summary": {
+            "type": "string",
+            "description": "登録するドキュメント群全体の要約。"
+          },
+          "src-type": {
+            "type": "string",
+            "description": "ソースのタイプ（例: github, web, localなど）。"
+          },
+          "source-url": {
+            "type": "string",
+            "description": "ドキュメントの元のソースURLまたはパス。"
+          }
+        },
+        "required": [
+          "kb-root",
+          "title",
+          "summary",
+          "src-type",
+          "source-url"
+        ]
+      }
+    },
+    {
+      "name": "create_knowledge_base",
+      "command": "ragmaker-create-knowledge-base",
+      "description": "新しい自己完結型のナレッジベースのディレクトリ構造と初期ファイルをセットアップするツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "kb-root": {
+            "type": "string",
+            "description": "新しいナレッジベースを作成するルートパス。"
+          }
+        },
+        "required": [
+          "kb-root"
+        ]
+      }
+    },
+    {
+      "name": "path_normalizer",
+      "command": "ragmaker-path-normalizer",
+      "description": "与えられたパスを正規化し、絶対パスに変換するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "正規化するパス文字列。"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "open_directory",
+      "command": "ragmaker-open-directory",
+      "description": "指定されたディレクトリをOSのデフォルトのファイルマネージャーで開く。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "開きたいディレクトリのパス。"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "command": "ragmaker-read-file",
+      "description": "指定された複数のファイルのパスを受け取り、その内容をまとめて読み込んで単一のJSON形式で標準出力に書き出すツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "読み込むファイルのパス。この引数は複数回指定可能。"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "enrich_discovery",
+      "command": "ragmaker-enrich-discovery",
+      "description": "複数のドキュメント情報を一括で更新するためのバッチ処理ツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "discovery-path": {
+            "type": "string",
+            "description": "変更対象の discovery.json ファイルのフルパス。"
+          },
+          "updates": {
+            "type": "string",
+            "description": "更新内容を含むJSON文字列。'path', 'title', 'summary' をキーに持つオブジェクトの配列。"
+          }
+        },
+        "required": [
+          "discovery-path",
+          "updates"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "command": "ragmaker-write-file",
+      "description": "指定されたパスに指定された内容を書き込むツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "書き込み先のファイルパス。"
+          },
+          "content": {
+            "type": "string",
+            "description": "ファイルに書き込む内容。"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    },
+    {
+      "name": "move_file",
+      "command": "ragmaker-move-file",
+      "description": "ファイルを指定された場所に移動するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "移動元のファイルパス。"
+          },
+          "destination": {
+            "type": "string",
+            "description": "移動先のファイルパス。"
+          }
+        },
+        "required": [
+          "source",
+          "destination"
+        ]
+      }
+    }
+  ]
+}

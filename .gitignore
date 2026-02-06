@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# RAGMaker specific
+test_data/
+**/.chroma/
+.tmp/
+cache/
+commit_message_v0.4.1_en.txt

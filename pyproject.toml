@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-maker"
+version = "0.5.0"
+description = "A collection of tools for building RAG knowledge bases."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "readabilipy",
+    "markdownify",
+    "requests",
+    "trafilatura",
+    "beautifulsoup4",
+    "GitPython",
+    "markitdown",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+
+[project.scripts]
+ragmaker-ask-dir = "ragmaker.tools.ask_dir:main"
+ragmaker-cache-cleanup = "ragmaker.tools.cache_cleanup:main"
+ragmaker-init-cache = "ragmaker.tools.init_cache:main"
+ragmaker-create-knowledge-base = "ragmaker.tools.create_knowledge_base:main"
+ragmaker-enrich-discovery = "ragmaker.tools.enrich_discovery:main"
+ragmaker-entry-discovery = "ragmaker.tools.entry_discovery:main"
+ragmaker-file-sync = "ragmaker.tools.file_sync:main"
+ragmaker-github-fetch = "ragmaker.tools.github_fetch:main"
+ragmaker-html-to-markdown = "ragmaker.tools.html_to_markdown:main"
+ragmaker-http-fetch = "ragmaker.tools.http_fetch:main"
+ragmaker-move-file = "ragmaker.tools.move_file:main"
+ragmaker-open-directory = "ragmaker.tools.open_directory:main"
+ragmaker-path-normalizer = "ragmaker.tools.path_normalizer:main"
+ragmaker-read-file = "ragmaker.tools.read_file:main"
+ragmaker-write-file = "ragmaker.tools.write_file:main"
+
+[tool.setuptools.package-data]
+"ragmaker.data" = ["*.toml"]
+
+[tool.pylint.main]
+max-line-length = 120
+disable = [
+    "trailing-whitespace",
+    "missing-final-newline",
+]

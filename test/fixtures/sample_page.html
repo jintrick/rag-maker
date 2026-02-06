@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complex Test Page</title>
+    <style>
+        body { font-family: sans-serif; }
+        .header, .footer { background: #f0f0f0; padding: 10px; }
+        .nav { background: #e0e0e0; padding: 5px; }
+        .main-container { width: 80%; margin: auto; }
+        .sidebar { float: right; width: 20%; background: #fafafa; padding: 10px; }
+        .ad { border: 1px solid red; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>My News Site</h1>
+    </div>
+    <div class="nav">
+        <a href="/home">Home</a> | <a href="/news">News</a> | <a href="/contact">Contact</a>
+    </div>
+    <div class="main-container">
+        <div class="content">
+            <article>
+                <h2>Main Content Title</h2>
+                <p class="byline">By Jules Verne</p>
+                <p>This is the main article content that should be extracted. It is a paragraph of text that represents the core information a user would want to read.</p>
+                <p>It has multiple paragraphs. This second paragraph adds more substance to the article, making it look more like a real piece of content.</p>
+                <pre><code>
+# This is a code block
+def hello():
+    print("Hello, World!")
+                </code></pre>
+            </article>
+            <div class="ad">
+                <h3>Sponsored Content</h3>
+                <p>This is a noisy ad banner that should be removed.</p>
+            </div>
+            <section class="comments">
+                <h3>Comments</h3>
+                <p>User1: Great article!</p>
+            </section>
+        </div>
+        <div class="sidebar">
+            <h3>Related Links</h3>
+            <ul>
+                <li><a href="/related1">Related Story 1</a></li>
+                <li><a href="/related2">Related Story 2</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 My News Site. All rights reserved.</p>
+    </div>
+</body>
+</html>

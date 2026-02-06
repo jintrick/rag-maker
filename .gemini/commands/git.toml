@@ -1,0 +1,2 @@
+description = "Git操作：コミット、タグ付け、mainへのマージ、新規ブランチ作成（例: /git v0.5.1）"
+prompt = "@.gemini/commands/git.md"

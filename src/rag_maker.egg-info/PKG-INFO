@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: rag-maker
+Version: 0.5.0
+Summary: A collection of tools for building RAG knowledge bases.
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: readabilipy
+Requires-Dist: markdownify
+Requires-Dist: requests
+Requires-Dist: trafilatura
+Requires-Dist: beautifulsoup4
+Requires-Dist: GitPython
+Requires-Dist: markitdown
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+
+# RAGMaker
+
+This is a project for building an interactive application to construct RAG from web pages.
+
+## Requirements
+- Python 3.x
+- Node.js and npm
+- `readability-cli`
+
+To install `readability-cli`, run the following command:
+```bash
+npm install -g readability-cli
+```

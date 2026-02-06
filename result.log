@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="chrome://global/skin/aboutReader.css" type="text/css">
+  <title>Gemini Code Assist の概要</title>
+</head>
+
+<body class="light sans-serif loaded" style="--font-size:14pt; --content-width:40em;">
+  <div class="container" dir="ltr">
+    <div class="header reader-header reader-show-element">
+      <h1 class="reader-title">Gemini Code Assist の概要</h1>
+    </div>
+
+    <hr>
+
+    <div class="content">
+      <div class="moz-reader-content reader-show-element">
+<div id="readability-page-1" class="page"><div>
+
+  
+    
+    
+    
+    
+
+
+<p>Gemini Code Assist は、Gemini 2.5 モデルを使用して、ソフトウェア開発ライフサイクル全体を通して開発チームがアプリケーションを構築、デプロイ、運用できるように AI を活用したアシスタンスを提供します。Gemini Code Assist は、次のエディションで利用できます。</p>
+
+<ul>
+<li><p><a href="#supported-features-gca">個人向け Gemini Code Assist</a>（無料）。</p></li>
+<li><p><a href="#supported-features">Gemini Code Assist Standard</a>: <a href="https://cloud.google.com/gemini/docs/overview?hl=ja">Gemini for Google Cloud</a> ポートフォリオのプロダクト。</p></li>
+<li><p><a href="#supported-features">Gemini Code Assist Enterprise</a>: <a href="https://cloud.google.com/gemini/docs/overview?hl=ja">Gemini for Google Cloud</a> ポートフォリオのプロダクト。</p></li>
+</ul>
+
+
+
+<p>VS Code、JetBrains IDE、Android Studio などの<a href="https://developers.google.com/gemini-code-assist/docs/supported-languages?hl=ja#supported_ides">サポートされている IDE</a> で Gemini Code Assist を使用すると、<a href="https://developers.google.com/gemini-code-assist/docs/supported-languages?hl=ja">多くの一般的な言語</a>で AI を活用したコーディング アシスタンスを受けることができます。コードを記述してコードを完成させたり、コメントから完全な関数またはコードブロックを生成できます。また、単体テストを生成して、コードのデバッグ、理解、文書化で支援を得ることができます。</p>
+
+<p>Gemini Code Assist は、回答の生成に使用したドキュメントとコードサンプルに関する<a href="https://developers.google.com/gemini-code-assist/docs/works?hl=ja#how-when-gemini-cites-sources">ソースの引用</a>を含む、コンテキスト化された回答をプロンプトに提供します。</p>
+
+
+
+
+
+
+
+<p>Gemini Code Assist で使用される Gemini の大規模言語モデル（LLM）は、Gemini の<a href="https://storage.googleapis.com/deepmind-media/gemini/gemini_1_report.pdf">基盤モデル</a>のトレーニングに使用されるデータセットに加えて、一般公開されているコードのデータセット、Google Cloud 固有の資料、その他の関連する技術情報でトレーニングされます。モデルは、Gemini Code Assist のレスポンスが Gemini Code Assist のユーザーにとって可能な限り有用になるようにトレーニングされています。</p>
+
+
+
+
+<ul>
+  <li><a href="https://developers.google.com/gemini-code-assist/docs/data-governance?hl=ja">Gemini Code Assist Standard と Enterprise がデータを使用する方法とタイミングを確認する</a>。</li>
+  <li><a href="https://developers.google.com/gemini-code-assist/resources/privacy-notice-gemini-code-assist-individuals?hl=ja">個人向け Gemini Code Assist がデータを使用する方法とタイミングに関する説明をご覧ください</a>。</li>
+</ul>
+
+
+
+
+<p>
+Gemini Code Assist は初期段階のテクノロジーであるため、もっともらしく見える出力でも事実に反する場合があります。Gemini Code Assist からの出力は、使用する前に検証することをおすすめします。詳細については、<a href="https://developers.google.com/gemini-code-assist/docs/responsible-ai?hl=ja">Gemini Code Assist と責任ある AI</a> をご覧ください。</p>
+
+
+
+<p>既存のオープンソース コードなど、別のソースからある程度の長さをそのまま引用している場合は、Gemini Code Assist によって引用情報が提供されます。詳細については、<a href="https://developers.google.com/gemini-code-assist/docs/works?hl=ja#how-when-gemini-cites-sources">Gemini によるソースの引用方法とタイミング</a>をご覧ください。
+
+
+
+
+</p><h2 data-text="個人向け Gemini Code Assist でサポートされている機能" id="supported-features-gca" tabindex="-1">個人向け Gemini Code Assist でサポートされている機能</h2>
+
+<p>次の表に、<a href="https://developers.google.com/gemini-code-assist/docs/supported-languages?hl=ja#supported_ides">サポートされている IDE</a> で無料で利用できる生成 AI アシスタンスの種類を示します。</p>
+
+<table>
+  <tbody><tr>
+    <th>AI コーディング アシスタンス</th>
+  </tr>
+  <tr>
+    <td><p>次の IDE の IDE プロジェクトでのコード補完と生成:</p>
+        <ul>
+        <li><a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#get_code_completions">VS Code、JetBrains IDE（IntelliJ、PyCharm など）</a>、<a href="https://developer.android.com/studio/gemini/overview?hl=ja">Android Studio</a></li>
+        </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>IDE の会話アシスタント（<a href="https://developers.google.com/gemini-code-assist/docs/works?hl=ja#gemini-code-assist">開いているファイルのコンテキストを使用</a>）</td>
+  </tr>
+  <tr>
+    <td>マルチ IDE サポート（VS Code、<a href="https://developers.google.com/gemini-code-assist/docs/supported-languages?hl=ja#supported_ides">IntelliJ や PyCharm などの JetBrains IDE</a>、<a href="https://developer.android.com/studio/gemini/overview?hl=ja">Android Studio</a>）</td>
+  </tr>
+  <tr>
+    <th colspan="3">エージェント チャット</th>
+  </tr>
+  <tr>
+    <td><p>システムツールと Model Context Protocol（MCP）サーバーを使用する複雑なマルチステップ タスクを完了するように Gemini に指示します。詳細については、<a href="https://developers.google.com/gemini-code-assist/docs/use-agentic-chat-pair-programmer?hl=ja">ペア プログラマーとしてエージェント チャットを使用する</a>をご覧ください。</p>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="3">Gemini CLI の割り当て</th>
+  </tr>
+  <tr>
+    <td><p><a href="https://developers.google.com/gemini-code-assist/docs/gemini-cli?hl=ja">Gemini CLI</a> の使用に関する<a href="https://developers.google.com/gemini-code-assist/resources/quotas?hl=ja">割り当て</a>。</p>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="3">スマート アクションとコマンド</th>
+  </tr>
+  <tr>
+    <td>選択したコードを右クリックしてスマート アクションを開始します（<a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#use_smart_actions">VS Code</a>、<a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#use_smart_actions">IntelliJ や PyCharm などの JetBrains IDE</a>、<a href="https://developer.android.com/studio/gemini/overview?hl=ja">Android Studio</a>）。選択したコードの有無にかかわらず、クイック選択バーのスラッシュ <code dir="ltr" translate="no">/</code> を使用してスマート コマンドを開始します（<a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#generate_code_with_prompts">VS Code</a>）。</td>
+  </tr>
+  <tr>
+    <th colspan="3">ツールとしての外部サービス</th>
+  </tr>
+  <tr>
+    <td>Gemini Code Assist ツールを使用して、IDE 内で外部サービスから提供される情報を取得し、アクションを実行します。<code dir="ltr" translate="no">@</code> 記号の後にツールの名前を付けて、特定のツールにプロンプトを送信します。例: <code dir="ltr" translate="no">@GitHub get issues assigned to me</code>。ツールの詳細については、<a href="https://developers.google.com/gemini-code-assist/docs/tools-agents/tools-overview?hl=ja">Gemini Code Assist ツールの概要</a>をご覧ください。</td>
+  </tr>
+  <tr>
+    <th colspan="3">知的財産権とコンプライアンス</th>
+  </tr>
+  <tr>
+    <td><a href="https://developers.google.com/gemini-code-assist/docs/works?hl=ja">IDE のソース引用</a></td>
+  </tr>
+</tbody></table>
+
+
+
+<h2 data-text="Gemini Code Assist の Standard エディションと Enterprise エディションの概要" id="editions-overview" tabindex="-1">Gemini Code Assist の Standard エディションと Enterprise エディションの概要</h2>
+
+<p>次のセクションでは、Gemini Code Assist の Standard エディションと Enterprise エディションを比較します。</p>
+
+<p>Standard エディションでは、エンタープライズ グレードのセキュリティを備えた AI コーディング アシスタンスを利用して、アプリケーションを構築して実行できます。Enterprise エディションでは、Standard エディションの<a href="#supported-features">サポートされているすべての機能</a>を利用できます。また、プライベート ソースコード リポジトリに基づいてカスタマイズすることもできます。さらに、より広範な技術スタックでアプリケーションを構築するための追加の Google Cloud サービスと統合されています。</p>
+
+<p>次の表は、各エディションの対象ユーザーとメリットをまとめたもので、組織の開発目標に最も適したエディションを判断する際に役立ちます。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Gemini Code Assist Standard</th>
+      <th>Gemini Code Assist Enterprise</th>
+    </tr>
+  </thead>
+  <tbody><tr>
+    <th>対象読者</th>
+    <td>
+      <ul>
+        <li>基本的なコーディングのニーズがあるお客様。</li>
+        <li>データ セキュリティとコンプライアンスに関する厳格な要件がある組織。</li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li>複雑なソフトウェア開発プロセスを持つ大企業。</li>
+        <li>組織のベスト プラクティスに基づいて開発を加速するために、プライベート ソースコード リポジトリに基づいて AI レスポンスをカスタマイズしたいお客様。</li>
+        <li>拡大する Google Cloud サービスのリスト全体で AI を活用したアプリケーション開発アシスタントを必要とするお客様。</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <th>利点</th>
+    <td>
+      <ul>
+        <li>一般的なプログラミング言語のコード補完と生成。一部の Google Cloud サービスで利用できます。</li>
+        <li>AI を活用したチャット サポート。</li>
+        <li>簡素化されたユーザー インターフェースと IDE とのインテグレーション。</li>
+        <li>IDE でのローカル コードベースの認識: Gemini の大きなコンテキスト ウィンドウの能力を活用して、ローカル コードベースを詳細に理解します。</li>
+        <li>エンタープライズ グレードのセキュリティ: 堅牢なデータ ガバナンス、安全なインフラストラクチャ、コード提案の補償。</li>
+        <li>連携の強化: Gemini Code Assist Standard は、Firebase、Colab Enterprise、BigQuery データ インサイト、Cloud Run、Database Studio で AI アシスタンスを提供します。</li>
+      </ul>
+    </td>
+    <td>
+      <ul>
+        <li>Gemini Code Assist Standard で説明したすべてのメリットに加え、次のメリットがあります。</li>
+          <ul>
+            <li><a href="https://developers.google.com/gemini-code-assist/docs/code-customization-overview?hl=ja">コードのカスタマイズ</a>: 組織は、プライベート コードベースでモデルを拡張し、カスタマイズされた提案を得ることができます。</li>
+            <li>連携の強化: Gemini Code Assist Enterprise は、Apigee、Application Integration、Gemini Cloud Assist などの Google Cloud 全体で AI アシスタンスを提供し、クラウドチームが Google Cloud でアプリケーションとインフラストラクチャをより効果的に構築、設計、運用、最適化できるようにします。</li>
+          </ul>
+      </ul>
+    </td>
+  </tr>
+</tbody></table>
+
+<p>各エディションの機能の比較については、<a href="#supported-features">サポートされている機能</a>をご覧ください。</p>
+
+<h2 data-text="Gemini Code Assist の Standard と Enterprise でサポートされている機能" id="supported-features" tabindex="-1">Gemini Code Assist の Standard と Enterprise でサポートされている機能</h2>
+
+<p>以降のセクションでは、Gemini Code Assist の Standard と Enterprise で利用可能な生成 AI アシスタンスの種類について説明します。</p>
+
+<h3 data-text="コード支援とチャット" id="coding_assistance_and_chat" tabindex="-1">コード支援とチャット</h3>
+
+<p>次の表に、<a href="https://developers.google.com/gemini-code-assist/docs/supported-languages?hl=ja#supported_ides">サポートされている IDE</a> で利用可能な生成 AI アシスタンスの種類を示します。</p><table>
+  <tbody><tr>
+    <th>AI コーディング アシスタンス</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td><p>次の IDE の IDE プロジェクトでのコード補完と生成:</p>
+        <ul>
+        <li><a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#get_code_completions">VS Code</a></li>
+        <li><a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#get_code_completions">JetBrains IDE（IntelliJ、PyCharm など）</a></li>
+        <li><a href="https://developer.android.com/studio/gemini/overview?hl=ja">Android Studio</a></li>
+        </ul>
+    </td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>IDE の会話アシスタント（<a href="https://developers.google.com/gemini-code-assist/docs/works?hl=ja#gemini-code-assist">開いているファイルのコンテキストを使用</a>）</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>マルチ IDE サポート（VS Code、<a href="https://developers.google.com/gemini-code-assist/docs/supported-languages?hl=ja#supported_ides">IntelliJ や PyCharm などの JetBrains IDE</a>、<a href="https://developer.android.com/studio/gemini/overview?hl=ja">Android Studio</a>）</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+    <tr>
+    <th colspan="3">エージェント チャット</th>
+  </tr>
+  <tr>
+    <td><p>システムツールと Model Context Protocol（MCP）サーバーを使用する複雑なマルチステップ タスクを完了するように Gemini に指示します。詳細については、<a href="https://developers.google.com/gemini-code-assist/docs/use-agentic-chat-pair-programmer?hl=ja">ペア プログラマーとしてエージェント チャットを使用する</a>をご覧ください。</p>
+    </td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">Gemini CLI の割り当て</th>
+  </tr>
+  <tr>
+    <td><p><a href="https://developers.google.com/gemini-code-assist/docs/gemini-cli?hl=ja">Gemini</a> CLI の使用に関する<a href="https://developers.google.com/gemini-code-assist/resources/quotas?hl=ja">割り当て</a>。</p>
+    </td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">スマート アクションとコマンド</th>
+  </tr>
+  <tr>
+    <td>選択したコードを右クリックしてスマート アクションを開始します（<a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#use_smart_actions">VS Code</a>、<a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#use_smart_actions">IntelliJ や PyCharm などの JetBrains IDE</a>、<a href="https://developer.android.com/studio/gemini/overview?hl=ja">Android Studio</a>）。選択したコードの有無にかかわらず、クイック選択バーのスラッシュ <code dir="ltr" translate="no">/</code> を使用してスマート コマンドを開始します（<a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja#generate_code_with_prompts">VS Code</a>）。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">ツールとしての外部サービス</th>
+  </tr>
+  <tr>
+    <td>Gemini Code Assist ツールを使用して、IDE 内で外部サービスから提供される情報を取得し、アクションを実行します。<code dir="ltr" translate="no">@</code> 記号の後にツールの名前を付けて、特定のツールにプロンプトを送信します。例: <code dir="ltr" translate="no">@GitHub get issues assigned to me</code>。ツールの詳細については、<a href="https://developers.google.com/gemini-code-assist/docs/tools-agents/tools-overview?hl=ja">Gemini Code Assist ツールの概要</a>をご覧ください。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">知的財産権とコンプライアンス</th>
+  </tr>
+  <tr>
+    <td><a href="https://developers.google.com/gemini-code-assist/docs/works?hl=ja">IDE と Google API Console のソース引用</a></td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td><a href="https://developers.google.com/gemini-code-assist/docs/works?hl=ja#how-gemini-protects">IP 補償</a></td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td><a href="https://developers.google.com/gemini-code-assist/docs/configure-vpc-service-controls?hl=ja">VPC-SC とプライベート Google アクセス</a></td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">企業のナレッジ</th>
+  </tr>
+  <tr>
+    <td><a href="https://developers.google.com/gemini-code-assist/docs/code-customization-overview?hl=ja">IDE の GitHub、GitLab、Bitbucket のコードベースからのカスタマイズされたコード提案</a></td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+
+
+<h3 data-text="IDE 以外の追加機能" id="additional-features" tabindex="-1">IDE 以外の追加機能</h3>
+
+<p>以降のセクションでは、IDE でのアシスタンス以外の Gemini Code Assist の Standard エディションと Enterprise エディションで利用可能な追加機能について詳しく説明します。</p>
+
+<h4 data-text="Gemini Cloud Assist" id="cloud-assist" tabindex="-1">Gemini Cloud Assist</h4>
+
+<p>次の表に、API コンソールの <a href="https://cloud.google.com/gemini/docs/cloud-assist/overview?hl=ja">Gemini Cloud Assist</a> で利用可能な生成 AI アシスタンスの種類を示します。</p>
+
+
+
+<table>
+  <tbody><tr>
+    <th>Gemini Cloud Assist のアシスタンス</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/gemini/docs/cloud-assist/overview?hl=ja#ai-assistance">Gemini Cloud Assist の機能</a>（すべての Google ユーザーが利用できる機能と、Gemini Code Assist Enterprise ユーザーが利用できる機能を含む）</td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+
+
+<h4 data-text="Gemini in Apigee" id="apigee" tabindex="-1">Gemini in Apigee</h4>
+
+<p>次の表に、<a href="https://cloud.google.com/apigee/docs?hl=ja">Apigee</a> での API 開発における生成 AI アシスタンスの種類を示します（IDE と Google API コンソール）。</p>
+
+
+
+<table>
+  <tbody><tr>
+    <th>API 管理用の Gemini Code Assist</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td>API 仕様の作成時に使用される<a href="https://cloud.google.com/apigee/docs/api-platform/local-development/vscode/develop-design-edit-apis?hl=ja#designing-apis-with-gemini-code-assist">エンタープライズ コンテキスト</a>。</td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/apigee/docs/apihub/search-apis?hl=ja">API Hub での Vertex AI を活用したスマート検索。</a></td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/apigee/docs/api-platform/develop/attaching-and-configuring-policies-management-ui?hl=ja#use-gemini-code-assist-code-explain">Apigee ポリシーの Gemini Code Assist コードの説明。</a>（<a href="https://cloud.google.com/products?hl=ja#product-launch-stages">プレビュー</a>）</td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+
+
+<h4 data-text="Gemini in Application Integration" id="application-integration" tabindex="-1">Gemini in Application Integration</h4>
+
+<p>次の表に、API コンソールの <a href="https://cloud.google.com/application-integration/docs/overview?hl=ja">Application Integration</a> で利用可能な生成 AI アシスタンスの種類を示します。</p>
+
+
+
+<table>
+  <tbody><tr>
+    <th>インテグレーション作成アシスト</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/application-integration/docs/build-integrations-gemini?hl=ja#create-an-integration">自動化フローの生成のための AI を活用したビジュアル エディタ</a></td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/application-integration/docs/build-integrations-gemini?hl=ja#contextual-recommendations">エンタープライズ コンテキストに埋め込まれた AI を活用した自動化オーサリング</a></td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/application-integration/docs/build-integrations-gemini?hl=ja#generate-integration-description">生成 AI による自動化フローのドキュメントの生成と改良</a></td>
+    <td>&nbsp;</td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+
+
+<h4 data-text="Gemini Code Assist を使用した Gemini in BigQuery の機能" id="bigquery" tabindex="-1">Gemini Code Assist を使用した Gemini in BigQuery の機能</h4>
+
+<p>次の表に、<a href="https://cloud.google.com/bigquery/docs/query-overview?hl=ja#bigquery-studio">BigQuery Studio</a> の BigQuery 向け生成 AI アシスタンスの種類を示します。</p>
+
+
+
+<table>
+  <tbody><tr>
+    <th>データ分析情報</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/bigquery/docs/data-insights?hl=ja#insights-bigquery-table">データ インサイト</a>は、テーブルのメタデータから生成されたクエリの有益なライブラリを提供します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+
+
+<h4 data-text="Gemini in Colab Enterprise" id="colab" tabindex="-1">Gemini in Colab Enterprise</h4>
+
+<p>次の表に、<a href="https://cloud.google.com/colab/docs/introduction?hl=ja">Colab Enterprise</a> のコードに対する生成 AI アシスタンスの種類を示します。</p>
+
+
+
+<table>
+  <tbody><tr>
+    <th>ノートブックの Code Assist</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td><a href="https://cloud.google.com/colab/docs/use-code-completion?hl=ja">ノートブックでの Python コードの生成と補完</a></td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+
+
+<h4 data-text="Gemini in databases" id="databases" tabindex="-1">Gemini in databases</h4>
+
+<p>次の表に、データベースでのコーディングに使用できる生成 AI アシスタンスの種類を示します。</p>
+
+<table>
+  <tbody><tr>
+    <th>SQL クエリを生成する</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td>自然言語で記述して SQL ステートメントを生成します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>スキーマに応じたコンテキスト コードを取得します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>既存のクエリを最適化して説明します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+<h4 data-text="Gemini in Firebase" id="firebase" tabindex="-1">Gemini in Firebase</h4>
+
+<p>次の表に、<a href="https://firebase.google.com/docs/gemini-in-firebase?hl=ja">Gemini in Firebase</a> が提供する、アプリケーション開発用の生成 AI アシスタンスの種類を示します。</p>
+
+<table>
+  <tbody><tr>
+    <th>Firebase コンソールのチャット AI アシスタンス</th>
+    <th>Gemini Code Assist Standard</th>
+    <th>Gemini Code Assist Enterprise</th>
+  </tr>
+  <tr>
+    <td>Firebase のプロダクトとサービスに関する深い知識、ベスト プラクティス、トラブルシューティングの専門知識を活用します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>チャットで自然言語を使用して Firebase のサンプルコードを生成、リファクタリング、デバッグします。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>自然言語プロンプトを使用して、コードの説明、生成、変換を行います。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">アプリの品質分析</th>
+  </tr>
+  <tr>
+    <td>アプリのクラッシュを要約し、アプリの品質に関する問題の調査と解決に役立つ分析情報とトラブルシューティングの手順を提供します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>既存のコードを分析し、潜在的な問題を特定して改善案を提示します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">Firebase Cloud Messaging と In-App Messaging のキャンペーンの要約と分析情報</th>
+  </tr>
+  <tr>
+    <td>メッセージ キャンペーンを要約して分析し、パフォーマンスを改善するための実用的な最適化案を提供します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">Firebase Data Connect スキーマの生成とデータ探索</th>
+  </tr>
+  <tr>
+    <td>自然言語でデータベース スキーマを生成します。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <td>自然言語で GraphQL クエリとミューテーションを生成する。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+  <tr>
+    <th colspan="3">コンテキストの認識</th>
+  </tr>
+  <tr>
+    <td>プロジェクトとアプリケーションのコンテキストを使用して、会話型アシスタンス、トラブルシューティング、アプリ品質分析をガイドします。</td>
+    <td><span></span></td>
+    <td><span></span></td>
+  </tr>
+</tbody></table>
+
+<h2 data-text="Gemini Code Assist の設定" id="gemini-setup" tabindex="-1">Gemini Code Assist の設定</h2>
+
+
+
+<p>設定手順の詳細については、以下をご覧ください。</p>
+
+<ul>
+<li><a href="https://developers.google.com/gemini-code-assist/docs/set-up-gemini?hl=ja">個人向け Gemini Code Assist を設定する</a>。</li>
+<li><a href="https://developers.google.com/gemini-code-assist/docs/set-up-gemini-standard-enterprise?hl=ja">Gemini Code Assist Standard と Enterprise を設定する</a>。</li>
+</ul>
+
+
+
+<h2 data-text="IDE で Gemini Code Assist を操作する" id="interfaces" tabindex="-1">IDE で Gemini Code Assist を操作する</h2>
+
+
+
+<p><a href="https://developers.google.com/gemini-code-assist/docs/set-up-gemini?hl=ja">個人用に Gemini Code Assist を設定</a>するか、<a href="https://developers.google.com/gemini-code-assist/docs/set-up-gemini-standard-enterprise?hl=ja">Gemini Code Assist Standard または Enterprise</a> を設定し、IDE（<a href="https://marketplace.visualstudio.com/items?itemName=GoogleCloudTools.cloudcode">VS Code</a> または<a href="https://plugins.jetbrains.com/plugin/24198-gemini-code-assist">サポートされている JetBrains IDE</a>）に Gemini Code Assist 拡張機能をインストールした後、次の方法で支援を依頼できます。</p>
+
+
+
+<ul>
+<li><p>コード補完を受け取るか、コードエディタで直接コードを生成します。</p></li>
+<li><p>
+IDE で [<span>spark</span> <strong>Gemini</strong>] をクリックして、会話アシスタントを表示します。質問をしたり、エディタでコードを選択して、次のようなプロンプトを入力できます。</p>
+
+<ul>
+<li><code dir="ltr" translate="no">Write unit tests for my code.</code></li>
+<li><code dir="ltr" translate="no">Help me debug my code.</code></li>
+<li><code dir="ltr" translate="no">Make my code more readable.</code></li>
+</ul></li>
+</ul>
+
+<p>詳細については、<a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja">Gemini Code Assist によるコード</a>をご覧ください。</p><h2 data-text="次のステップ" id="whats_next" tabindex="-1">次のステップ</h2>
+
+
+
+<ul>
+<li><a href="https://developers.google.com/gemini-code-assist/docs/write-code-gemini?hl=ja">IDE で Gemini Code Assist を使用してコーディングする</a>方法を確認する。</li>
+<li><a href="https://developers.google.com/gemini-code-assist/docs/data-governance?hl=ja">Gemini Code Assist Standard と Enterprise がデータを使用する方法</a>について学習する。</li>
+<li><a href="https://cloud.google.com/products/gemini/pricing?hl=ja">Gemini Code Assist の料金</a>について確認する。</li>
+</ul>
+
+
+
+
+  
+  
+
+  
+
+  
+</div></div>
+      </div>
+    </div>
+  </div>
+
+</body></html>

@@ -1,0 +1,2 @@
+description = "指定されたソースからRAGナレッジベースを構築し、システムに登録します。また、任意で外部ディレクトリに結果をコピーします。"
+prompt = "@.gemini/commnads/rag.md"

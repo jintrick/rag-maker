@@ -1,0 +1,10 @@
+readabilipy
+markdownify
+requests
+trafilatura
+beautifulsoup4
+GitPython
+markitdown
+
+[test]
+pytest
