@@ -3,7 +3,7 @@
 cache_cleanup.py - Clean up cache directories.
 
 This tool removes all files and directories from a specified target directory,
-except for 'discovery.json' and any Markdown ('.md') files. This is used
+except for 'catalog.json' and any Markdown ('.md') files. This is used
 to clean up source files (like HTML or cloned git repos) after they have
 been converted to Markdown, saving storage space.
 """
@@ -50,7 +50,7 @@ def cleanup_directory(target_dir: Path) -> tuple[list[str], list[str]]:
 
     items_to_delete = []
     for item_path in target_dir.glob('*'):
-        if item_path.name == 'discovery.json' or item_path.suffix == '.md':
+        if item_path.name == 'catalog.json' or item_path.suffix == '.md':
             kept_items.append(str(item_path))
             continue
         items_to_delete.append(item_path)

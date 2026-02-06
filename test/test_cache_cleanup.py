@@ -22,10 +22,10 @@ class TestCacheCleanup(unittest.TestCase):
         self.test_dir.mkdir()
 
         # --- Items to be KEPT ---
-        (self.test_dir / "discovery.json").touch()
+        (self.test_dir / "catalog.json").touch()
         (self.test_dir / "doc1.md").touch()
         (self.test_dir / "another.md").touch()
-        self.kept_item_names = {"discovery.json", "doc1.md", "another.md"}
+        self.kept_item_names = {"catalog.json", "doc1.md", "another.md"}
 
         # --- Items to be DELETED ---
         (self.test_dir / "source.html").touch()

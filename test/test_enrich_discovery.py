@@ -13,9 +13,9 @@ class TestEnrichDiscovery(unittest.TestCase):
 
     def setUp(self):
         self.test_dir = tempfile.TemporaryDirectory()
-        self.discovery_path = Path(self.test_dir.name) / "discovery.json"
+        self.discovery_path = Path(self.test_dir.name) / "catalog.json"
         
-        # Create a sample discovery.json
+        # Create a sample catalog.json
         self.sample_data = {
             "documents": [
                 {"path": "page_0.md", "url": "http://example.com/0"},
