@@ -33,7 +33,7 @@ try:
         handle_unexpected_error,
         print_json_stdout,
     )
-    from ragmaker.utils import print_discovery_data
+    from ragmaker.utils import print_catalog_data
 except ImportError:
     # This is a fallback for when the script is run in an environment
     # where the ragmaker package is not installed.
@@ -292,7 +292,7 @@ def main() -> None:
             "depth": args.depth,
             "fetched_at": datetime.now(timezone.utc).isoformat()
         }
-        print_discovery_data(fetcher.documents, metadata, output_dir=output_dir_path)
+        print_catalog_data(fetcher.documents, metadata, output_dir=output_dir_path)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)

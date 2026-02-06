@@ -43,7 +43,7 @@ try:
         handle_argument_parsing_error,
         handle_unexpected_error,
     )
-    from ragmaker.utils import print_discovery_data
+    from ragmaker.utils import print_catalog_data
 except ImportError:
     # This is a fallback for when the script is run in an environment
     # where the ragmaker package is not installed.
@@ -249,7 +249,7 @@ def main():
             "source_dir": str(source_path.resolve()),
         }
 
-        print_discovery_data(processed_documents, metadata, output_dir=dest_path)
+        print_catalog_data(processed_documents, metadata, output_dir=dest_path)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)

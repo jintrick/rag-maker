@@ -2,7 +2,12 @@ import unittest
 import json
 import tempfile
 import subprocess
+import sys
+import os
 from pathlib import Path
+
+# Ensure src is in path for imports if needed, but we run subprocess with PYTHONPATH
+SRC_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'))
 
 class TestEntryDiscovery(unittest.TestCase):
 
@@ -25,12 +30,13 @@ class TestEntryDiscovery(unittest.TestCase):
         self.assertFalse(discovery_file_path.exists()) # Ensure it doesn't exist initially
 
         args = [
-            'ragmaker-entry-discovery',
-            '--discovery-path', str(discovery_file_path),
+            sys.executable, '-m', 'ragmaker.tools.entry_discovery',
+            '--kb-root', str(self.test_path),
             '--uri', source_uri
         ]
 
-        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8')
+        env = {**os.environ, "PYTHONPATH": SRC_PATH}
+        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8', env=env)
 
         # For debugging
         print("STDOUT:", result.stdout)
@@ -54,28 +60,36 @@ class TestEntryDiscovery(unittest.TestCase):
         # Verify the success message from stdout
         output_json = json.loads(result.stdout)
         self.assertEqual(output_json['status'], 'success')
-        self.assertEqual(output_json['discovery_file'], str(discovery_file_path.resolve()))
+        self.assertEqual(output_json['catalog_file'], str(discovery_file_path.resolve()))
 
     def test_creates_discovery_with_metadata(self):
         """
         Test that catalog.json is created with top-level metadata.
         """
-        discovery_file_path = self.test_path / "catalog_meta.json"
+        # Note: entry_discovery creates "catalog.json" in kb-root.
+        # We can't specify a custom filename like "catalog_meta.json" anymore via CLI easily
+        # unless we use a subdir or if logic allows.
+        # But for test, we can use a subdirectory "meta_test".
+        meta_test_dir = self.test_path / "meta_test"
+        meta_test_dir.mkdir()
+        discovery_file_path = meta_test_dir / "catalog.json"
+
         source_uri = "https://github.com/user/repo"
         title = "My Knowledge Base"
         summary = "A test summary"
         src_type = "github"
 
         args = [
-            'ragmaker-entry-discovery',
-            '--discovery-path', str(discovery_file_path),
+            sys.executable, '-m', 'ragmaker.tools.entry_discovery',
+            '--kb-root', str(meta_test_dir),
             '--uri', source_uri,
             '--title', title,
             '--summary', summary,
             '--src-type', src_type
         ]
 
-        result = subprocess.run(args, capture_output=True, text=True, check=True, encoding='utf-8')
+        env = {**os.environ, "PYTHONPATH": SRC_PATH}
+        result = subprocess.run(args, capture_output=True, text=True, check=True, encoding='utf-8', env=env)
 
         with open(discovery_file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -88,12 +102,14 @@ class TestEntryDiscovery(unittest.TestCase):
 
     def test_missing_required_arguments(self):
         """Test that the script fails if required arguments are missing."""
+        env = {**os.environ, "PYTHONPATH": SRC_PATH}
+
         # Missing --uri
         args_missing_uri = [
-            'ragmaker-entry-discovery',
-            '--discovery-path', str(self.test_path / "discovery.json"),
+            sys.executable, '-m', 'ragmaker.tools.entry_discovery',
+            '--kb-root', str(self.test_path),
         ]
-        result = subprocess.run(args_missing_uri, capture_output=True, text=True, check=False, encoding='utf-8')
+        result = subprocess.run(args_missing_uri, capture_output=True, text=True, check=False, encoding='utf-8', env=env)
         self.assertNotEqual(result.returncode, 0, "Script should fail with missing --uri")
         self.assertTrue(
             "the following arguments are required: --uri" in result.stderr or
@@ -101,14 +117,14 @@ class TestEntryDiscovery(unittest.TestCase):
             f"Expected error message not found. Stderr: {result.stderr}, Stdout: {result.stdout}"
         )
 
-        # Missing --discovery-path
+        # Missing --kb-root
         args_missing_path = [
-            'ragmaker-entry-discovery',
+            sys.executable, '-m', 'ragmaker.tools.entry_discovery',
             '--uri', "some-uri",
         ]
-        result = subprocess.run(args_missing_path, capture_output=True, text=True, check=False, encoding='utf-8')
-        self.assertNotEqual(result.returncode, 0, "Script should fail with missing --discovery-path")
-        self.assertIn("the following arguments are required: --discovery-path", result.stderr)
+        result = subprocess.run(args_missing_path, capture_output=True, text=True, check=False, encoding='utf-8', env=env)
+        self.assertNotEqual(result.returncode, 0, "Script should fail with missing --kb-root")
+        self.assertIn("the following arguments are required: --kb-root", result.stderr)
 
 if __name__ == '__main__':
     unittest.main()

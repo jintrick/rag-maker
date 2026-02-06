@@ -209,7 +209,7 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "discovery-path": {
+          "catalog-path": {
             "type": "string",
             "description": "変更対象の catalog.json ファイルのフルパス。"
           },
@@ -219,7 +219,7 @@
           }
         },
         "required": [
-          "discovery-path",
+          "catalog-path",
           "updates"
         ]
       }

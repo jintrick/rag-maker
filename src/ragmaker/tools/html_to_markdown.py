@@ -93,21 +93,21 @@ def convert_html_to_markdown(html_file_path: Path, base_url: str | None = None) 
 
 # --- Main Logic ---
 
-def process_and_update_discovery(
-    discovery_path: Path,
+def process_and_update_catalog(
+    catalog_path: Path,
     input_dir: Path,
     base_url: str | None = None
 ) -> dict:
     """
-    Processes conversions based on a discovery file, returning the updated data.
+    Processes conversions based on a catalog file, returning the updated data.
     """
-    if not discovery_path.is_file():
-        raise FileNotFoundError(f"Discovery file not found at {discovery_path}")
+    if not catalog_path.is_file():
+        raise FileNotFoundError(f"Catalog file not found at {catalog_path}")
 
-    with open(discovery_path, 'r', encoding='utf-8') as f:
-        discovery_data = json.load(f)
+    with open(catalog_path, 'r', encoding='utf-8') as f:
+        catalog_data = json.load(f)
 
-    documents = discovery_data.get("documents", [])
+    documents = catalog_data.get("documents", [])
 
     for doc in documents:
         original_path_str = doc.get("path")
@@ -140,15 +140,15 @@ def process_and_update_discovery(
             logger.exception(f"Failed to convert or write {html_file}")
             # Log and continue, leaving the original path in place.
 
-    return discovery_data
+    return catalog_data
 
 
 def main() -> None:
     """Main entry point."""
     parser = GracefulArgumentParser(
-        description="Reads a catalog.json, converts linked HTML files to Markdown, and prints the updated discovery JSON to stdout."
+        description="Reads a catalog.json, converts linked HTML files to Markdown, and prints the updated catalog JSON to stdout."
     )
-    parser.add_argument("--discovery-path", required=True, help="Path to the catalog.json file to process.")
+    parser.add_argument("--catalog-path", required=True, help="Path to the catalog.json file to process.")
     parser.add_argument("--input-dir", required=True, help="Directory where HTML files are located.")
     parser.add_argument("--base-url", help="Base URL for converting relative links.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output.")
@@ -158,16 +158,16 @@ def main() -> None:
         args = parser.parse_args()
         setup_logging(args.verbose, args.log_level)
 
-        discovery_path = Path(args.discovery_path)
+        catalog_path = Path(args.catalog_path)
         input_dir = Path(args.input_dir)
 
-        logger.info(f"Processing discovery file: {discovery_path}")
+        logger.info(f"Processing catalog file: {catalog_path}")
         logger.info(f"Reading HTML files from: {input_dir}")
 
-        updated_discovery_data = process_and_update_discovery(discovery_path, input_dir, args.base_url)
+        updated_catalog_data = process_and_update_catalog(catalog_path, input_dir, args.base_url)
 
         logger.info("About to print final JSON.")
-        print_json_stdout(updated_discovery_data)
+        print_json_stdout(updated_catalog_data)
 
     except (ArgumentParsingError, FileNotFoundError) as e:
         logger.error(f"A handled error occurred: {e}")

@@ -15,7 +15,7 @@ from ragmaker.io_utils import print_json_stdout
 logger = logging.getLogger(__name__)
 
 
-def print_discovery_data(
+def print_catalog_data(
     documents: list[dict[str, Any]],
     metadata: dict[str, Any],
     output_dir: Optional[Path] = None
@@ -32,7 +32,7 @@ def print_discovery_data(
         output_dir (Path, optional):
             catalog.jsonを保存するディレクトリのパス。
     """
-    discovery_data = {
+    catalog_data = {
         "documents": documents,
         "metadata": metadata
     }
@@ -41,11 +41,11 @@ def print_discovery_data(
         try:
             output_path = output_dir / "catalog.json"
             output_path.write_text(
-                json.dumps(discovery_data, ensure_ascii=False, indent=2),
+                json.dumps(catalog_data, ensure_ascii=False, indent=2),
                 encoding='utf-8'
             )
-            logger.info(f"Discovery data saved to {output_path}")
+            logger.info(f"Catalog data saved to {output_path}")
         except Exception as e:
-            logger.error(f"Failed to save discovery data to {output_dir}: {e}")
+            logger.error(f"Failed to save catalog data to {output_dir}: {e}")
 
-    print_json_stdout(discovery_data)
+    print_json_stdout(catalog_data)
