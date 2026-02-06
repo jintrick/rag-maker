@@ -11,20 +11,11 @@ import logging
 import sys
 from pathlib import Path
 
-try:
-    # This will work when the package is installed.
-    from ragmaker.io_utils import handle_unexpected_error, handle_io_error
-except ImportError:
-    # Fallback for local execution and testing.
-    def handle_unexpected_error(exception: Exception):
-        """Prints a JSON error message for unexpected exceptions."""
-        print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"}))
-        sys.exit(1)
-
-    def handle_io_error(exception: IOError):
-        """Prints a JSON error message for IO errors."""
-        print(json.dumps({"status": "error", "message": f"I/O error: {exception}"}))
-        sys.exit(1)
+from ragmaker.io_utils import (
+    handle_unexpected_error,
+    print_json_stdout,
+    eprint_error
+)
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -41,49 +32,41 @@ def create_initial_catalog(catalog_path: Path, uri: str, title: str = None, summ
     Creates a new catalog.json file with metadata and an 'unknowns' entry.
     If the file exists, it updates the metadata.
     """
-    try:
-        # Ensure the parent directory exists.
-        catalog_path.parent.mkdir(parents=True, exist_ok=True)
+    # Ensure the parent directory exists.
+    catalog_path.parent.mkdir(parents=True, exist_ok=True)
 
-        data = {}
-        if catalog_path.exists():
-             with open(catalog_path, 'r', encoding='utf-8') as f:
-                try:
-                    data = json.load(f)
-                except json.JSONDecodeError:
-                    pass # Start fresh if corrupt
+    data = {}
+    if catalog_path.exists():
+        with open(catalog_path, 'r', encoding='utf-8') as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                pass # Start fresh if corrupt
 
-        # Update or set metadata
-        if title:
-            data['title'] = title
-        if summary:
-            data['summary'] = summary
-        if src_type:
-            data['src_type'] = src_type
-        
-        # Ensure source_url matches the initial URI if not already present or if we are initializing
-        data['source_url'] = uri
+    # Update or set metadata
+    if title:
+        data['title'] = title
+    if summary:
+        data['summary'] = summary
+    if src_type:
+        data['src_type'] = src_type
 
-        # Ensure 'unknowns' exists and verify URI
-        if 'unknowns' not in data:
-            data['unknowns'] = [{"uri": uri}]
-        
-        # Note: We don't force-add the URI to unknowns if it's already a document, 
-        # but for initialization, it's safe to ensure it's tracked if the file was empty.
+    # Ensure source_url matches the initial URI if not already present or if we are initializing
+    data['source_url'] = uri
 
-        with open(catalog_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    # Ensure 'unknowns' exists and verify URI
+    if 'unknowns' not in data:
+        data['unknowns'] = [{"uri": uri}]
 
-        message = f"Successfully updated catalog file at {catalog_path.resolve()}"
-        logger.info(message)
-        return message
+    # Note: We don't force-add the URI to unknowns if it's already a document,
+    # but for initialization, it's safe to ensure it's tracked if the file was empty.
 
-    except IOError as e:
-        handle_io_error(e)
-        raise  # Re-raise after handling, so the main block knows it failed.
-    except Exception as e:
-        handle_unexpected_error(e)
-        raise
+    with open(catalog_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    message = f"Successfully updated catalog file at {catalog_path.resolve()}"
+    logger.info(message)
+    return message
 
 # --- Main Execution ---
 def main():
@@ -107,7 +90,7 @@ def main():
         uri = args.uri or args.source_url
         if not uri and not catalog_path.exists():
              # If creating new, we need a URI
-             print(json.dumps({"status": "error", "message": "Either --uri or --source-url is required when creating a new catalog file."}))
+             eprint_error({"status": "error", "message": "Either --uri or --source-url is required when creating a new catalog file."})
              sys.exit(1)
         
         # If updating and no URI provided, try to read it from file, or just update metadata
@@ -128,7 +111,7 @@ def main():
             "message": message,
             "catalog_file": str(catalog_path.resolve())
         }
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        print_json_stdout(result)
 
     except Exception as e:
         if not isinstance(e, SystemExit):

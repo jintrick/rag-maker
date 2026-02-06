@@ -113,7 +113,7 @@ class TestEntryDiscovery(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, "Script should fail with missing --uri")
         self.assertTrue(
             "the following arguments are required: --uri" in result.stderr or
-            "Either --uri or --source-url is required" in result.stdout,
+            "Either --uri or --source-url is required" in result.stderr,
             f"Expected error message not found. Stderr: {result.stderr}, Stdout: {result.stdout}"
         )
 
