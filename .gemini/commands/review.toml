@@ -4,9 +4,10 @@ Issue {{args}} の実装について、プロジェクトのアーキテクチ�
 
 ## 0. レビュー準備（必須アクション）
 以下の情報を収集し、実装内容を把握せよ。
-1. `git status` および `git diff` : 変更されたファイルと内容の確認。ただしコマンドの連結には`&&`ではなくセミコロンを使うこと。
-2. `pytest` : テストの実行結果と網羅性の確認。
-3. `glob` および `read_file` : 変更されたツール（`src/ragmaker/tools/`）、ユーティリティ（`src/ragmaker/utils.py`）、および `discovery.json` の内容確認。
+1. `git pull`
+2. `git status` および `git diff` : 変更されたファイルと内容の確認。ただしコマンドの連結には`&&`ではなくセミコロンを使うこと。
+3. `pytest` : テストの実行結果と網羅性の確認。
+4. `glob` および `read_file` : 変更されたツール（`src/ragmaker/tools/`）、ユーティリティ（`src/ragmaker/utils.py`）、および `discovery.json` の内容確認。
 
 ## 必須チェック項目 (Critical Checklist)
 各項目について、具体的なファイル名と実装箇所を特定した上で評価せよ。
