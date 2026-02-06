@@ -10,7 +10,6 @@ prompt = """
 - @pyproject.toml : 技術スタックと依存関係
 - @docs/Architecture/Architecture.md : アーキテクチャ詳細（discovery.jsonの役割分担など）
 - @discovery.json : プロジェクトルートにある「マスターツールカタログ」
-- @.gemini/settings.json : Gemini CLIの設定
 
 ## 3. ナレッジベースの構造
 - **マスターツールカタログ** (`discovery.json`): プロジェクトが提供する全ツールの定義。エージェントがツールを実行する際の参照元。
