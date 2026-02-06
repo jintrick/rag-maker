@@ -152,7 +152,7 @@ class TestGitHubFetch(unittest.TestCase):
         self.assertTrue(output_dir.exists())
         self.assertTrue((output_dir / "docs" / "test_file.md").exists())
         
-        # Verify automatic saving of discovery.json
+        # Verify automatic saving of catalog.json
         discovery_file = output_dir / "catalog.json"
         self.assertTrue(discovery_file.exists(), "catalog.json was not automatically saved.")
         with open(discovery_file, 'r', encoding='utf-8') as f:

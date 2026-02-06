@@ -25,7 +25,7 @@ class TestHtmlToMarkdown(unittest.TestCase):
         """
         command = [
             "ragmaker-html-to-markdown",
-            "--discovery-path", str(discovery_path),
+            "--catalog-path", str(discovery_path),
             "--input-dir", str(input_dir),
             "--verbose"
         ]
