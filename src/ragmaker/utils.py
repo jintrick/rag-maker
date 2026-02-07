@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-このモジュールは、RAGMakerアプリケーションで利用される共通のユーティリティ関数を提供します。
-これには、catalog.jsonファイルの生成や、その他の補助的な機能が含まれます。
+This module provides common utility functions used in the RAGMaker application.
+It includes functionality for generating catalog.json files and other auxiliary features.
 """
 
 import json
@@ -23,16 +23,16 @@ def print_catalog_data(
     output_dir: Optional[Path] = None
 ) -> None:
     """
-    取得したドキュメント情報とメタデータからcatalog.jsonのデータ構造を構築し、
-    標準出力にJSON形式で書き出す。output_dirが指定されている場合はファイルにも保存する。
+    Constructs the catalog.json data structure from the retrieved document information and metadata,
+    and writes it to standard output in JSON format. If output_dir is specified, it also saves to a file.
 
     Args:
         documents (list[dict[str, Any]]):
-            ドキュメント情報のリスト。各要素は 'path' と 'url' を含む辞書。
+            List of document information. Each element is a dictionary containing 'path' and 'url'.
         metadata (dict[str, Any]):
-            この取得処理に関するメタデータ。'source' キーが必須。
+            Metadata about this retrieval process. The 'source' key is required.
         output_dir (Path, optional):
-            catalog.jsonを保存するディレクトリのパス。
+            The directory path to save catalog.json.
     """
     catalog_data = {
         "documents": documents,
@@ -55,7 +55,7 @@ def print_catalog_data(
 
 def cleanup_dir_contents(path: Path) -> None:
     """
-    ディレクトリ自体は残し、その中身のみを再帰的に削除する。
+    Recursively deletes the contents of a directory while preserving the directory itself.
     """
     if not path.exists():
         return
@@ -98,8 +98,7 @@ def safe_export(src_dir: Path, dst_dir: Path) -> None:
                     dst_path.unlink()
                 except OSError as e:
                     logger.error(f"Failed to remove conflicting file {dst_path}: {e}")
-                    # Let copytree fail if unlink failed, or maybe raise here?
-                    # Proceeding might cause copytree to fail anyway.
+                    raise
 
     try:
         shutil.copytree(src_dir, dst_dir, dirs_exist_ok=True)

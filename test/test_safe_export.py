@@ -2,6 +2,7 @@ import unittest
 import shutil
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 from ragmaker.utils import safe_export
 
 class TestSafeExport(unittest.TestCase):
@@ -57,6 +58,21 @@ class TestSafeExport(unittest.TestCase):
 
         self.assertTrue((self.dst_dir / "foo").is_dir())
         self.assertTrue((self.dst_dir / "foo" / "bar.txt").exists())
+
+    def test_safe_export_fails_fast_on_unlink_error(self):
+        # src/foo is a directory
+        (self.src_dir / "foo").mkdir()
+        (self.src_dir / "foo" / "bar.txt").write_text("bar")
+
+        # dst/foo is a file (blocking the directory)
+        dst_foo = self.dst_dir / "foo"
+        dst_foo.write_text("blocking file")
+
+        # Mock unlink to raise OSError
+        # We need to target pathlib.Path.unlink specifically
+        with patch('pathlib.Path.unlink', side_effect=OSError("Permission denied")):
+            with self.assertRaises(OSError):
+                safe_export(self.src_dir, self.dst_dir)
 
 if __name__ == "__main__":
     unittest.main()

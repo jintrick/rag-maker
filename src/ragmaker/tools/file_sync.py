@@ -45,37 +45,11 @@ try:
     )
     from ragmaker.utils import print_catalog_data, safe_export
 except ImportError:
-    # Fallback for local execution without ragmaker package
-    class ArgumentParsingError(Exception): pass
-
-    class GracefulArgumentParser(argparse.ArgumentParser):
-        def error(self, message):
-            print(json.dumps({"status": "error", "message": message}, ensure_ascii=False), file=sys.stderr)
-            sys.exit(2)
-
-    def eprint_error(d):
-        print(json.dumps(d, ensure_ascii=False, indent=2), file=sys.stderr)
-
-    def handle_argument_parsing_error(e):
-        eprint_error({"status": "error", "message": str(e)})
-        sys.exit(1)
-
-    def handle_unexpected_error(e):
-        eprint_error({"status": "error", "message": str(e)})
-        sys.exit(1)
-
-    def print_catalog_data(documents, metadata, output_dir=None):
-        catalog = {"documents": documents, "metadata": metadata}
-        if output_dir:
-            try:
-                (output_dir / "catalog.json").write_text(json.dumps(catalog, indent=2, ensure_ascii=False), encoding="utf-8")
-            except Exception as e:
-                eprint_error({"status": "error", "message": f"Failed to save catalog: {e}"})
-        print(json.dumps(catalog, ensure_ascii=False, indent=2))
-
-    def safe_export(src_dir, dst_dir):
-        dst_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(src_dir, dst_dir, dirs_exist_ok=True)
+    print(json.dumps({
+        "status": "error",
+        "message": "The 'ragmaker' package is required. Please install it."
+    }, ensure_ascii=False), file=sys.stderr)
+    sys.exit(1)
 
 try:
     from bs4 import BeautifulSoup, Tag
