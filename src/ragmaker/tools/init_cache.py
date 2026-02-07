@@ -19,12 +19,7 @@ except ImportError:
     }, ensure_ascii=False), file=sys.stderr)
     sys.exit(1)
 
-# --- Setup Logging ---
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    stream=sys.stderr
-)
+# --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
 # --- Core Logic ---
@@ -52,17 +47,20 @@ def init_cache():
     except OSError as e:
         error_message = f"Failed to initialize cache directory: {e}"
         logger.error(error_message)
-        print(json.dumps({"status": "error", "message": error_message}))
+        print(json.dumps({"status": "error", "message": error_message}), file=sys.stderr)
         sys.exit(1)
     except Exception as e:
         error_message = f"An unexpected error occurred: {e}"
         logger.error(error_message)
-        print(json.dumps({"status": "error", "message": error_message}))
+        print(json.dumps({"status": "error", "message": error_message}), file=sys.stderr)
         sys.exit(1)
 
 # --- Main Execution ---
 def main():
     """Main entry point."""
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
+
     # This tool has no arguments.
     if len(sys.argv) > 1:
         logger.warning(f"This script '{os.path.basename(__file__)}' does not accept any arguments. Ignoring provided arguments: {sys.argv[1:]}")

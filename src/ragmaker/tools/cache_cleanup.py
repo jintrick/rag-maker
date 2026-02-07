@@ -27,12 +27,7 @@ except ImportError:
         print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"}))
         sys.exit(1)
 
-# --- Setup Logging ---
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    stream=sys.stderr
-)
+# --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
 
@@ -72,6 +67,9 @@ def cleanup_directory(target_dir: Path) -> tuple[list[str], list[str]]:
 # --- Main Execution ---
 def main():
     """Main entry point."""
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
+
     parser = argparse.ArgumentParser(description="Clean up a cache directory, keeping only essential files.")
     parser.add_argument("--target-dir", required=True, help="The directory to clean up.")
 

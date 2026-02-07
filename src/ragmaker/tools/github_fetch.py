@@ -41,14 +41,6 @@ except ImportError as e:
 
 logger = logging.getLogger(__name__)
 
-def setup_logging(log_level: str) -> None:
-    level = getattr(logging, log_level.upper(), logging.INFO)
-    logging.basicConfig(
-        level=level,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        stream=sys.stderr
-    )
-
 def convert_html_to_md(html_path: Path) -> Path:
     """Converts an HTML file to Markdown and returns the new path."""
     try:
@@ -195,6 +187,9 @@ def github_fetch(
 
 
 def main():
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
+
     parser = GracefulArgumentParser(description="Fetch documents from GitHub.")
     parser.add_argument("--repo-url", required=True, help="URL of the GitHub repository.")
     parser.add_argument("--path-in-repo", required=True, help="Path within the repository to fetch.")
@@ -204,7 +199,6 @@ def main():
 
     try:
         args = parser.parse_args()
-        setup_logging(args.log_level)
 
         github_fetch(
             args.repo_url,

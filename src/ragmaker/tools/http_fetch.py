@@ -79,16 +79,6 @@ def handle_request_error(url: str, exception: Exception):
 
 # --- Core Logic ---
 
-def setup_logging(verbose: bool, log_level: str) -> None:
-    """Setup logging configuration."""
-    level = logging.DEBUG if verbose else getattr(logging, log_level.upper(), logging.INFO)
-    logging.basicConfig(
-        level=level,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        stream=sys.stderr
-    )
-
 def _is_noise_element(tag: Tag) -> bool:
     """Identify noise elements like ads or comments."""
     noise_keywords = ['ad', 'advert', 'comment', 'share', 'social', 'extra', 'sidebar']
@@ -256,6 +246,9 @@ class WebFetcher:
 
 def main() -> None:
     """Main entry point."""
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
+
     parser = GracefulArgumentParser(description="Fetch web pages and convert to Markdown.")
     parser.add_argument("--url", required=True, help="Starting URL.")
     parser.add_argument("--base-url", required=True, help="Base URL scope.")
@@ -267,7 +260,6 @@ def main() -> None:
 
     try:
         args = parser.parse_args()
-        setup_logging(args.verbose, args.log_level)
 
         if sys.platform == "win32":
             p = Path(args.output_dir)
