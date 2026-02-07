@@ -64,12 +64,14 @@ def ask_for_directory(initial_dir: Optional[str] = None) -> None:
         root = tk.Tk()
         root.withdraw()  # Hide the main window
         root.attributes("-topmost", True)  # Bring the dialog to the front
+        root.update() # Force update to ensure attributes and initialdir are respected
 
         if initial_dir:
-            initial_dir = os.path.abspath(initial_dir)
+            # Ensure path is absolute and uses the OS-native separator (especially for Windows)
+            initial_dir = os.path.normpath(os.path.abspath(initial_dir))
 
         selected_path = filedialog.askdirectory(
-            title="Select a directory to save the markdown files",
+            title="Select a directory",
             initialdir=initial_dir
         )
 

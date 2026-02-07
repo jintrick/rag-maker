@@ -16,18 +16,19 @@ class TestAskDir(unittest.TestCase):
     @patch('ragmaker.tools.ask_dir.filedialog.askdirectory')
     @patch('ragmaker.tools.ask_dir.tk.Tk')
     def test_ask_dir_initial_dir(self, mock_tk, mock_askdirectory):
-        """Test that askdirectory is called with the correct initial_dir."""
-        test_initial_dir = os.path.abspath(".")
+        """Test that askdirectory is called with the correct initial_dir (absolute path)."""
+        input_initial_dir = "."
+        expected_initial_dir = os.path.abspath(input_initial_dir)
         mock_askdirectory.return_value = "/selected/path"
 
-        # Simulate running with --initial-dir
-        with patch.object(sys, 'argv', ['ragmaker-ask-dir', '--initial-dir', test_initial_dir]):
+        # Simulate running with --initial-dir .
+        with patch.object(sys, 'argv', ['ragmaker-ask-dir', '--initial-dir', input_initial_dir]):
             ask_dir.main()
 
-        # Check if askdirectory was called with initialdir parameter
+        # Check if askdirectory was called with absolute path
         mock_askdirectory.assert_called_once()
         args, kwargs = mock_askdirectory.call_args
-        self.assertEqual(kwargs.get('initialdir'), test_initial_dir)
+        self.assertEqual(kwargs.get('initialdir'), expected_initial_dir)
 
     @patch('ragmaker.tools.ask_dir.filedialog.askdirectory')
     @patch('ragmaker.tools.ask_dir.tk.Tk')

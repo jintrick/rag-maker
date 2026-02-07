@@ -79,6 +79,26 @@ class TestInstallKB(unittest.TestCase):
             catalog = json.load(f)
             self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
 
+    def test_install_into_existing_directory(self):
+        """Test that installing into an existing directory creates a subdirectory with source name."""
+        # Create an existing target directory
+        self.target_kb.mkdir()
+        
+        # Setup source catalog
+        catalog_data = {"documents": []}
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+
+        # Resulting path should be target_kb / source_kb.name
+        expected_install_path = self.target_kb / self.source_kb.name
+
+        result = install_knowledge_base(self.source_kb, self.target_kb)
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(Path(result["target_kb_root"]).resolve(), expected_install_path.resolve())
+        self.assertTrue(expected_install_path.exists())
+        self.assertTrue((expected_install_path / "catalog.json").exists())
+
     def test_missing_source(self):
         """Test error when source directory does not exist."""
         missing_source = self.root / "missing"
@@ -87,8 +107,11 @@ class TestInstallKB(unittest.TestCase):
 
     def test_target_exists_error(self):
         """Test error when target directory exists and is not empty, without force."""
-        self.target_kb.mkdir()
-        (self.target_kb / "existing.txt").write_text("exists")
+        # Create target structure that matches where install_kb will try to write
+        # Logic: target_kb exists -> write to target_kb / source_kb.name
+        install_target = self.target_kb / self.source_kb.name
+        install_target.mkdir(parents=True)
+        (install_target / "existing.txt").write_text("exists")
 
         # Setup source catalog
         (self.source_kb / "catalog.json").write_text("{}")
@@ -98,8 +121,10 @@ class TestInstallKB(unittest.TestCase):
 
     def test_target_exists_force(self):
         """Test overwriting target when force is True."""
-        self.target_kb.mkdir()
-        (self.target_kb / "existing.txt").write_text("exists")
+        # Setup existing target
+        install_target = self.target_kb / self.source_kb.name
+        install_target.mkdir(parents=True)
+        (install_target / "existing.txt").write_text("exists")
 
         # Setup source catalog
         catalog_data = {"documents": []}
@@ -109,18 +134,8 @@ class TestInstallKB(unittest.TestCase):
         result = install_knowledge_base(self.source_kb, self.target_kb, force=True)
         self.assertEqual(result["status"], "success")
 
-        # Existing file should handle gracefully?
-        # install_kb logic:
-        # if target_cache exists, rm it if force.
-        # But root files?
-        # "if target_root.exists(): ... if not force: raise FileExistsError"
-        # It doesn't say it clears the target root, just allows writing into it?
-        # But checking `install_kb.py`:
-        # "shutil.rmtree(target_cache)" if exists.
-        # It overwrites catalog.json.
-        # It doesn't explicitly delete other files in root.
-
-        self.assertTrue((self.target_kb / "catalog.json").exists())
+        # Check file in the actual install location
+        self.assertTrue((install_target / "catalog.json").exists())
         # existing.txt might still be there if it's not in cache/ or catalog.json.
         # This behavior is acceptable if defined so.
 
