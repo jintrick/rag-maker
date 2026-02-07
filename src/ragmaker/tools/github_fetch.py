@@ -86,52 +86,19 @@ def github_fetch(
         clone_dir = Path(clone_dir_str)
 
         logger.info(f"Cloning {repo_url} into temporary directory...")
+
+        kwargs = {"depth": 1}
+        if branch:
+            kwargs["branch"] = branch
+
         try:
-            repo = Repo.init(clone_dir)
-            origin = repo.create_remote('origin', repo_url)
+            Repo.clone_from(repo_url, clone_dir, **kwargs)
+        except Exception as e:
+            logger.warning(f"Shallow clone failed, retrying full clone: {e}")
+            if "depth" in kwargs:
+                del kwargs["depth"]
 
-            fetch_kwargs = {}
-            if branch:
-                # If branch is specified, fetch only that branch
-                # origin.fetch(f"{branch}:{branch}", depth=1)
-                # This is tricky with GitPython + local file urls sometimes.
-                # Let's try standard clone/fetch.
-                # If repo_url is local, we can just clone.
-                pass
-
-            # For simplicity in this tool, we might just use `git clone` via subprocess if Repo is complex,
-            # but GitPython is a dependency.
-
-            # If repo_url is a local path (starts with file:// or /), GitPython handles it.
-
-            if branch:
-                 repo.git.fetch("origin", branch, depth=1)
-                 repo.git.checkout("FETCH_HEAD")
-            else:
-                 # Default branch
-                 repo.git.fetch("origin", depth=1)
-                 repo.git.checkout("FETCH_HEAD") # or origin/HEAD?
-                 # Usually fetch without arguments fetches default branch?
-                 # Actually, usually 'git clone --depth 1' is easiest.
-                 pass
-
-        except Exception:
-             # Fallback: full clone if shallow fail or just try clone_from
-             # The test uses a local repo url.
-             kwargs = {}
-             if branch:
-                 kwargs['branch'] = branch
-                 # kwargs['depth'] = 1 # Shallow clone
-
-             try:
-                Repo.clone_from(repo_url, clone_dir, **kwargs)
-             except Exception as e:
-                # Retry without depth if it failed (some protocols don't support it)
-                if 'depth' in kwargs:
-                    del kwargs['depth']
-                    Repo.clone_from(repo_url, clone_dir, **kwargs)
-                else:
-                    raise e
+            Repo.clone_from(repo_url, clone_dir, **kwargs)
 
         # Now copy files from path_in_repo to temp_dir
         source_path = clone_dir / path_in_repo
@@ -143,26 +110,21 @@ def github_fetch(
 
         documents = []
 
-        # Determine the destination base directory
-        # We want to preserve the structure relative to the repo root.
-        # if path_in_repo=".", output is directly in temp_dir.
-        # if path_in_repo="docs", output is in temp_dir/docs.
-        dest_base = temp_dir / path_in_repo
-        dest_base.mkdir(parents=True, exist_ok=True)
-
         if source_path.is_file():
             # Copy single file
-
-            if dest_base.is_dir():
-                 if source_path.name == dest_base.name:
-                     dest_base.rmdir()
-
             dest_file = temp_dir / path_in_repo
             dest_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source_path, dest_file)
             files_to_process = [dest_file]
 
         else:
+            # Determine the destination base directory
+            # We want to preserve the structure relative to the repo root.
+            # if path_in_repo=".", output is directly in temp_dir.
+            # if path_in_repo="docs", output is in temp_dir/docs.
+            dest_base = temp_dir / path_in_repo
+            dest_base.mkdir(parents=True, exist_ok=True)
+
             # Copy directory
             # Iterate and copy
             for root, dirs, files in os.walk(source_path):

@@ -68,7 +68,8 @@
         },
         "required": [
           "repo-url",
-          "path-in-repo"
+          "path-in-repo",
+          "temp-dir"
         ]
       }
     },
@@ -124,9 +125,6 @@
         },
         "required": [
           "kb-root",
-          "title",
-          "summary",
-          "src-type",
           "source-url"
         ]
       }

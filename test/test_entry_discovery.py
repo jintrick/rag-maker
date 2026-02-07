@@ -126,5 +126,33 @@ class TestEntryDiscovery(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, "Script should fail with missing --kb-root")
         self.assertIn("the following arguments are required: --kb-root", result.stderr)
 
+    def test_io_error_handling(self):
+        """
+        Test that IOError is caught and prints a structured error JSON.
+        """
+        # Create a directory where the file should be to force IOError (IsADirectoryError is subclass of IOError)
+        test_subdir = self.test_path / "io_error_test"
+        test_subdir.mkdir()
+        catalog_path = test_subdir / "catalog.json"
+        catalog_path.mkdir()
+
+        args = [
+            sys.executable, '-m', 'ragmaker.tools.entry_discovery',
+            '--kb-root', str(test_subdir),
+            '--uri', "https://example.com"
+        ]
+
+        env = {**os.environ, "PYTHONPATH": SRC_PATH}
+        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8', env=env)
+
+        self.assertNotEqual(result.returncode, 0)
+
+        try:
+            error_json = json.loads(result.stderr)
+            self.assertEqual(error_json.get("error_code"), "IO_ERROR")
+            self.assertEqual(error_json.get("status"), "error")
+        except json.JSONDecodeError:
+            self.fail(f"Stderr was not valid JSON: {result.stderr}")
+
 if __name__ == '__main__':
     unittest.main()
