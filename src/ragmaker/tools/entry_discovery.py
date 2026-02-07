@@ -13,6 +13,7 @@ from pathlib import Path
 
 from ragmaker.io_utils import (
     handle_unexpected_error,
+    handle_io_error,
     print_json_stdout,
     eprint_error
 )
@@ -113,6 +114,9 @@ def main():
         }
         print_json_stdout(result)
 
+    except IOError as e:
+        handle_io_error(e)
+        sys.exit(1)
     except Exception as e:
         if not isinstance(e, SystemExit):
             handle_unexpected_error(e)

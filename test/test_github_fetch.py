@@ -194,6 +194,31 @@ class TestGitHubFetch(unittest.TestCase):
         self.assertIn("README.md", paths)
         self.assertIn("docs/test_file.md", paths)
 
+    def test_fetch_single_file_path(self):
+        """
+        Test that github_fetch can fetch a single file path correctly
+        without creating a directory conflict.
+        """
+        output_dir = Path(self.test_dir.name) / "output_single_file"
+        repo_url = self.repo_dir.as_uri()
+        path_in_repo = "README.md" # Root file
+
+        returncode, stdout, stderr = self.run_tool([
+            "--repo-url", repo_url,
+            "--path-in-repo", path_in_repo,
+            "--temp-dir", str(output_dir),
+            "--branch", self.main_branch
+        ])
+
+        self.assertEqual(returncode, 0, f"Script failed with stderr: {stderr}")
+        self.assertTrue((output_dir / "README.md").exists())
+        self.assertTrue((output_dir / "README.md").is_file())
+        self.assertFalse((output_dir / "README.md").is_dir())
+
+        stdout_json = json.loads(stdout)
+        self.assertEqual(len(stdout_json["documents"]), 1)
+        self.assertEqual(stdout_json["documents"][0]["path"], "README.md")
+
 
 if __name__ == '__main__':
     unittest.main()
