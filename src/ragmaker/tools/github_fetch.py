@@ -78,6 +78,13 @@ def github_fetch(
     """
     Fetches files from a git repo and prepares them in temp_dir.
     """
+    # Cleanup temp_dir to ensure no pollution from previous runs
+    if temp_dir.exists():
+        if temp_dir.is_dir():
+            shutil.rmtree(temp_dir)
+        else:
+            temp_dir.unlink()
+
     # Create a temporary directory for cloning the repo
     # We don't want to clone into the target temp_dir directly because we only want a specific path.
     import tempfile
@@ -101,8 +108,8 @@ def github_fetch(
             try:
                 Repo.clone_from(repo_url, clone_dir, **kwargs)
             except Exception as final_exception:
-                # シャロークローン後のフルクローンも失敗したことを明記
-                raise RuntimeError("Full clone also failed after shallow clone attempt.") from final_exception
+                # Explicitly state that the full clone also failed after the shallow clone attempt.
+                raise RuntimeError(f"Full clone also failed after shallow clone attempt: {final_exception}") from final_exception
 
         # Now copy files from path_in_repo to temp_dir
         source_path = clone_dir / path_in_repo
