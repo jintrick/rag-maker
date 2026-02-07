@@ -8,6 +8,18 @@ import shutil
 import sys
 import json
 import logging
+from pathlib import Path
+
+try:
+    from ragmaker.utils import cleanup_dir_contents
+except ImportError:
+    # Fallback implementation
+    def cleanup_dir_contents(path: Path):
+        """ディレクトリ自体は残し、その中身のみを再帰的に削除する。"""
+        if not path.exists(): return
+        for item in path.iterdir():
+            if item.is_dir(): shutil.rmtree(item)
+            else: item.unlink()
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -22,9 +34,7 @@ def init_cache():
     """
     Initializes the .tmp/cache directory.
 
-    This involves two steps:
-    1. Deleting the entire .tmp/ directory to ensure a clean slate.
-    2. Re-creating the .tmp/cache/ directory for the new workflow run.
+    This ensures the .tmp/cache directory exists and is empty.
     """
     tmp_dir = '.tmp'
     cache_dir = os.path.join(tmp_dir, 'cache')
@@ -33,6 +43,10 @@ def init_cache():
         # Step 1: Create the new .tmp/cache directory.
         # We removed the destructive operation (shutil.rmtree) to prevent accidental data loss.
         os.makedirs(cache_dir, exist_ok=True)
+
+        # Step 2: Clean up the contents of the cache directory.
+        cleanup_dir_contents(Path(cache_dir))
+
         logger.info(f"Successfully initialized cache directory: {cache_dir}")
 
         return f"Cache initialized at {cache_dir}"

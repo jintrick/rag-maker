@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 import os
 import json
+import sys
 
 class TestFileSyncWithConversion(unittest.TestCase):
 
@@ -46,15 +47,22 @@ class TestFileSyncWithConversion(unittest.TestCase):
         Test the full file sync and conversion process.
         """
         # Run the file_sync.py tool
+        script_path = Path("src/ragmaker/tools/file_sync.py").resolve()
+
+        # Add src to PYTHONPATH
+        env = os.environ.copy()
+        env['PYTHONPATH'] = str(Path("src").resolve()) + os.pathsep + env.get('PYTHONPATH', '')
+
         process = subprocess.run(
             [
-                "ragmaker-file-sync",
+                sys.executable, str(script_path),
                 "--source-dir", str(self.source_dir),
                 "--dest-dir", str(self.dest_dir)
             ],
             capture_output=True,
             text=True,
-            encoding='utf-8'
+            encoding='utf-8',
+            env=env
         )
 
         # Check for errors
