@@ -13,13 +13,11 @@ from pathlib import Path
 try:
     from ragmaker.utils import cleanup_dir_contents
 except ImportError:
-    # Fallback implementation
-    def cleanup_dir_contents(path: Path):
-        """ディレクトリ自体は残し、その中身のみを再帰的に削除する。"""
-        if not path.exists(): return
-        for item in path.iterdir():
-            if item.is_dir(): shutil.rmtree(item)
-            else: item.unlink()
+    print(json.dumps({
+        "status": "error",
+        "message": "The 'ragmaker' package is required. Please install it."
+    }, ensure_ascii=False), file=sys.stderr)
+    sys.exit(1)
 
 # --- Setup Logging ---
 logging.basicConfig(

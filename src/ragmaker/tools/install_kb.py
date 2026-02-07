@@ -25,15 +25,11 @@ try:
     )
     from ragmaker.utils import safe_export
 except ImportError:
-    # Fallback for local execution
-    def handle_unexpected_error(e): print(json.dumps({"status": "error", "message": str(e)})); sys.exit(1)
-    def handle_file_not_found_error(e): print(json.dumps({"status": "error", "message": str(e)})); sys.exit(1)
-    def handle_value_error(e): print(json.dumps({"status": "error", "message": str(e)})); sys.exit(1)
-    def print_json_stdout(d): print(json.dumps(d))
-    # Define a simple fallback for safe_export if needed for standalone testing without package
-    def safe_export(src, dst):
-        dst.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(src, dst, dirs_exist_ok=True)
+    print(json.dumps({
+        "status": "error",
+        "message": "The 'ragmaker' package is required. Please install it."
+    }, ensure_ascii=False), file=sys.stderr)
+    sys.exit(1)
 
 # --- Setup Logging ---
 logging.basicConfig(
