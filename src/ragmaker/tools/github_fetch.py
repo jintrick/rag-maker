@@ -98,7 +98,11 @@ def github_fetch(
             if "depth" in kwargs:
                 del kwargs["depth"]
 
-            Repo.clone_from(repo_url, clone_dir, **kwargs)
+            try:
+                Repo.clone_from(repo_url, clone_dir, **kwargs)
+            except Exception as final_exception:
+                # シャロークローン後のフルクローンも失敗したことを明記
+                raise RuntimeError("Full clone also failed after shallow clone attempt.") from final_exception
 
         # Now copy files from path_in_repo to temp_dir
         source_path = clone_dir / path_in_repo
