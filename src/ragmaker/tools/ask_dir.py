@@ -15,6 +15,7 @@ logging.disable(logging.CRITICAL)
 
 import json
 import argparse
+import os
 from typing import Any, Optional
 
 # --- Dependency Check ---
@@ -63,6 +64,9 @@ def ask_for_directory(initial_dir: Optional[str] = None) -> None:
         root = tk.Tk()
         root.withdraw()  # Hide the main window
         root.attributes("-topmost", True)  # Bring the dialog to the front
+
+        if initial_dir:
+            initial_dir = os.path.abspath(initial_dir)
 
         selected_path = filedialog.askdirectory(
             title="Select a directory to save the markdown files",

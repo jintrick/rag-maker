@@ -42,7 +42,6 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
         raise FileNotFoundError(f"Source directory does not exist: {source_root}")
 
     source_cache = source_root / "cache"
-    target_cache = target_root / "cache"
 
     # Validate Source Structure
     if not source_cache.exists():
@@ -50,6 +49,11 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
         # If flat, maybe we should treat source as cache? But let's proceed and see if we can find catalog.
 
     # 1. Prepare Target Directory
+    if target_root.exists() and target_root.is_dir():
+        target_root = target_root / source_root.name
+
+    target_cache = target_root / "cache"
+
     if target_root.exists():
         if not target_root.is_dir():
             raise NotADirectoryError(f"Target path {target_root} exists and is not a directory.")
