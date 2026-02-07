@@ -36,15 +36,6 @@ except ImportError as e:
 # --- Tool Characteristics & Setup ---
 logger = logging.getLogger(__name__)
 
-def setup_logging(verbose: bool, log_level: str) -> None:
-    level = logging.DEBUG if verbose else getattr(logging, log_level.upper(), logging.INFO)
-    logging.basicConfig(
-        level=level,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        stream=sys.stderr
-    )
-
 # --- Core Conversion Logic ---
 
 def extract_base_url_from_html(html_content: str) -> str | None:
@@ -145,6 +136,9 @@ def process_and_update_catalog(
 
 def main() -> None:
     """Main entry point."""
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
+
     parser = GracefulArgumentParser(
         description="Reads a catalog.json, converts linked HTML files to Markdown, and prints the updated catalog JSON to stdout."
     )
@@ -156,7 +150,6 @@ def main() -> None:
 
     try:
         args = parser.parse_args()
-        setup_logging(args.verbose, args.log_level)
 
         catalog_path = Path(args.catalog_path)
         input_dir = Path(args.input_dir)

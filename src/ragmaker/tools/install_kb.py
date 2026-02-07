@@ -31,12 +31,7 @@ except ImportError:
     }, ensure_ascii=False), file=sys.stderr)
     sys.exit(1)
 
-# --- Setup Logging ---
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    stream=sys.stderr
-)
+# --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
 def install_knowledge_base(source_root: Path, target_root: Path, force: bool = False):
@@ -176,6 +171,10 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
     }
 
 def main():
+    """Main entry point."""
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
+
     parser = argparse.ArgumentParser(description="Install a knowledge base to a target directory.")
     parser.add_argument("--source", required=True, help="Source KB root directory.")
     parser.add_argument("--target-kb-root", required=True, help="Target KB root directory.")

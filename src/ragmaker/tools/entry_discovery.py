@@ -10,20 +10,40 @@ import json
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
-from ragmaker.io_utils import (
-    handle_unexpected_error,
-    handle_io_error,
-    print_json_stdout,
-    eprint_error
-)
+# --- Dependency Check ---
+try:
+    from ragmaker.io_utils import (
+        handle_unexpected_error,
+        handle_io_error,
+        print_json_stdout,
+        eprint_error
+    )
+except ImportError:
+    # Fallback if ragmaker is not in the path
+    def eprint_error(data: dict[str, Any]):
+        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
+    def print_json_stdout(data: dict[str, Any]):
+        print(json.dumps(data, ensure_ascii=True, indent=2))
+    def handle_io_error(exception: IOError):
+        eprint_error({"status": "error", "message": f"I/O error: {exception}"})
+        sys.exit(1)
+    def handle_unexpected_error(exception: Exception):
+        eprint_error({"status": "error", "message": f"An unexpected error occurred: {exception}"})
+        sys.exit(1)
 
-# --- Setup Logging ---
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    stream=sys.stderr
-)
+    # We exit here because the tool might depend on other ragmaker features or consistency
+    # But wait, create_initial_catalog logic is pure python.
+    # However, for consistency with other tools, we require ragmaker.
+    eprint_error({
+        "status": "error",
+        "message": "The 'ragmaker' package is required. Please install it."
+    })
+    sys.exit(1)
+
+
+# --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
 
@@ -72,6 +92,9 @@ def create_initial_catalog(catalog_path: Path, uri: str, title: str = None, summ
 # --- Main Execution ---
 def main():
     """Main entry point."""
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
+
     parser = argparse.ArgumentParser(description="Create or update catalog.json with metadata and source URI.")
     # Renamed --discovery-path to --kb-root to align with master catalog (discovery.json) and new naming convention.
     parser.add_argument("--kb-root", required=True, help="The root path of the knowledge base where catalog.json will be created.")

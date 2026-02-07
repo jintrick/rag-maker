@@ -222,16 +222,13 @@ def sync_and_convert_files(source_dir: Path, dest_dir: Path) -> List[dict]:
 
     except (shutil.Error, OSError, Exception) as e:
         handle_file_sync_error(e)
-        raise
+        sys.exit(1)
 
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        stream=sys.stderr
-    )
+    # Suppress logging to ensure pure JSON output on stderr
+    logging.disable(sys.maxsize)
 
     parser = GracefulArgumentParser(description="Synchronize and convert files from a source directory.")
     parser.add_argument("--source-dir", required=True, help="Source directory.")

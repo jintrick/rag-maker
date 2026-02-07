@@ -27,7 +27,8 @@ class TestPackageDependency(unittest.TestCase):
                 del env['PYTHONPATH']
 
             # Run the script from the temporary directory
-            cmd = [sys.executable, str(target_script_path)] + args
+            # Use -S to disable site-packages, ensuring strict isolation
+            cmd = [sys.executable, "-S", str(target_script_path)] + args
             result = subprocess.run(cmd, capture_output=True, text=True, env=env, cwd=temp_path)
             return result
 
@@ -58,7 +59,11 @@ class TestPackageDependency(unittest.TestCase):
                 except json.JSONDecodeError:
                     self.fail(f"Tool {tool_name} stderr is not valid JSON: {result.stderr}")
 
+                self.assertIsInstance(error_data, dict, "Error data should be a dictionary")
                 self.assertEqual(error_data.get("status"), "error")
+                # We check for generic error message because some tools might fail on other imports first
+                # But ideally it should be "The 'ragmaker' package is required"
+                # file_sync.py checks ragmaker first. install_kb.py checks ragmaker first. init_cache.py checks ragmaker first.
                 self.assertIn("The 'ragmaker' package is required", error_data.get("message", ""))
 
 if __name__ == '__main__':
