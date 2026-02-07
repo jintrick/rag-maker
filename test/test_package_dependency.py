@@ -3,42 +3,63 @@ import subprocess
 import sys
 import json
 import os
+import shutil
+import tempfile
 from pathlib import Path
 
 class TestPackageDependency(unittest.TestCase):
-    def run_tool_without_package(self, tool_path, args=None):
+    def run_tool_isolated(self, tool_path, args=None):
         if args is None:
             args = []
 
-        # Ensure PYTHONPATH does NOT include src
-        env = os.environ.copy()
-        if 'PYTHONPATH' in env:
-            del env['PYTHONPATH']
+        # Create a temporary directory to isolate the script
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            script_name = tool_path.name
+            target_script_path = temp_path / script_name
 
-        cmd = [sys.executable, str(tool_path)] + args
-        result = subprocess.run(cmd, capture_output=True, text=True, env=env)
-        return result
+            # Copy the script to the temporary directory
+            shutil.copy2(tool_path, target_script_path)
 
-    def test_file_sync_requires_package(self):
-        tool_path = Path("src/ragmaker/tools/file_sync.py").resolve()
-        result = self.run_tool_without_package(tool_path, ["--source-dir", ".", "--dest-dir", "."])
+            # Prepare the environment: remove PYTHONPATH
+            env = os.environ.copy()
+            if 'PYTHONPATH' in env:
+                del env['PYTHONPATH']
 
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("The 'ragmaker' package is required", result.stderr)
+            # Run the script from the temporary directory
+            cmd = [sys.executable, str(target_script_path)] + args
+            result = subprocess.run(cmd, capture_output=True, text=True, env=env, cwd=temp_path)
+            return result
 
-    def test_install_kb_requires_package(self):
-        tool_path = Path("src/ragmaker/tools/install_kb.py").resolve()
-        result = self.run_tool_without_package(tool_path, ["--source", ".", "--target-kb-root", "."])
+    def test_tools_require_package(self):
+        tools = [
+            ("file_sync.py", ["--source-dir", ".", "--dest-dir", "."]),
+            ("install_kb.py", ["--source", ".", "--target-kb-root", "."]),
+            ("init_cache.py", []),
+        ]
 
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("The 'ragmaker' package is required", result.stderr)
+        base_tool_path = Path("src/ragmaker/tools").resolve()
 
-    def test_init_cache_requires_package(self):
-        tool_path = Path("src/ragmaker/tools/init_cache.py").resolve()
-        result = self.run_tool_without_package(tool_path)
+        for tool_name, args in tools:
+            with self.subTest(tool=tool_name):
+                tool_path = base_tool_path / tool_name
 
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("The 'ragmaker' package is required", result.stderr)
+                # Verify tool exists before running
+                self.assertTrue(tool_path.exists(), f"Tool {tool_name} not found at {tool_path}")
+
+                result = self.run_tool_isolated(tool_path, args)
+
+                # Expect failure
+                self.assertNotEqual(result.returncode, 0, f"Tool {tool_name} should fail without package")
+
+                # Expect JSON output on stderr
+                try:
+                    error_data = json.loads(result.stderr)
+                except json.JSONDecodeError:
+                    self.fail(f"Tool {tool_name} stderr is not valid JSON: {result.stderr}")
+
+                self.assertEqual(error_data.get("status"), "error")
+                self.assertIn("The 'ragmaker' package is required", error_data.get("message", ""))
 
 if __name__ == '__main__':
     unittest.main()
