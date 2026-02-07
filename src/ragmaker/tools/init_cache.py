@@ -30,14 +30,10 @@ def init_cache():
     cache_dir = os.path.join(tmp_dir, 'cache')
 
     try:
-        # Step 1: Remove the entire .tmp directory if it exists.
-        if os.path.exists(tmp_dir):
-            shutil.rmtree(tmp_dir)
-            logger.info(f"Removed existing directory: {tmp_dir}")
-
-        # Step 2: Create the new .tmp/cache directory.
+        # Step 1: Create the new .tmp/cache directory.
+        # We removed the destructive operation (shutil.rmtree) to prevent accidental data loss.
         os.makedirs(cache_dir, exist_ok=True)
-        logger.info(f"Successfully created directory: {cache_dir}")
+        logger.info(f"Successfully initialized cache directory: {cache_dir}")
 
         return f"Cache initialized at {cache_dir}"
 

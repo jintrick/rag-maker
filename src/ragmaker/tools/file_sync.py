@@ -43,7 +43,7 @@ try:
         handle_argument_parsing_error,
         handle_unexpected_error,
     )
-    from ragmaker.utils import print_catalog_data
+    from ragmaker.utils import print_catalog_data, safe_export
 except ImportError:
     # This is a fallback for when the script is run in an environment
     # where the ragmaker package is not installed.
@@ -171,51 +171,55 @@ def sync_and_convert_files(source_dir: Path, dest_dir: Path) -> List[dict]:
     processed_files = []
 
     try:
-        # Ensure destination exists and is empty for a clean sync
-        if dest_dir.exists():
-            shutil.rmtree(dest_dir)
-        dest_dir.mkdir(parents=True, exist_ok=True)
+        import tempfile
+        # Use a temporary directory for processing
+        with tempfile.TemporaryDirectory() as work_dir_str:
+            work_dir = Path(work_dir_str)
+            work_dir.mkdir(parents=True, exist_ok=True)
 
-        for root, _, files in os.walk(source_dir):
-            for filename in files:
-                source_file_path = Path(root) / filename
-                file_ext = source_file_path.suffix.lower()
+            for root, _, files in os.walk(source_dir):
+                for filename in files:
+                    source_file_path = Path(root) / filename
+                    file_ext = source_file_path.suffix.lower()
 
-                if file_ext not in all_supported_ext:
-                    logger.info(f"Ignoring unsupported file type: {source_file_path}")
-                    continue
-
-                relative_path = source_file_path.relative_to(source_dir)
-                dest_file_path = dest_dir / relative_path
-                dest_file_path.parent.mkdir(parents=True, exist_ok=True)
-
-                final_dest_path = dest_file_path
-
-                if file_ext in html_ext:
-                    markdown_content = HTMLProcessor.convert_html_file_to_markdown(source_file_path)
-                    if markdown_content:
-                        final_dest_path = dest_file_path.with_suffix('.md')
-                        final_dest_path.write_text(str(markdown_content), encoding='utf-8')
-                        logger.info(f"Converted HTML '{source_file_path}' to '{final_dest_path}'")
-                    else:
-                        logger.warning(f"Skipping HTML file {source_file_path} due to conversion failure.")
+                    if file_ext not in all_supported_ext:
+                        logger.info(f"Ignoring unsupported file type: {source_file_path}")
                         continue
-                elif file_ext in doc_ext:
-                    markdown_content = DocumentProcessor.convert_document_to_markdown(source_file_path)
-                    if markdown_content:
-                        final_dest_path = dest_file_path.with_suffix('.md')
-                        final_dest_path.write_text(str(markdown_content), encoding='utf-8')
-                        logger.info(f"Converted document '{source_file_path}' to '{final_dest_path}'")
-                    else:
-                        logger.warning(f"Skipping document file {source_file_path} due to conversion failure.")
-                        continue
-                elif file_ext in text_ext:
-                    shutil.copy2(source_file_path, dest_file_path)
-                    logger.info(f"Copied text file '{source_file_path}' to '{dest_file_path}'")
 
-                processed_files.append({
-                    "path": final_dest_path.relative_to(dest_dir).as_posix()
-                })
+                    relative_path = source_file_path.relative_to(source_dir)
+                    dest_file_path = work_dir / relative_path
+                    dest_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+                    final_dest_path = dest_file_path
+
+                    if file_ext in html_ext:
+                        markdown_content = HTMLProcessor.convert_html_file_to_markdown(source_file_path)
+                        if markdown_content:
+                            final_dest_path = dest_file_path.with_suffix('.md')
+                            final_dest_path.write_text(str(markdown_content), encoding='utf-8')
+                            logger.info(f"Converted HTML '{source_file_path}' to '{final_dest_path}'")
+                        else:
+                            logger.warning(f"Skipping HTML file {source_file_path} due to conversion failure.")
+                            continue
+                    elif file_ext in doc_ext:
+                        markdown_content = DocumentProcessor.convert_document_to_markdown(source_file_path)
+                        if markdown_content:
+                            final_dest_path = dest_file_path.with_suffix('.md')
+                            final_dest_path.write_text(str(markdown_content), encoding='utf-8')
+                            logger.info(f"Converted document '{source_file_path}' to '{final_dest_path}'")
+                        else:
+                            logger.warning(f"Skipping document file {source_file_path} due to conversion failure.")
+                            continue
+                    elif file_ext in text_ext:
+                        shutil.copy2(source_file_path, dest_file_path)
+                        logger.info(f"Copied text file '{source_file_path}' to '{dest_file_path}'")
+
+                    processed_files.append({
+                        "path": final_dest_path.relative_to(work_dir).as_posix()
+                    })
+
+            # Safe export to destination
+            safe_export(work_dir, dest_dir)
 
         logger.info(f"File synchronization and conversion successful. Processed {len(processed_files)} files.")
         return processed_files

@@ -7,6 +7,8 @@
 
 import json
 import logging
+import os
+import shutil
 from pathlib import Path
 from typing import Any, Optional
 
@@ -49,3 +51,26 @@ def print_catalog_data(
             logger.error(f"Failed to save catalog data to {output_dir}: {e}")
 
     print_json_stdout(catalog_data)
+
+
+def safe_export(src_dir: Path, dst_dir: Path) -> None:
+    """
+    Safely exports files from src_dir to dst_dir.
+    It merges the content, overwriting existing files with the same name,
+    but does NOT delete other existing files in dst_dir.
+
+    Args:
+        src_dir (Path): Source directory.
+        dst_dir (Path): Destination directory.
+    """
+    if not src_dir.exists():
+        raise FileNotFoundError(f"Source directory '{src_dir}' does not exist.")
+
+    dst_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        shutil.copytree(src_dir, dst_dir, dirs_exist_ok=True)
+        logger.info(f"Safely exported files from {src_dir} to {dst_dir}")
+    except Exception as e:
+        logger.error(f"Failed to export safely from {src_dir} to {dst_dir}: {e}")
+        raise

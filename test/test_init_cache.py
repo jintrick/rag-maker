@@ -52,12 +52,12 @@ class TestInitCache(unittest.TestCase):
         self.assertTrue(fresh_cache_dir.exists())
         self.assertTrue(fresh_cache_dir.is_dir())
 
-        # The stale files should be gone
-        self.assertFalse(stale_file.exists(), "Stale file in .tmp root should have been deleted")
-        self.assertFalse(stale_cache_file.exists(), "Stale file in .tmp/cache should have been deleted")
+        # The stale files should be preserved (safe init)
+        self.assertTrue(stale_file.exists(), "Stale file in .tmp root should be preserved")
+        self.assertTrue(stale_cache_file.exists(), "Stale file in .tmp/cache should be preserved")
 
-        # The new cache directory should be empty
-        self.assertEqual(len(list(fresh_cache_dir.iterdir())), 0, "The new .tmp/cache directory should be empty")
+        # The new cache directory should NOT be empty (contains stale file)
+        self.assertGreater(len(list(fresh_cache_dir.iterdir())), 0, "The .tmp/cache directory should contain existing files")
 
     def test_runs_when_tmp_does_not_exist(self):
         """
