@@ -1,45 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ユーザーにディレクトリの選択を促すGUIダイアログを表示するツール。
+A tool to display a GUI dialog prompting the user to select a directory.
 
-このツールは、ユーザーがファイルシステムからディレクトリを選択するための
-ネイティブなGUIダイアログを開きます。AIエージェントのワークフローに
-組み込まれることを想定しており、ユーザーの操作結果（選択またはキャンセル）に
-応じて、標準出力または標準エラーに構造化されたJSONを出力します。
-
-Usage:
-    python ask_dir.py
-
-Returns:
-    (stdout): ユーザーがディレクトリを選択した場合、成功を示すJSONオブジェクト。
-              例: {
-                    "status": "success",
-                    "selected_directory": "/path/to/selected/directory"
-                  }
-    (stderr): ユーザーがダイアログをキャンセルしたか、エラーが発生した場合、
-              エラーコードと詳細を含むJSONオブジェクト。
+This tool opens a native GUI dialog for the user to select a directory from the file system.
+It is designed to be integrated into an AI agent's workflow, outputting structured JSON to
+stdout or stderr depending on the user's action (selection or cancellation).
 """
 
-import json
-import sys
 import logging
-from typing import Any
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
+import json
+import argparse
+from typing import Any, Optional
 
 # --- Dependency Check ---
 try:
     from ragmaker.io_utils import eprint_error, handle_unexpected_error
 except ImportError:
-    # Fallback if ragmaker is not in the path
-    def eprint_error(data: dict[str, Any]):
-        print(json.dumps(data, ensure_ascii=False), file=sys.stderr)
-    def handle_unexpected_error(exception: Exception):
-        eprint_error({
-            "status": "error", "error_code": "UNEXPECTED_ERROR", "message": str(exception)
-        })
-    print(json.dumps({
-        "status": "error", "error_code": "DEPENDENCY_ERROR", "message": "ragmaker not found"
-    }, ensure_ascii=False), file=sys.stderr)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
 try:
@@ -73,9 +55,9 @@ def handle_user_cancellation():
 
 
 # --- Core Logic ---
-def ask_for_directory() -> None:
+def ask_for_directory(initial_dir: Optional[str] = None) -> None:
     """
-    ディレクトリ選択ダイアログを表示し、ユーザーの選択に基づいて結果を出力する。
+    Displays a directory selection dialog and outputs the result based on user selection.
     """
     try:
         root = tk.Tk()
@@ -83,7 +65,8 @@ def ask_for_directory() -> None:
         root.attributes("-topmost", True)  # Bring the dialog to the front
 
         selected_path = filedialog.askdirectory(
-            title="Select a directory to save the markdown files"
+            title="Select a directory to save the markdown files",
+            initialdir=initial_dir
         )
 
         if selected_path:
@@ -106,9 +89,11 @@ def ask_for_directory() -> None:
 
 def main() -> None:
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
-    ask_for_directory()
+    parser = argparse.ArgumentParser(description="A tool to display a GUI dialog for directory selection.")
+    parser.add_argument("--initial-dir", help="The initial directory to display in the dialog.")
+    args = parser.parse_args()
+    
+    ask_for_directory(initial_dir=args.initial_dir)
 
 
 if __name__ == "__main__":

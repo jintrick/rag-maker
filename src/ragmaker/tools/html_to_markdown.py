@@ -7,11 +7,14 @@ It converts specified HTML files to Markdown, updates the catalog.json
 to reflect the changes, and removes the original HTML source files.
 """
 
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import argparse
 import json
-import logging
 import os
-import sys
 import re
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
@@ -23,13 +26,8 @@ try:
     )
     from readabilipy import simple_json_from_html_string  # type: ignore
     from markdownify import markdownify as md  # type: ignore
-except ImportError as e:
-    # We can't use the fancy error reporting if the base package is missing.
-    print(json.dumps({
-        "status": "error",
-        "error_code": "DEPENDENCY_ERROR",
-        "message": f"A required dependency is not installed: {e}. Please run 'pip install -r requirements.txt'."
-    }, ensure_ascii=False), file=sys.stderr)
+except ImportError:
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
 
@@ -136,8 +134,13 @@ def process_and_update_catalog(
 
 def main() -> None:
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
+    # Re-enable logging for execution
+    logging.disable(logging.NOTSET)
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        stream=sys.stderr
+    )
 
     parser = GracefulArgumentParser(
         description="Reads a catalog.json, converts linked HTML files to Markdown, and prints the updated catalog JSON to stdout."

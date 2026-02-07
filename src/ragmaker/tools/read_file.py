@@ -4,10 +4,14 @@
 read_file.py - A tool to read the content of one or more specified files.
 """
 
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import argparse
 import os
 import json
-import sys
 from typing import Any
 
 try:
@@ -17,10 +21,8 @@ try:
         handle_unexpected_error
     )
 except ImportError:
-    # Fallback for local execution
-    def print_json_stdout(data: dict[str, Any]): print(json.dumps(data))
-    def handle_file_not_found_error(exception: FileNotFoundError): print(json.dumps({"status": "error", "message": f"File not found: {exception}"})); sys.exit(1)
-    def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
+    sys.exit(1)
 
 
 def main():

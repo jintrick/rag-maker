@@ -4,24 +4,22 @@
 A tool to create a new, self-contained knowledge base.
 """
 
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import argparse
 import json
-import logging
 import shutil
-import sys
-from pathlib import Path
 import importlib.resources
+from pathlib import Path
 
 try:
     from ragmaker.io_utils import handle_io_error, handle_unexpected_error
 except ImportError:
-    # Fallback for local execution without installation
-    def handle_io_error(exception: IOError):
-        print(json.dumps({"status": "error", "message": f"I/O error: {exception}"}))
-        sys.exit(1)
-    def handle_unexpected_error(exception: Exception):
-        print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"}))
-        sys.exit(1)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
+    sys.exit(1)
 
 
 # --- Tool Characteristics ---
@@ -58,9 +56,6 @@ def create_knowledge_base(kb_root: Path):
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
-
     parser = argparse.ArgumentParser(description="Create a new knowledge base.")
     parser.add_argument("--kb-root", required=True, help="The root path for the new knowledge base.")
 

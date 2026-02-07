@@ -8,24 +8,22 @@ to clean up source files (like HTML or cloned git repos) after they have
 been converted to Markdown, saving storage space.
 """
 
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import argparse
 import json
-import logging
 import os
 import shutil
-import sys
 from pathlib import Path
 
 try:
     from ragmaker.io_utils import handle_file_not_found_error, handle_unexpected_error
 except ImportError:
-    # Fallback for local execution without installation
-    def handle_file_not_found_error(exception: FileNotFoundError):
-        print(json.dumps({"status": "error", "message": f"File not found: {exception}"}))
-        sys.exit(1)
-    def handle_unexpected_error(exception: Exception):
-        print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"}))
-        sys.exit(1)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
+    sys.exit(1)
 
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
@@ -67,9 +65,6 @@ def cleanup_directory(target_dir: Path) -> tuple[list[str], list[str]]:
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
-
     parser = argparse.ArgumentParser(description="Clean up a cache directory, keeping only essential files.")
     parser.add_argument("--target-dir", required=True, help="The directory to clean up.")
 

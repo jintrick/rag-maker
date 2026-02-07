@@ -3,20 +3,21 @@
 """
 A tool to initialize the temporary cache directory for a workflow run.
 """
+
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import os
 import shutil
-import sys
 import json
-import logging
 from pathlib import Path
 
 try:
     from ragmaker.utils import cleanup_dir_contents
 except ImportError:
-    print(json.dumps({
-        "status": "error",
-        "message": "The 'ragmaker' package is required. Please install it."
-    }, ensure_ascii=False), file=sys.stderr)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
 # --- Tool Characteristics ---
@@ -58,9 +59,6 @@ def init_cache():
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
-
     # This tool has no arguments.
     if len(sys.argv) > 1:
         logger.warning(f"This script '{os.path.basename(__file__)}' does not accept any arguments. Ignoring provided arguments: {sys.argv[1:]}")

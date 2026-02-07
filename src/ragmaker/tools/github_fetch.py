@@ -7,11 +7,14 @@ This tool clones a GitHub repository (or uses a local git repo), extracts files 
 converts HTML files to Markdown, and generates a catalog.json file.
 """
 
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import argparse
 import json
-import logging
 import shutil
-import sys
 import os
 import tempfile
 from pathlib import Path
@@ -31,12 +34,8 @@ try:
         eprint_error
     )
     from ragmaker.utils import print_catalog_data, safe_export
-except ImportError as e:
-    print(json.dumps({
-        "status": "error",
-        "error_code": "DEPENDENCY_ERROR",
-        "message": f"A required dependency is not installed: {e}"
-    }, ensure_ascii=False), file=sys.stderr)
+except ImportError:
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
 logger = logging.getLogger(__name__)
@@ -187,9 +186,6 @@ def github_fetch(
 
 
 def main():
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
-
     parser = GracefulArgumentParser(description="Fetch documents from GitHub.")
     parser.add_argument("--repo-url", required=True, help="URL of the GitHub repository.")
     parser.add_argument("--path-in-repo", required=True, help="Path within the repository to fetch.")

@@ -10,11 +10,14 @@ Usage:
     python http_fetch.py --url <start_url> --base-url <scope_url> --output-dir <path/to/dir> [--no-recursive] [--depth <N>]
 """
 
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import argparse
 import json
-import logging
 import re
-import sys
 import shutil
 import subprocess
 from pathlib import Path
@@ -35,14 +38,7 @@ try:
     )
     from ragmaker.utils import print_catalog_data
 except ImportError:
-    # This is a fallback for when the script is run in an environment
-    # where the ragmaker package is not installed.
-    print(json.dumps({
-        "status": "error",
-        "error_code": "DEPENDENCY_ERROR",
-        "message": "The 'ragmaker' package is not installed or not in the Python path.",
-        "remediation_suggestion": "Please install the package, e.g., via 'pip install .'"
-    }, ensure_ascii=False), file=sys.stderr)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
 try:
@@ -246,8 +242,13 @@ class WebFetcher:
 
 def main() -> None:
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
+    # Re-enable logging for execution
+    logging.disable(logging.NOTSET)
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        stream=sys.stderr
+    )
 
     parser = GracefulArgumentParser(description="Fetch web pages and convert to Markdown.")
     parser.add_argument("--url", required=True, help="Starting URL.")

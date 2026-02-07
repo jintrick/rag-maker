@@ -26,12 +26,16 @@ Returns:
     (stderr): On error, a JSON object with an error code and details.
 """
 
+import logging
+import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import argparse
 import json
-import logging
 import os
 import shutil
-import sys
+import tempfile
 from pathlib import Path
 from typing import Optional, List
 
@@ -45,10 +49,7 @@ try:
     )
     from ragmaker.utils import print_catalog_data, safe_export
 except ImportError:
-    print(json.dumps({
-        "status": "error",
-        "message": "The 'ragmaker' package is required. Please install it."
-    }, ensure_ascii=False), file=sys.stderr)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
 try:
@@ -167,7 +168,6 @@ def sync_and_convert_files(source_dir: Path, dest_dir: Path) -> List[dict]:
     processed_files = []
 
     try:
-        import tempfile
         # Use a temporary directory for processing
         with tempfile.TemporaryDirectory() as work_dir_str:
             work_dir = Path(work_dir_str)
@@ -227,9 +227,6 @@ def sync_and_convert_files(source_dir: Path, dest_dir: Path) -> List[dict]:
 # --- Main Execution ---
 def main():
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
-
     parser = GracefulArgumentParser(description="Synchronize and convert files from a source directory.")
     parser.add_argument("--source-dir", required=True, help="Source directory.")
     parser.add_argument("--dest-dir", required=True, help="Destination directory.")

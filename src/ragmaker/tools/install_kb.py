@@ -8,10 +8,13 @@ from a source KB to a target KB root. It ensures the catalog is named 'catalog.j
 normalizes paths within the catalog, and verifies file existence.
 """
 
-import argparse
-import json
 import logging
 import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
+import argparse
+import json
 import shutil
 import os
 from pathlib import Path
@@ -25,10 +28,7 @@ try:
     )
     from ragmaker.utils import safe_export
 except ImportError:
-    print(json.dumps({
-        "status": "error",
-        "message": "The 'ragmaker' package is required. Please install it."
-    }, ensure_ascii=False), file=sys.stderr)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
 # --- Tool Characteristics ---
@@ -172,9 +172,6 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
 
 def main():
     """Main entry point."""
-    # Suppress logging to ensure pure JSON output on stderr
-    logging.disable(sys.maxsize)
-
     parser = argparse.ArgumentParser(description="Install a knowledge base to a target directory.")
     parser.add_argument("--source", required=True, help="Source KB root directory.")
     parser.add_argument("--target-kb-root", required=True, help="Target KB root directory.")

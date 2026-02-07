@@ -38,6 +38,7 @@ test/test_init_cache.py
 test/test_install_kb.py
 test/test_move_file.py
 test/test_open_directory.py
+test/test_package_dependency.py
 test/test_path_handling.py
 test/test_read_file.py
 test/test_safe_export.py

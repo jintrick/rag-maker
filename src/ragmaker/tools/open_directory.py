@@ -2,12 +2,16 @@
 """
 A cross-platform tool to open a directory in the default file manager.
 """
+
+import logging
 import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
 import os
 import subprocess
 import json
 import argparse
-import logging
 
 try:
     from ragmaker.io_utils import (
@@ -15,9 +19,8 @@ try:
         handle_unexpected_error
     )
 except ImportError:
-    # Fallback for local execution
-    def handle_file_not_found_error(exception: FileNotFoundError): print(json.dumps({"status": "error", "message": f"File not found: {exception}"})); sys.exit(1)
-    def handle_unexpected_error(exception: Exception): print(json.dumps({"status": "error", "message": f"An unexpected error occurred: {exception}"})); sys.exit(1)
+    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
+    sys.exit(1)
 
 
 def open_directory(path: str):
