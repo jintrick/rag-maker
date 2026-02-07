@@ -23,12 +23,17 @@ try:
         handle_value_error,
         print_json_stdout
     )
+    from ragmaker.utils import safe_export
 except ImportError:
     # Fallback for local execution
     def handle_unexpected_error(e): print(json.dumps({"status": "error", "message": str(e)})); sys.exit(1)
     def handle_file_not_found_error(e): print(json.dumps({"status": "error", "message": str(e)})); sys.exit(1)
     def handle_value_error(e): print(json.dumps({"status": "error", "message": str(e)})); sys.exit(1)
     def print_json_stdout(d): print(json.dumps(d))
+    # Define a simple fallback for safe_export if needed for standalone testing without package
+    def safe_export(src, dst):
+        dst.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(src, dst, dirs_exist_ok=True)
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -67,15 +72,11 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
     # 2. Copy cache directory
     if source_cache.exists():
         if target_cache.exists():
-            if force:
-                shutil.rmtree(target_cache)
-            else:
+            if not force:
                  raise FileExistsError(f"Target cache directory {target_cache} already exists. Use --force to overwrite.")
 
-        # shutil.copytree(source_cache, target_cache, dirs_exist_ok=force)
-        # dirs_exist_ok=True allows merging, but we might want clean copy.
-        # rmtree above ensures clean copy if force.
-        shutil.copytree(source_cache, target_cache)
+        # Safe export (merge) instead of delete-then-copy
+        safe_export(source_cache, target_cache)
         logger.info(f"Copied cache from {source_cache} to {target_cache}")
 
     # 3. Locate and Copy Catalog
@@ -191,10 +192,13 @@ def main():
 
     except (FileNotFoundError, FileExistsError) as e:
         handle_file_not_found_error(e)
+        sys.exit(1)
     except ValueError as e:
         handle_value_error(e)
+        sys.exit(1)
     except Exception as e:
         handle_unexpected_error(e)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
