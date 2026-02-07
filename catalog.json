@@ -1,0 +1,221 @@
+{
+  "documents": [
+    {
+      "path": "README.md"
+    },
+    {
+      "path": "requirements.txt"
+    },
+    {
+      "path": ".gemini/commands/git.md"
+    },
+    {
+      "path": ".gemini/commands/issue.md"
+    },
+    {
+      "path": ".gemini/commands/rag.md"
+    },
+    {
+      "path": ".gemini/skills/rag-builder/SKILL.md"
+    },
+    {
+      "path": "docs/Architecture/Architecture.md"
+    },
+    {
+      "path": "docs/issue/template.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.1.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.2.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.3.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.4.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.5.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.6.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.7.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.8.md"
+    },
+    {
+      "path": "docs/issue/v0.6.1.md"
+    },
+    {
+      "path": "docs/issue/v0.6.md"
+    },
+    {
+      "path": "docs/issue/v0.1/v0.1.0.md"
+    },
+    {
+      "path": "docs/issue/v0.1/v0.1.1.md"
+    },
+    {
+      "path": "docs/issue/v0.1/v0.1.2.md"
+    },
+    {
+      "path": "docs/issue/v0.2/v0.2.0.md"
+    },
+    {
+      "path": "docs/issue/v0.2/v0.2.1.md"
+    },
+    {
+      "path": "docs/issue/v0.2/v0.2.2.md"
+    },
+    {
+      "path": "docs/issue/v0.2/v0.2.3.md"
+    },
+    {
+      "path": "docs/issue/v0.2/v0.2.4.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.0.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.1.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.2.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.3.1.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.3.2.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.3.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.4.1.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.4.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.5.1.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.5.md"
+    },
+    {
+      "path": "docs/issue/v0.3/v0.3.6.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.0.1.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.0.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.1.1.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.1.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.10.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.11.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.12.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.13.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.14.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.15.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.16.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.17.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.18.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.19.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.2.1.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.2.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.3.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.4.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.5.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.6.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.7.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.8.md"
+    },
+    {
+      "path": "docs/issue/v0.4/v0.4.9.md"
+    },
+    {
+      "path": "docs/issue/v0.5/v0.5.0.md"
+    },
+    {
+      "path": "docs/issue/v0.5/v0.5.0_fixes.md"
+    },
+    {
+      "path": "src/rag_maker.egg-info/dependency_links.txt"
+    },
+    {
+      "path": "src/rag_maker.egg-info/entry_points.txt"
+    },
+    {
+      "path": "src/rag_maker.egg-info/requires.txt"
+    },
+    {
+      "path": "src/rag_maker.egg-info/SOURCES.txt"
+    },
+    {
+      "path": "src/rag_maker.egg-info/top_level.txt"
+    },
+    {
+      "path": "test/fixtures/sample_page.md"
+    },
+    {
+      "path": "test/fixtures/file_sync/notes.txt"
+    },
+    {
+      "path": "test/fixtures/file_sync/readme.md"
+    },
+    {
+      "path": "test/fixtures/file_sync/sample.md"
+    }
+  ],
+  "metadata": {
+    "source": "file_sync",
+    "source_dir": "C:\\Synology Drive\\2way-sync\\work\\rag-maker"
+  }
+}
