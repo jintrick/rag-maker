@@ -53,11 +53,27 @@ def print_catalog_data(
     print_json_stdout(catalog_data)
 
 
+def cleanup_dir_contents(path: Path) -> None:
+    """
+    ディレクトリ自体は残し、その中身のみを再帰的に削除する。
+    """
+    if not path.exists():
+        return
+    for item in path.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+
+
 def safe_export(src_dir: Path, dst_dir: Path) -> None:
     """
     Safely exports files from src_dir to dst_dir.
     It merges the content, overwriting existing files with the same name,
     but does NOT delete other existing files in dst_dir.
+
+    It also handles conflicts where a directory in src_dir corresponds to a file in dst_dir
+    by removing the conflicting file in dst_dir.
 
     Args:
         src_dir (Path): Source directory.
@@ -67,6 +83,23 @@ def safe_export(src_dir: Path, dst_dir: Path) -> None:
         raise FileNotFoundError(f"Source directory '{src_dir}' does not exist.")
 
     dst_dir.mkdir(parents=True, exist_ok=True)
+
+    # Pre-check for directory/file conflicts
+    # We walk the source directory to find any directories that conflict with files in destination.
+    for root, dirs, _ in os.walk(src_dir):
+        rel_root = Path(root).relative_to(src_dir)
+        dst_root = dst_dir / rel_root
+
+        for d in dirs:
+            dst_path = dst_root / d
+            if dst_path.exists() and not dst_path.is_dir():
+                logger.warning(f"Removing file '{dst_path}' to replace with directory from source")
+                try:
+                    dst_path.unlink()
+                except OSError as e:
+                    logger.error(f"Failed to remove conflicting file {dst_path}: {e}")
+                    # Let copytree fail if unlink failed, or maybe raise here?
+                    # Proceeding might cause copytree to fail anyway.
 
     try:
         shutil.copytree(src_dir, dst_dir, dirs_exist_ok=True)

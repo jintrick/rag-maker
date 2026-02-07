@@ -13,6 +13,7 @@ import logging
 import shutil
 import sys
 import os
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -79,71 +80,67 @@ def github_fetch(
     Fetches files from a git repo and prepares them in output_dir (formerly temp_dir).
     """
     # Create a temporary directory for processing
-    import tempfile
+    with tempfile.TemporaryDirectory() as temp_root_str:
+        temp_root = Path(temp_root_str)
+        work_dir = temp_root / "work"
+        clone_dir = temp_root / "clone"
 
-    with tempfile.TemporaryDirectory() as work_dir_str:
-        work_dir = Path(work_dir_str)
+        work_dir.mkdir()
+        clone_dir.mkdir()
 
-        # Create a temporary directory for cloning the repo
-        # We don't want to clone into the target output_dir directly.
-        with tempfile.TemporaryDirectory() as clone_dir_str:
-            clone_dir = Path(clone_dir_str)
+        logger.info(f"Cloning {repo_url} into temporary directory...")
 
-            logger.info(f"Cloning {repo_url} into temporary directory...")
+        kwargs = {"depth": 1}
+        if branch:
+            kwargs["branch"] = branch
 
-            kwargs = {"depth": 1}
-            if branch:
-                kwargs["branch"] = branch
+        try:
+            Repo.clone_from(repo_url, clone_dir, **kwargs)
+        except Exception as e:
+            logger.warning(f"Shallow clone failed, retrying full clone: {e}")
+            if "depth" in kwargs:
+                del kwargs["depth"]
 
             try:
                 Repo.clone_from(repo_url, clone_dir, **kwargs)
-            except Exception as e:
-                logger.warning(f"Shallow clone failed, retrying full clone: {e}")
-                if "depth" in kwargs:
-                    del kwargs["depth"]
+            except Exception as final_exception:
+                # Explicitly state that the full clone also failed after the shallow clone attempt.
+                raise RuntimeError(f"Full clone also failed after shallow clone attempt: {final_exception}") from final_exception
 
-                try:
-                    Repo.clone_from(repo_url, clone_dir, **kwargs)
-                except Exception as final_exception:
-                    # Explicitly state that the full clone also failed after the shallow clone attempt.
-                    raise RuntimeError(f"Full clone also failed after shallow clone attempt: {final_exception}") from final_exception
+        # Now copy files from path_in_repo to work_dir
+        source_path = clone_dir / path_in_repo
 
-            # Now copy files from path_in_repo to work_dir
-            source_path = clone_dir / path_in_repo
+        if not source_path.exists():
+            raise FileNotFoundError(f"Path '{path_in_repo}' not found in repository.")
 
-            if not source_path.exists():
-                raise FileNotFoundError(f"Path '{path_in_repo}' not found in repository.")
+        documents = []
 
-            work_dir.mkdir(parents=True, exist_ok=True)
+        if source_path.is_file():
+            # Copy single file
+            dest_file = work_dir / path_in_repo
+            dest_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_path, dest_file)
+            files_to_process = [dest_file]
 
-            documents = []
+        else:
+            # Determine the destination base directory
+            # We want to preserve the structure relative to the repo root.
+            # if path_in_repo=".", output is directly in work_dir.
+            # if path_in_repo="docs", output is in work_dir/docs.
+            dest_base = work_dir / path_in_repo
+            dest_base.mkdir(parents=True, exist_ok=True)
 
-            if source_path.is_file():
-                # Copy single file
-                dest_file = work_dir / path_in_repo
-                dest_file.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source_path, dest_file)
-                files_to_process = [dest_file]
+            # Copy directory
+            # Iterate and copy
+            for root, dirs, files in os.walk(source_path):
+                rel_root = Path(root).relative_to(source_path)
+                target_root = dest_base / rel_root
+                target_root.mkdir(parents=True, exist_ok=True)
 
-            else:
-                # Determine the destination base directory
-                # We want to preserve the structure relative to the repo root.
-                # if path_in_repo=".", output is directly in work_dir.
-                # if path_in_repo="docs", output is in work_dir/docs.
-                dest_base = work_dir / path_in_repo
-                dest_base.mkdir(parents=True, exist_ok=True)
-
-                # Copy directory
-                # Iterate and copy
-                for root, dirs, files in os.walk(source_path):
-                    rel_root = Path(root).relative_to(source_path)
-                    target_root = dest_base / rel_root
-                    target_root.mkdir(parents=True, exist_ok=True)
-
-                    for file in files:
-                        s_file = Path(root) / file
-                        d_file = target_root / file
-                        shutil.copy2(s_file, d_file)
+                for file in files:
+                    s_file = Path(root) / file
+                    d_file = target_root / file
+                    shutil.copy2(s_file, d_file)
 
         # Process files in work_dir (HTML -> MD)
         files_to_process = []

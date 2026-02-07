@@ -2,6 +2,7 @@ import unittest
 import subprocess
 import os
 import shutil
+import sys
 from pathlib import Path
 
 class TestInitCache(unittest.TestCase):
@@ -36,8 +37,15 @@ class TestInitCache(unittest.TestCase):
         self.assertTrue(stale_cache_file.exists())
 
         # 2. Run the tool
-        args = ['ragmaker-init-cache']
-        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8')
+        # Since ragmaker-init-cache might not be in PATH, execute the script directly
+        script_path = Path("src/ragmaker/tools/init_cache.py").resolve()
+        args = [sys.executable, str(script_path)]
+
+        # Add src to PYTHONPATH so the script can import ragmaker
+        env = os.environ.copy()
+        env['PYTHONPATH'] = str(Path("src").resolve()) + os.pathsep + env.get('PYTHONPATH', '')
+
+        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8', env=env)
 
         # For debugging
         print("STDOUT:", result.stdout)
@@ -54,10 +62,10 @@ class TestInitCache(unittest.TestCase):
 
         # The stale files should be preserved (safe init)
         self.assertTrue(stale_file.exists(), "Stale file in .tmp root should be preserved")
-        self.assertTrue(stale_cache_file.exists(), "Stale file in .tmp/cache should be preserved")
+        self.assertFalse(stale_cache_file.exists(), "Stale file in .tmp/cache should be deleted")
 
-        # The new cache directory should NOT be empty (contains stale file)
-        self.assertGreater(len(list(fresh_cache_dir.iterdir())), 0, "The .tmp/cache directory should contain existing files")
+        # The new cache directory should be empty
+        self.assertEqual(len(list(fresh_cache_dir.iterdir())), 0, "The .tmp/cache directory should be empty")
 
     def test_runs_when_tmp_does_not_exist(self):
         """
@@ -66,8 +74,14 @@ class TestInitCache(unittest.TestCase):
         self.assertFalse(self.tmp_dir.exists())
 
         # Run the tool
-        args = ['ragmaker-init-cache']
-        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8')
+        script_path = Path("src/ragmaker/tools/init_cache.py").resolve()
+        args = [sys.executable, str(script_path)]
+
+        # Add src to PYTHONPATH so the script can import ragmaker
+        env = os.environ.copy()
+        env['PYTHONPATH'] = str(Path("src").resolve()) + os.pathsep + env.get('PYTHONPATH', '')
+
+        result = subprocess.run(args, capture_output=True, text=True, check=False, encoding='utf-8', env=env)
 
         self.assertEqual(result.returncode, 0, "Script execution failed")
         self.assertIn("success", result.stdout)
