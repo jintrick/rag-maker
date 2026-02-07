@@ -285,6 +285,11 @@
             "type": "boolean",
             "description": "インストール先が存在する場合に上書きを許可するかどうか。",
             "default": false
+          },
+          "project-root": {
+            "type": "string",
+            "description": "プロジェクトのルートパス。catalog.json内のファイルパスはこのパスからの相対パスになります。",
+            "default": "."
           }
         },
         "required": [

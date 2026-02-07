@@ -41,7 +41,7 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "discovery.json", 'w') as f:
             json.dump(discovery_data, f)
 
-        result = install_knowledge_base(self.source_kb, self.target_kb)
+        result = install_knowledge_base(self.source_kb, self.target_kb, project_root=self.root)
 
         self.assertEqual(result["status"], "success")
         self.assertTrue((self.target_kb / "catalog.json").exists())
@@ -55,7 +55,7 @@ class TestInstallKB(unittest.TestCase):
             # The tool logic:
             # If doc is in cache (source_kb/cache/doc1.txt), and we copy cache to target_kb/cache.
             # Then new path is cache/doc1.txt.
-            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+            self.assertEqual(catalog["documents"][0]["path"], "target_kb/cache/doc1.txt")
 
         # Check file copy
         self.assertTrue((self.target_kb / "cache" / "doc1.txt").exists())
@@ -70,14 +70,14 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        result = install_knowledge_base(self.source_kb, self.target_kb)
+        result = install_knowledge_base(self.source_kb, self.target_kb, project_root=self.root)
 
         self.assertEqual(result["status"], "success")
         self.assertTrue((self.target_kb / "catalog.json").exists())
 
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
-            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+            self.assertEqual(catalog["documents"][0]["path"], "target_kb/cache/doc1.txt")
 
     def test_install_into_existing_directory(self):
         """Test that installing into an existing directory creates a subdirectory with source name."""
@@ -92,7 +92,7 @@ class TestInstallKB(unittest.TestCase):
         # Resulting path should be target_kb / source_kb.name
         expected_install_path = self.target_kb / self.source_kb.name
 
-        result = install_knowledge_base(self.source_kb, self.target_kb)
+        result = install_knowledge_base(self.source_kb, self.target_kb, project_root=self.root)
 
         self.assertEqual(result["status"], "success")
         self.assertEqual(Path(result["target_kb_root"]).resolve(), expected_install_path.resolve())
@@ -103,7 +103,7 @@ class TestInstallKB(unittest.TestCase):
         """Test error when source directory does not exist."""
         missing_source = self.root / "missing"
         with self.assertRaises(FileNotFoundError):
-            install_knowledge_base(missing_source, self.target_kb)
+            install_knowledge_base(missing_source, self.target_kb, project_root=self.root)
 
     def test_target_exists_error(self):
         """Test error when target directory exists and is not empty, without force."""
@@ -117,7 +117,7 @@ class TestInstallKB(unittest.TestCase):
         (self.source_kb / "catalog.json").write_text("{}")
 
         with self.assertRaises(FileExistsError):
-            install_knowledge_base(self.source_kb, self.target_kb)
+            install_knowledge_base(self.source_kb, self.target_kb, project_root=self.root)
 
     def test_target_exists_force(self):
         """Test overwriting target when force is True."""
@@ -131,13 +131,78 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        result = install_knowledge_base(self.source_kb, self.target_kb, force=True)
+        result = install_knowledge_base(self.source_kb, self.target_kb, force=True, project_root=self.root)
         self.assertEqual(result["status"], "success")
 
         # Check file in the actual install location
         self.assertTrue((install_target / "catalog.json").exists())
         # existing.txt might still be there if it's not in cache/ or catalog.json.
         # This behavior is acceptable if defined so.
+
+    def test_project_root_relative_path(self):
+        """Test that paths are calculated relative to project_root."""
+        # Create structure:
+        # root/
+        #   project/  <- project_root
+        #     lib/    <- target_kb_root (initial)
+        #     (lib/source_kb will be actual target)
+
+        project_root = self.root / "project"
+        project_root.mkdir()
+        target_kb_root = project_root / "lib"
+        target_kb_root.mkdir()
+
+        # Setup source catalog
+        catalog_data = {
+            "documents": [
+                {"path": "cache/doc1.txt", "title": "Doc 1"}
+            ]
+        }
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+
+        # Execute install
+        # target_root will become project_root/lib/source_kb
+        # doc path should be lib/source_kb/cache/doc1.txt (relative to project_root)
+
+        result = install_knowledge_base(
+            self.source_kb,
+            target_kb_root,
+            project_root=project_root
+        )
+
+        self.assertEqual(result["status"], "success")
+
+        actual_target_root = Path(result["target_kb_root"])
+        expected_target_root = target_kb_root / self.source_kb.name
+        self.assertEqual(actual_target_root.resolve(), expected_target_root.resolve())
+
+        with open(actual_target_root / "catalog.json") as f:
+            catalog = json.load(f)
+            # Check relative path
+            # path should be relative to project_root
+            expected_rel_path = (expected_target_root / "cache" / "doc1.txt").relative_to(project_root).as_posix()
+            self.assertEqual(catalog["documents"][0]["path"], expected_rel_path)
+
+            # Verify explicit path string
+            # "lib/source_kb/cache/doc1.txt" assuming source_kb name is "source_kb"
+            self.assertEqual(catalog["documents"][0]["path"], f"lib/{self.source_kb.name}/cache/doc1.txt")
+
+    def test_invalid_project_root(self):
+        """Test error when project_root is not a parent of target."""
+        # project_root is disjoint from target
+        project_root = self.root / "other_project"
+        project_root.mkdir()
+
+        # Setup source catalog
+        (self.source_kb / "catalog.json").write_text("{}")
+
+        with self.assertRaises(ValueError):
+            install_knowledge_base(
+                self.source_kb,
+                self.target_kb,
+                project_root=project_root
+            )
 
 if __name__ == '__main__':
     unittest.main()

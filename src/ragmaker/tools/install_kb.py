@@ -34,10 +34,12 @@ except ImportError:
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
-def install_knowledge_base(source_root: Path, target_root: Path, force: bool = False):
+def install_knowledge_base(source_root: Path, target_root: Path, force: bool = False, project_root: Path = Path('.')):
     """
     Installs the KB from source_root to target_root.
     """
+    project_root = project_root.resolve()
+
     if not source_root.exists():
         raise FileNotFoundError(f"Source directory does not exist: {source_root}")
 
@@ -51,6 +53,13 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
     # 1. Prepare Target Directory
     if target_root.exists() and target_root.is_dir():
         target_root = target_root / source_root.name
+
+    # Resolve target_root to absolute path after potential modification
+    target_root = target_root.resolve()
+
+    # Validate Project Root
+    if not target_root.is_relative_to(project_root):
+        raise ValueError(f"Target root '{target_root}' must be relative to project root '{project_root}'.")
 
     target_cache = target_root / "cache"
 
@@ -137,8 +146,13 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
         try:
             # If abs_source_path is inside source_cache
             rel_to_cache = abs_source_path.relative_to(source_cache)
-            # New path is cache/ + rel_to_cache
-            new_rel_path = Path("cache") / rel_to_cache
+
+            # The file will be at target_cache / rel_to_cache
+            abs_target_path = target_cache / rel_to_cache
+
+            # Calculate path relative to project root
+            new_rel_path = abs_target_path.relative_to(project_root)
+
         except ValueError:
             # File is NOT in source_cache. It wasn't copied!
             logger.error(f"Document {abs_source_path} is not in cache directory. It was NOT copied to target.")
@@ -151,10 +165,10 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
         if new_rel_path:
             doc["path"] = new_rel_path.as_posix()
 
-            # Verify existence in target
-            abs_target_path = target_root / new_rel_path
-            if not abs_target_path.exists():
-                logger.warning(f"Target file missing: {abs_target_path}")
+            # Verify existence in target (path in doc is relative to project_root)
+            abs_check_path = project_root / new_rel_path
+            if not abs_check_path.exists():
+                logger.warning(f"Target file missing: {abs_check_path}")
 
         updated_documents.append(doc)
 
@@ -180,10 +194,11 @@ def main():
     parser.add_argument("--source", required=True, help="Source KB root directory.")
     parser.add_argument("--target-kb-root", required=True, help="Target KB root directory.")
     parser.add_argument("--force", action="store_true", help="Force overwrite of target.")
+    parser.add_argument("--project-root", default=".", help="Project root directory for relative path calculation.")
 
     try:
         args = parser.parse_args()
-        result = install_knowledge_base(Path(args.source), Path(args.target_kb_root), args.force)
+        result = install_knowledge_base(Path(args.source), Path(args.target_kb_root), args.force, Path(args.project_root))
         print_json_stdout(result)
 
     except (FileNotFoundError, FileExistsError) as e:
