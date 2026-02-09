@@ -15,8 +15,12 @@ Returns:
     (stdout): The normalized path string.
 """
 
-import argparse
+import logging
 import sys
+# Suppress all logging output at the earliest possible stage to ensure pure JSON stderr on error.
+logging.disable(logging.CRITICAL)
+
+import argparse
 
 def normalize_path_for_cache(path_str: str) -> str:
     """

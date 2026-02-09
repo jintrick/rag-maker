@@ -22,6 +22,7 @@ dependencies = [
     "GitPython",
     "markitdown",
     "pywin32; sys_platform == 'win32'",
+    "tkfilebrowser",
 ]
 
 [project.optional-dependencies]
