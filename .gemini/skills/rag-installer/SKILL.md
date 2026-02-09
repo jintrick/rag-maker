@@ -1,17 +1,17 @@
 ---
 name: rag-installer
-description: Install or migrate a RAG knowledge base using ragmaker-ask-dir and ragmaker-install-kb.
+description: Install or merge RAG knowledge bases using ragmaker-ask-dir and ragmaker-install-kb.
 ---
 
 # rag-installer
 
-Use this skill to install a RAG knowledge base. Execute these commands exactly:
+Use this skill to install or merge one or more RAG knowledge bases. Execute these commands exactly:
 
-1. **Select Source**: Run `ragmaker-ask-dir` to select the source KB directory. Capture as `SOURCE`.
-2. **Select Destination**: Run `ragmaker-ask-dir --initial-dir .` to select the parent directory where the KB should be placed. Capture as `DEST_PARENT`.
+1. **Select Source(s)**: Run `ragmaker-ask-dir --multiple --initial-dir .` to select one or more source KB directories. Capture the result list as `SOURCES`.
+2. **Select Destination**: Run `ragmaker-ask-dir --initial-dir .` to select the target directory where the KB(s) should be installed or merged. Capture as `TARGET_ROOT`.
 3. **Confirmation**:
-    - Inform the user: "Installing knowledge base from `SOURCE` into `DEST_PARENT`."
-    - Note that the tool will automatically create a sub-folder with the same name as the source.
+    - Inform the user: "Installing/Merging knowledge base(s) from `SOURCES` into `TARGET_ROOT`."
+    - Note that if `TARGET_ROOT` already contains a knowledge base, the new documents and metadata will be merged non-destructively.
     - Wait for user confirmation.
-4. **Install**: Run `ragmaker-install-kb --source SOURCE --target-kb-root DEST_PARENT`. (Add `--force` if the user confirms overwriting).
-5. **Open**: Parse the `target_kb_root` from the JSON output of the install command and run `ragmaker-open-directory` with it.
+4. **Install**: Run `ragmaker-install-kb --source SOURCES --target-kb-root TARGET_ROOT`. (Add `--force` if the user confirms merging into a non-empty directory).
+5. **Open**: Parse the `target_kb_root` from the successful JSON output and run `ragmaker-open-directory` with it.
