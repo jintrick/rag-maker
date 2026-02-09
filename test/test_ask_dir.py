@@ -82,7 +82,8 @@ class TestAskDir(unittest.TestCase):
                 mock_results.GetItemAt.side_effect = [item1, item2]
 
                 # Run function
-                ask_dir.ask_for_directory(multiple=True)
+                with patch('os.path.isdir', return_value=True):
+                    ask_dir.ask_for_directory(multiple=True)
 
                 # Check output
                 output = self.stdout.getvalue()
