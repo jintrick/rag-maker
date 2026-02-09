@@ -146,7 +146,7 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
 
                 # Load Catalog
                 try:
-                    with open(source_catalog, 'r', encoding='utf-8') as f:
+                    with open(source_catalog, 'r', encoding='utf-8-sig') as f:
                         catalog_data = json.load(f)
                 except json.JSONDecodeError as e:
                     logger.error(f"Failed to decode catalog JSON: {e}")
@@ -172,24 +172,35 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
                     abs_source_path = abs_source_path.resolve()
                     resolved_source_cache = source_cache.resolve()
 
-                    # Calculate new path relative to target root (which expects files in target_root/cache)
+                    # Calculate new path relative to target_root
                     new_rel_path = None
                     try:
-                        # We want to find the path relative to source cache, to map it to target cache.
-                        # If abs_source_path is inside source_cache
+                        # 1. Path relative to source cache
                         rel_to_cache = abs_source_path.relative_to(resolved_source_cache)
+                        
+                        # 2. Path relative to the target KB root
+                        # In the target KB, files are always in 'cache/'
+                        path_in_kb = Path("cache") / rel_to_cache
+                        
+                        # 3. Path relative to the PROJECT ROOT (CWD)
+                        # We must prepend the path from CWD to target_root.
+                        # We use os.path.relpath to get a clean relative path from CWD to target_root.
+                        rel_target_root = os.path.relpath(target_root, os.getcwd())
+                        if rel_target_root == ".":
+                            new_rel_path = path_in_kb
+                        else:
+                            new_rel_path = Path(rel_target_root) / path_in_kb
 
-                        new_rel_path = Path("cache") / rel_to_cache
                     except ValueError:
                          logger.warning(f"Document {abs_source_path} is outside cache directory ({resolved_source_cache}). It was likely not copied.")
-                         # Keep original path
+                         # If outside, keep original
                          new_rel_path = doc_path
 
                     if new_rel_path:
                         doc["path"] = new_rel_path.as_posix()
 
-                        # Verify existence in work_root
-                        abs_target_path = work_root / new_rel_path
+                        # Verify existence in work_root (using rel_to_cache)
+                        abs_target_path = work_root / "cache" / rel_to_cache
                         if not abs_target_path.exists():
                             logger.warning(f"Target file missing: {abs_target_path}")
 
@@ -213,7 +224,7 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
 
         if work_catalog.exists():
             try:
-                with open(work_catalog, 'r', encoding='utf-8') as f:
+                with open(work_catalog, 'r', encoding='utf-8-sig') as f:
                     old_catalog = json.load(f)
                 final_catalog = merge_catalog_data(old_catalog, final_catalog)
                 logger.info("Merged existing catalog with new data.")

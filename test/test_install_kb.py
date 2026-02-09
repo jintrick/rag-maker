@@ -51,7 +51,8 @@ class TestInstallKB(unittest.TestCase):
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
             self.assertEqual(len(catalog["documents"]), 1)
-            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+            expected_path = os.path.relpath(self.target_kb / "cache" / "doc1.txt", os.getcwd())
+            self.assertEqual(catalog["documents"][0]["path"], expected_path.replace("\\", "/"))
 
         # Check file copy
         self.assertTrue((self.target_kb / "cache" / "doc1.txt").exists())
@@ -73,7 +74,8 @@ class TestInstallKB(unittest.TestCase):
 
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
-            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+            expected_path = os.path.relpath(self.target_kb / "cache" / "doc1.txt", os.getcwd())
+            self.assertEqual(catalog["documents"][0]["path"], expected_path.replace("\\", "/"))
 
     def test_install_into_existing_directory(self):
         """Test installing into an existing directory."""
@@ -168,7 +170,9 @@ class TestInstallKB(unittest.TestCase):
             docs = catalog["documents"]
             self.assertEqual(len(docs), 2)
             paths = sorted([d["path"] for d in docs])
-            self.assertEqual(paths, ["cache/doc1.txt", "cache/doc2.txt"])
+            expected_p1 = os.path.relpath(self.target_kb / "cache" / "doc1.txt", os.getcwd()).replace("\\", "/")
+            expected_p2 = os.path.relpath(self.target_kb / "cache" / "doc2.txt", os.getcwd()).replace("\\", "/")
+            self.assertEqual(paths, sorted([expected_p1, expected_p2]))
 
     def test_default_no_merge(self):
         """Test default behavior (no merge): install into subdirectories."""
@@ -225,7 +229,8 @@ class TestInstallKB(unittest.TestCase):
 
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
-            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+            expected_path = os.path.relpath(self.target_kb / "cache" / "doc1.txt", os.getcwd())
+            self.assertEqual(catalog["documents"][0]["path"], expected_path.replace("\\", "/"))
 
     def test_catalog_at_root_path_resolution(self):
         """Test path resolution when catalog.json is at root."""
@@ -243,7 +248,8 @@ class TestInstallKB(unittest.TestCase):
 
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
-            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+            expected_path = os.path.relpath(self.target_kb / "cache" / "doc1.txt", os.getcwd())
+            self.assertEqual(catalog["documents"][0]["path"], expected_path.replace("\\", "/"))
 
     def test_error_handling(self):
         """Test that errors during source processing are caught and raised."""
@@ -260,9 +266,10 @@ class TestInstallKB(unittest.TestCase):
         (self.target_kb / "cache").mkdir()
         (self.target_kb / "cache" / "existing.txt").write_text("existing content")
 
+        p_rel = os.path.relpath(self.target_kb / "cache" / "existing.txt", os.getcwd()).replace("\\", "/")
         existing_catalog = {
             "documents": [
-                {"path": "cache/existing.txt", "title": "Existing Doc"}
+                {"path": p_rel, "title": "Existing Doc"}
             ],
             "metadata": {
                 "sources": ["/original/source"]
@@ -293,8 +300,9 @@ class TestInstallKB(unittest.TestCase):
 
             # Check documents
             doc_paths = [d["path"] for d in catalog["documents"]]
-            self.assertIn("cache/existing.txt", doc_paths)
-            self.assertIn("cache/new.txt", doc_paths)
+            self.assertIn(p_rel, doc_paths)
+            expected_new = os.path.relpath(self.target_kb / "cache" / "new.txt", os.getcwd()).replace("\\", "/")
+            self.assertIn(expected_new, doc_paths)
 
             # Check sources
             sources = catalog["metadata"]["sources"]
@@ -310,9 +318,10 @@ class TestInstallKB(unittest.TestCase):
         self.target_kb.mkdir(parents=True)
         (self.target_kb / "cache").mkdir()
 
+        p_root_rel = os.path.relpath(self.target_kb / "cache" / "doc1.txt", os.getcwd()).replace("\\", "/")
         existing_catalog = {
             "documents": [
-                {"path": "cache/doc1.txt", "title": "Old Title"}
+                {"path": p_root_rel, "title": "Old Title"}
             ]
         }
         with open(self.target_kb / "catalog.json", 'w') as f:
