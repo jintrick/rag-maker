@@ -5,7 +5,7 @@ import shutil
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 # Add src to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
@@ -359,6 +359,52 @@ class TestInstallKB(unittest.TestCase):
         self.assertTrue((self.target_kb / "initial.txt").exists())
         # Should NOT have catalog.json
         self.assertFalse((self.target_kb / "catalog.json").exists())
+
+    def test_temp_dir_location(self):
+        """Test that temporary directory is created in target's parent directory."""
+        with patch('ragmaker.tools.install_kb.tempfile.TemporaryDirectory') as mock_temp_dir:
+            # Setup context manager return value
+            mock_temp_dir.return_value.__enter__.return_value = self.test_dir.name
+
+            # Setup source catalog
+            (self.source_kb / "catalog.json").write_text('{"documents": []}')
+
+            install_knowledge_base([self.source_kb], self.target_kb)
+
+            # Verify call args. dir should be the parent of target_kb
+            # self.target_kb is .../target_kb, parent is .../
+            mock_temp_dir.assert_called_with(dir=self.target_kb.parent)
+
+    def test_restoration_failure_logging(self):
+        """Test that a critical log is emitted when backup restoration fails."""
+        # Create target with content
+        self.target_kb.mkdir()
+        (self.target_kb / "original.txt").write_text("original")
+
+        # Setup source catalog
+        (self.source_kb / "catalog.json").write_text('{"documents": []}')
+
+        # Mock shutil.move to fail installation
+        # This simulates failure during the swap (work -> target)
+        with patch('ragmaker.tools.install_kb.shutil.move', side_effect=RuntimeError("Install Failed")):
+            # Mock Path.rename to fail ONLY on the second call (restoration)
+            # First call is target -> backup (should succeed)
+            # Second call is backup -> target (should fail)
+            with patch('pathlib.Path.rename', side_effect=[None, RuntimeError("Restore Failed")]) as mock_rename:
+                # Mock logger to capture output
+                with patch('ragmaker.tools.install_kb.logger') as mock_logger:
+                    with self.assertRaises(RuntimeError):
+                        install_knowledge_base([self.source_kb], self.target_kb, force=True)
+
+                    # Verify critical log was called
+                    # We expect a critical log because restoration failed
+                    self.assertTrue(mock_logger.critical.called, "Logger.critical was not called")
+
+                    # Verify message content
+                    args, _ = mock_logger.critical.call_args
+                    message = args[0]
+                    self.assertIn(".bak", message)
+                    self.assertIn("remain", message) # "remains" or "remaining" or similar
 
 if __name__ == '__main__':
     unittest.main()
