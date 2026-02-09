@@ -93,26 +93,20 @@ def ask_for_directory(initial_dir: Optional[str] = None, multiple: bool = False)
 
         if multiple:
             # Use tkfilebrowser for multiple selection
-            # It returns a tuple of paths (or list)
             paths = tkfilebrowser.askopendirnames(
                 title="Select Folders",
                 initialdir=initial_dir
             )
             if paths:
                 selected = list(paths)
-            else:
-                selected = None
         else:
-            # Use standard tkinter for single selection
-            selected_path = filedialog.askdirectory(
-                title="Select a directory",
+            # Use tkfilebrowser for single selection to maintain UI consistency
+            path = tkfilebrowser.askopendirname(
+                title="Select Folder",
                 initialdir=initial_dir
             )
-
-            if selected_path:
-                selected = selected_path
-            else:
-                selected = None
+            if path:
+                selected = path
 
         if selected is not None:
             # User selected directory(ies)

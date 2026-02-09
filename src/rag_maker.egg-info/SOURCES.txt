@@ -37,7 +37,6 @@ test/test_html_to_markdown.py
 test/test_http_fetch.py
 test/test_init_cache.py
 test/test_install_kb.py
-test/test_issue_v0_7_8.py
 test/test_move_file.py
 test/test_open_directory.py
 test/test_package_dependency.py

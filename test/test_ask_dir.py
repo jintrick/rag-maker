@@ -60,18 +60,18 @@ class TestAskDir(unittest.TestCase):
             self.assertEqual(data['selected_directories'], ["/path/dir1", "/path/dir2"])
 
     def test_single_selection_success(self):
-        # Mock tkinter.filedialog
+        # Mock tkfilebrowser
         mock_tk = MagicMock()
-        mock_filedialog = MagicMock()
+        mock_tkfilebrowser = MagicMock()
 
         with patch('ragmaker.tools.ask_dir.tk', mock_tk), \
-             patch('ragmaker.tools.ask_dir.filedialog', mock_filedialog):
+             patch('ragmaker.tools.ask_dir.tkfilebrowser', mock_tkfilebrowser):
 
-            mock_filedialog.askdirectory.return_value = "/path/single"
+            mock_tkfilebrowser.askopendirname.return_value = "/path/single"
 
             ask_dir.ask_for_directory(multiple=False)
 
-            mock_filedialog.askdirectory.assert_called_once()
+            mock_tkfilebrowser.askopendirname.assert_called_once()
 
             output = self.stdout.getvalue()
             data = json.loads(output)
@@ -92,9 +92,9 @@ class TestAskDir(unittest.TestCase):
 
     def test_cancel_single(self):
         with patch('ragmaker.tools.ask_dir.tk'), \
-             patch('ragmaker.tools.ask_dir.filedialog') as mock_filedialog:
+             patch('ragmaker.tools.ask_dir.tkfilebrowser') as mock_tkfilebrowser:
 
-            mock_filedialog.askdirectory.return_value = "" # Cancelled returns empty string
+            mock_tkfilebrowser.askopendirname.return_value = "" # Cancelled returns empty string
 
             with self.assertRaises(SystemExit):
                 ask_dir.ask_for_directory(multiple=False)
