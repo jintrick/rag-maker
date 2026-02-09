@@ -183,20 +183,11 @@ class TestAskDir(unittest.TestCase):
 
             with patch.dict('sys.modules', {
                 'tkinter': mock_tk,
-                'tkinter.filedialog': mock_filedialog
+                'tkinter.filedialog': mock_filedialog,
+                'pythoncom': None,
+                'win32com': None,
+                'win32com.shell': None
             }):
-                # Need to ensure pythoncom is NOT in modules, to force ImportError
-                # (Just in case previous tests left it there)
-                # patch.dict only restores what was there before. If we added it in previous test via patch.dict,
-                # it should be gone after that test's patcher stopped.
-
-                # However, to be extra safe, we can manually check and verify.
-                # Or just assume unittest isolation is good enough.
-
-                # One trick: We must make sure `pythoncom` is not in sys.modules.
-                # If it is (from real installation), we need to hide it.
-                # Since we likely don't have it, it's fine.
-
                 importlib.reload(ask_dir)
 
                 # Verify PYWIN32_AVAILABLE is False
