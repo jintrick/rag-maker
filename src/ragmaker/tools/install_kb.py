@@ -47,11 +47,6 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
         return _install_merged(source_roots, target_root, force)
     else:
         results = []
-        # Validate all sources exist first
-        for src in source_roots:
-            if not src.exists():
-                raise FileNotFoundError(f"Source directory does not exist: {src}")
-
         # Ensure target root exists (it's a container for KBs now)
         target_root.mkdir(parents=True, exist_ok=True)
 
@@ -69,12 +64,12 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
             try:
                 res = _install_merged([source_root], sub_target_root, force)
                 results.append(res)
-            except Exception as e:
+            except Exception:
                 # If one fails, do we abort or continue?
                 # The requirement says "maintain atomicity per source".
                 # We should probably let the exception propagate if it's critical, or return partial success.
                 # Given _install_merged raises exceptions on error, let's let it propagate for now.
-                raise e
+                raise
 
         return {
             "status": "success",

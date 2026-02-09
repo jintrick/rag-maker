@@ -187,8 +187,8 @@ class TestInstallKB(unittest.TestCase):
         with open(source2 / "catalog.json", 'w') as f:
             json.dump(cat2, f)
 
-        # Install both with merge=False (default)
-        result = install_knowledge_base([self.source_kb, source2], self.target_kb, merge=False)
+        # Install both with default behavior (merge=False)
+        result = install_knowledge_base([self.source_kb, source2], self.target_kb)
 
         self.assertEqual(result["status"], "success")
         self.assertEqual(len(result["installed_kbs"]), 2)
