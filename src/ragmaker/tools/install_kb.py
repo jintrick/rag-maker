@@ -45,6 +45,9 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
             raise FileNotFoundError(f"Source directory does not exist: {src}")
 
     # 1. Prepare Target Directory
+    if len(source_roots) == 1 and target_root.exists():
+        target_root = target_root / source_roots[0].name
+
     if target_root.exists():
         if not target_root.is_dir():
             raise NotADirectoryError(f"Target path {target_root} exists and is not a directory.")
@@ -60,86 +63,95 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
     all_documents = []
 
     for source_root in source_roots:
-        source_cache = source_root / "cache"
-
-        # 2. Copy cache directory
-        if source_cache.exists():
-            # safe_export handles merging
-            safe_export(source_cache, target_cache)
-            logger.info(f"Merged cache from {source_cache} to {target_cache}")
-        else:
-            logger.warning(f"Source cache not found in {source_root}. Skipping cache copy.")
-
-        # 3. Locate and Copy Catalog
-        # Priority: source/catalog.json -> source/discovery.json -> source/cache/catalog.json -> source/cache/discovery.json
-        source_catalog = None
-        catalog_source_location = None # "root" or "cache"
-
-        candidates = [
-            (source_root / "catalog.json", "root"),
-            (source_root / "discovery.json", "root"),
-            (source_cache / "catalog.json", "cache"),
-            (source_cache / "discovery.json", "cache")
-        ]
-
-        for path, loc in candidates:
-            if path.exists():
-                source_catalog = path
-                catalog_source_location = loc
-                break
-
-        if not source_catalog:
-             logger.warning(f"Could not find catalog.json or discovery.json in {source_root}")
-             continue
-
-        logger.info(f"Found catalog at {source_catalog} (location: {catalog_source_location})")
-
-        # Load Catalog
         try:
-            with open(source_catalog, 'r', encoding='utf-8') as f:
-                catalog_data = json.load(f)
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to decode catalog JSON: {e}")
-            continue
+            source_cache = source_root / "cache"
 
-        # 4. Normalize Paths
-        documents = catalog_data.get("documents", [])
+            # 2. Copy cache directory
+            if source_cache.exists():
+                # safe_export handles merging
+                safe_export(source_cache, target_cache)
+                logger.info(f"Merged cache from {source_cache} to {target_cache}")
+            else:
+                logger.warning(f"Source cache not found in {source_root}. Skipping cache copy.")
 
-        for doc in documents:
-            original_path_str = doc.get("path")
-            if not original_path_str:
+            # 3. Locate and Copy Catalog
+            # Priority: source/catalog.json -> source/discovery.json -> source/cache/catalog.json -> source/cache/discovery.json
+            source_catalog = None
+            catalog_source_location = None # "root" or "cache"
+
+            candidates = [
+                (source_root / "catalog.json", "root"),
+                (source_root / "discovery.json", "root"),
+                (source_cache / "catalog.json", "cache"),
+                (source_cache / "discovery.json", "cache")
+            ]
+
+            for path, loc in candidates:
+                if path.exists():
+                    source_catalog = path
+                    catalog_source_location = loc
+                    break
+
+            if not source_catalog:
+                 logger.warning(f"Could not find catalog.json or discovery.json in {source_root}")
+                 continue
+
+            logger.info(f"Found catalog at {source_catalog} (location: {catalog_source_location})")
+
+            # Load Catalog
+            try:
+                with open(source_catalog, 'r', encoding='utf-8') as f:
+                    catalog_data = json.load(f)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to decode catalog JSON: {e}")
                 continue
 
-            doc_path = Path(original_path_str)
-            abs_source_path = None
+            # 4. Normalize Paths
+            documents = catalog_data.get("documents", [])
 
-            if catalog_source_location == "root":
-                abs_source_path = source_root / doc_path
-            else: # cache
-                abs_source_path = source_cache / doc_path
+            for doc in documents:
+                original_path_str = doc.get("path")
+                if not original_path_str:
+                    continue
 
-            # Calculate new path relative to target root (which expects files in target_root/cache)
-            new_rel_path = None
-            try:
-                # We want to find the path relative to source cache, to map it to target cache.
-                # If abs_source_path is inside source_cache
-                rel_to_cache = abs_source_path.relative_to(source_cache)
+                doc_path = Path(original_path_str)
+                abs_source_path = None
 
-                new_rel_path = Path("cache") / rel_to_cache
-            except ValueError:
-                 logger.warning(f"Document {abs_source_path} is outside cache directory. It was likely not copied.")
-                 # Keep original path
-                 new_rel_path = doc_path
+                if catalog_source_location == "root":
+                    abs_source_path = source_root / doc_path
+                else: # cache
+                    abs_source_path = source_cache / doc_path
 
-            if new_rel_path:
-                doc["path"] = new_rel_path.as_posix()
+                # Resolve paths to handle symlinks and '..'
+                abs_source_path = abs_source_path.resolve()
+                resolved_source_cache = source_cache.resolve()
 
-                # Verify existence in target
-                abs_target_path = target_root / new_rel_path
-                if not abs_target_path.exists():
-                    logger.warning(f"Target file missing: {abs_target_path}")
+                # Calculate new path relative to target root (which expects files in target_root/cache)
+                new_rel_path = None
+                try:
+                    # We want to find the path relative to source cache, to map it to target cache.
+                    # If abs_source_path is inside source_cache
+                    rel_to_cache = abs_source_path.relative_to(resolved_source_cache)
 
-            all_documents.append(doc)
+                    new_rel_path = Path("cache") / rel_to_cache
+                except ValueError:
+                     logger.warning(f"Document {abs_source_path} is outside cache directory ({resolved_source_cache}). It was likely not copied.")
+                     # Keep original path
+                     new_rel_path = doc_path
+
+                if new_rel_path:
+                    doc["path"] = new_rel_path.as_posix()
+
+                    # Verify existence in target
+                    abs_target_path = target_root / new_rel_path
+                    if not abs_target_path.exists():
+                        logger.warning(f"Target file missing: {abs_target_path}")
+
+                all_documents.append(doc)
+
+        except Exception as e:
+            logger.error(f"Failed to process source {source_root}: {e}")
+            raise
 
     # Save Catalog to Target Root
     final_catalog = {
