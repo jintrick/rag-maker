@@ -55,7 +55,8 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
                  raise FileExistsError(f"Target directory {target_root} is not empty. Use --force to merge/overwrite.")
 
     # Create a temporary directory for atomic installation
-    with tempfile.TemporaryDirectory() as temp_dir:
+    target_root.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=target_root.parent) as temp_dir:
         work_root = Path(temp_dir) / "work"
         work_root.mkdir(parents=True, exist_ok=True)
 
@@ -207,7 +208,11 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
                 # Restore backup on failure
                 if target_root.exists():
                     shutil.rmtree(target_root)
-                backup_path.rename(target_root)
+                try:
+                    backup_path.rename(target_root)
+                except Exception as e:
+                    logger.critical(f"Critical Error: Failed to restore backup from {backup_path} to {target_root}. Data remains in {backup_path}. Error: {e}")
+                    raise
                 raise
 
             # Cleanup backup
