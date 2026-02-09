@@ -103,6 +103,11 @@ class TestAskDir(unittest.TestCase):
                 mock_dialog.GetOptions.assert_called()
                 mock_dialog.SetOptions.assert_called()
 
+                # Verify that GetResults was called
+                mock_dialog.GetResults.assert_called_once()
+                # Verify that GetResult was NOT called
+                mock_dialog.GetResult.assert_not_called()
+
     def test_windows_single_success(self):
         with patch('sys.platform', 'win32'):
             mock_pythoncom = MagicMock()
@@ -127,13 +132,10 @@ class TestAskDir(unittest.TestCase):
                 mock_dialog = MagicMock()
                 mock_pythoncom.CoCreateInstance.return_value = mock_dialog
 
-                mock_results = MagicMock()
-                mock_dialog.GetResults.return_value = mock_results
-                mock_results.GetCount.return_value = 1
-
+                # Mock GetResult for single selection
                 item1 = MagicMock()
                 item1.GetDisplayName.return_value = r"C:\Folder1"
-                mock_results.GetItemAt.side_effect = [item1]
+                mock_dialog.GetResult.return_value = item1
 
                 ask_dir.ask_for_directory(multiple=False)
 
@@ -141,6 +143,11 @@ class TestAskDir(unittest.TestCase):
                 data = json.loads(output)
                 self.assertEqual(data['status'], 'success')
                 self.assertEqual(data['selected_directory'], r"C:\Folder1")
+
+                # Verify that GetResult was called
+                mock_dialog.GetResult.assert_called_once()
+                # Verify that GetResults was NOT called
+                mock_dialog.GetResults.assert_not_called()
 
     def test_fallback_linux_multiple(self):
         # Mock sys.platform to linux

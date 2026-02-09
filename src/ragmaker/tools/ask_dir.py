@@ -91,21 +91,22 @@ def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[
 
         dialog.Show(None)
 
-        results = dialog.GetResults()
-        count = results.GetCount()
-        paths = []
-        for i in range(count):
-            item = results.GetItemAt(i)
-            path = item.GetDisplayName(shellcon.SIGDN_FILESYSPATH)
-            paths.append(path)
-
-        if not paths:
-            return None
-
         if multiple:
+            results = dialog.GetResults()
+            count = results.GetCount()
+            paths = []
+            for i in range(count):
+                item = results.GetItemAt(i)
+                path = item.GetDisplayName(shellcon.SIGDN_FILESYSPATH)
+                paths.append(path)
+
+            if not paths:
+                return None
             return paths
         else:
-            return paths[0]
+            item = dialog.GetResult()
+            path = item.GetDisplayName(shellcon.SIGDN_FILESYSPATH)
+            return path
 
     except pythoncom.com_error as e:
         # HRESULT 0x800704C7 is cancelled (-2147023673)
