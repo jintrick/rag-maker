@@ -77,6 +77,9 @@ def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[
         # Set options
         options = dialog.GetOptions()
         if multiple:
+            # To allow multiple selection on Windows, we MUST NOT use FOS_PICKFOLDERS.
+            # We use file selection mode with multi-select enabled, then filter for directories.
+            options &= ~shellcon.FOS_PICKFOLDERS
             options |= shellcon.FOS_ALLOWMULTISELECT | shellcon.FOS_FORCEFILESYSTEM
         else:
             options |= shellcon.FOS_PICKFOLDERS
