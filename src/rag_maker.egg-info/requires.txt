@@ -5,6 +5,7 @@ trafilatura
 beautifulsoup4
 GitPython
 markitdown
+tkfilebrowser
 
 [:sys_platform == "win32"]
 pywin32

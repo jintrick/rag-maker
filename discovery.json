@@ -45,7 +45,7 @@
         "properties": {
           "multiple": {
             "type": "boolean",
-            "description": "複数のディレクトリを選択可能にするかどうか（Windowsのみ）。",
+            "description": "複数のディレクトリを選択可能にするかどうか。",
             "default": false
           }
         }

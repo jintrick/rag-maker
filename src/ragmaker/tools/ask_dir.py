@@ -25,23 +25,17 @@ except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
 
-# Conditional import for Windows
-if sys.platform == 'win32':
-    try:
-        import pythoncom
-        from win32com.shell import shell, shellcon
-        PYWIN32_AVAILABLE = True
-    except ImportError:
-        PYWIN32_AVAILABLE = False
-else:
-    PYWIN32_AVAILABLE = False
-
 try:
     import tkinter as tk
     from tkinter import filedialog
 except ImportError:
     tk = None
     filedialog = None
+
+try:
+    import tkfilebrowser
+except (ImportError, Exception):
+    tkfilebrowser = None
 
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
@@ -57,70 +51,6 @@ def handle_user_cancellation():
         "remediation_suggestion": "Please re-run the command and select a directory."
     })
 
-def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[str, List[str], None]:
-    """
-    Uses Windows IFileOpenDialog to select directory(ies).
-    Returns path(s) or None if cancelled.
-    """
-    pythoncom.CoInitialize()
-    try:
-        # Create IFileOpenDialog object
-        # CLSID_FileOpenDialog = "{DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7}"
-        # IID_IFileOpenDialog = "{d57c7288-d4ad-4768-be02-9d969532d960}"
-        dialog = pythoncom.CoCreateInstance(
-            shell.CLSID_FileOpenDialog,
-            None,
-            pythoncom.CLSCTX_INPROC_SERVER,
-            shell.IID_IFileOpenDialog
-        )
-
-        # Set options
-        options = dialog.GetOptions()
-        if multiple:
-            # To allow multiple selection on Windows, we MUST NOT use FOS_PICKFOLDERS.
-            # We use file selection mode with multi-select enabled, then filter for directories.
-            options &= ~shellcon.FOS_PICKFOLDERS
-            options |= shellcon.FOS_ALLOWMULTISELECT | shellcon.FOS_FORCEFILESYSTEM
-        else:
-            options |= shellcon.FOS_PICKFOLDERS
-        dialog.SetOptions(options)
-
-        if initial_dir:
-            try:
-                item = shell.SHCreateItemFromParsingName(initial_dir, None, shell.IID_IShellItem)
-                dialog.SetFolder(item)
-            except Exception:
-                # If initial dir is invalid, ignore it
-                pass
-
-        dialog.Show(None)
-
-        if multiple:
-            results = dialog.GetResults()
-            count = results.GetCount()
-            paths = []
-            for i in range(count):
-                item = results.GetItemAt(i)
-                path = item.GetDisplayName(shellcon.SIGDN_FILESYSPATH)
-                if os.path.isdir(path):
-                    paths.append(path)
-
-            if not paths:
-                return None
-            return paths
-        else:
-            item = dialog.GetResult()
-            path = item.GetDisplayName(shellcon.SIGDN_FILESYSPATH)
-            return path
-
-    except pythoncom.com_error as e:
-        # HRESULT 0x800704C7 is cancelled (-2147023673)
-        if e.hresult == -2147023673:
-            return None
-        raise
-    finally:
-        pythoncom.CoUninitialize()
-
 # --- Core Logic ---
 def ask_for_directory(initial_dir: Optional[str] = None, multiple: bool = False) -> None:
     """
@@ -132,51 +62,55 @@ def ask_for_directory(initial_dir: Optional[str] = None, multiple: bool = False)
             initial_dir = os.path.normpath(os.path.abspath(initial_dir))
 
         selected = None
-        used_method = "tkinter"
 
-        if sys.platform == 'win32' and PYWIN32_AVAILABLE:
-            try:
-                selected = _ask_directory_windows(initial_dir, multiple)
-                used_method = "win32"
-            except Exception:
-                # Fallback to tkinter if something goes wrong with COM
-                used_method = "tkinter"
+        if tk is None:
+             eprint_error({
+                "status": "error",
+                "error_code": "DEPENDENCY_ERROR",
+                "message": "Required library 'tkinter' not found.",
+                "remediation_suggestion": (
+                    "Please install the tkinter library for your Python distribution. "
+                    "For example, on Debian/Ubuntu, run: sudo apt-get install python3-tk"
+                )
+            })
+             sys.exit(1)
 
-        if used_method == "tkinter":
-            if tk is None:
-                 eprint_error({
-                    "status": "error",
-                    "error_code": "DEPENDENCY_ERROR",
-                    "message": "Required library 'tkinter' not found and native Windows dialog unavailable.",
-                    "remediation_suggestion": (
-                        "Please install the tkinter library for your Python distribution. "
-                        "For example, on Debian/Ubuntu, run: sudo apt-get install python3-tk"
-                    )
-                })
-                 sys.exit(1)
+        # tkfilebrowser also depends on tkinter, so we check tk first.
+        # If multiple selection is requested, we need tkfilebrowser.
+        if multiple and tkfilebrowser is None:
+             eprint_error({
+                "status": "error",
+                "error_code": "DEPENDENCY_ERROR",
+                "message": "Required library 'tkfilebrowser' not found for multiple selection.",
+                "remediation_suggestion": "Please install the 'tkfilebrowser' package: pip install tkfilebrowser"
+            })
+             sys.exit(1)
 
-            if multiple and sys.platform != 'win32':
-                 # Warn about fallback on non-windows
-                 sys.stderr.write('{"status": "warning", "message": "Multiple selection is not supported on this platform/configuration. Falling back to single selection."}\n')
+        root = tk.Tk()
+        root.withdraw()  # Hide the main window
+        root.attributes("-topmost", True)  # Bring the dialog to the front
+        root.update() # Force update to ensure attributes and initialdir are respected
 
-            # Note: Even if multiple is True on Windows but we fell back to Tkinter (e.g. COM error),
-            # Tkinter doesn't support multiple folders. So we proceed with single selection.
-
-            root = tk.Tk()
-            root.withdraw()  # Hide the main window
-            root.attributes("-topmost", True)  # Bring the dialog to the front
-            root.update() # Force update to ensure attributes and initialdir are respected
-
+        if multiple:
+            # Use tkfilebrowser for multiple selection
+            # It returns a tuple of paths (or list)
+            paths = tkfilebrowser.askopendirnames(
+                title="Select Folders",
+                initialdir=initial_dir
+            )
+            if paths:
+                selected = list(paths)
+            else:
+                selected = None
+        else:
+            # Use standard tkinter for single selection
             selected_path = filedialog.askdirectory(
                 title="Select a directory",
                 initialdir=initial_dir
             )
 
             if selected_path:
-                if multiple:
-                    selected = [selected_path]
-                else:
-                    selected = selected_path
+                selected = selected_path
             else:
                 selected = None
 
@@ -207,7 +141,7 @@ def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser(description="A tool to display a GUI dialog for directory selection.")
     parser.add_argument("--initial-dir", help="The initial directory to display in the dialog.")
-    parser.add_argument("--multiple", action="store_true", help="Allow selecting multiple directories (Windows only).")
+    parser.add_argument("--multiple", action="store_true", help="Allow selecting multiple directories.")
     args = parser.parse_args()
     
     ask_for_directory(initial_dir=args.initial_dir, multiple=args.multiple)
