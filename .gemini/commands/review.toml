@@ -7,8 +7,10 @@ Issue {{args}} の実装について、プロジェクトのアーキテクチ�
 手順を一つずつ確実に実行せよ。物理的な情報の取得なしに評価を下すことは「欺瞞」と見なす。
 1. `git pull` : 最新の実装をローカルに確保せよ。
 2. `git status` および `git diff` : 変更されたファイルと内容を確認せよ。
-3. `pytest` : テストの実行結果と網羅性を確認せよ。
-4. `glob` および `read_file` : 変更されたツール（`src/ragmaker/tools/`）、ユーティリティ（`src/ragmaker/utils.py`）、および `discovery.json` の内容を精査せよ。
+3. `gh pr view <PR番号> --comments` : 全体の要約を確認せよ。
+4. `gh api repos/:owner/:repo/pulls/<PR番号>/comments --jq '.[].body'` : gca 等による詳細な行コメントを漏らさず取得し、反映せよ。
+5. `pytest` : テストの実行結果と網羅性を確認せよ。
+6. `glob` および `read_file` : 変更されたツール（`src/ragmaker/tools/`）、ユーティリティ（`src/ragmaker/utils.py`）、および `discovery.json` の内容を精査せよ。
 
 ## 必須チェック項目 (Adversarial Checklist)
 各項目について、具体的なファイル名と実装箇所を特定した上で評価せよ。
