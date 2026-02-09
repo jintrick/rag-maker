@@ -8,7 +8,7 @@ Issue {{args}} の実装について、プロジェクトのアーキテクチ�
 1. `git pull` : 最新の実装をローカルに確保せよ。
 2. `git status` および `git diff` : 変更されたファイルと内容を確認せよ。
 3. `gh pr view <PR番号> --comments` : 全体の要約を確認せよ。
-4. `gh api repos/:owner/:repo/pulls/<PR番号>/comments --jq '.[].body'` : gca 等による詳細な行コメントを漏らさず取得し、反映せよ。
+4. `gh api repos/:owner/:repo/pulls/<PR番号>/comments --jq '.[].body'` : gemini code assist による詳細な行コメントを漏らさず取得し、反映せよ。
 5. `pytest` : テストの実行結果と網羅性を確認せよ。
 6. `glob` および `read_file` : 変更されたツール（`src/ragmaker/tools/`）、ユーティリティ（`src/ragmaker/utils.py`）、および `discovery.json` の内容を精査せよ。
 
