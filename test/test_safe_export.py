@@ -74,5 +74,19 @@ class TestSafeExport(unittest.TestCase):
             with self.assertRaises(OSError):
                 safe_export(self.src_dir, self.dst_dir)
 
+    def test_safe_export_resolves_directory_file_conflict(self):
+        # src/foo is a file
+        (self.src_dir / "foo").write_text("file content")
+
+        # dst/foo is a directory
+        (self.dst_dir / "foo").mkdir()
+        (self.dst_dir / "foo" / "bar.txt").write_text("bar")
+
+        safe_export(self.src_dir, self.dst_dir)
+
+        self.assertFalse((self.dst_dir / "foo").is_dir())
+        self.assertTrue((self.dst_dir / "foo").is_file())
+        self.assertEqual((self.dst_dir / "foo").read_text(), "file content")
+
 if __name__ == "__main__":
     unittest.main()

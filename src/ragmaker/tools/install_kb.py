@@ -27,7 +27,7 @@ try:
         handle_value_error,
         print_json_stdout
     )
-    from ragmaker.utils import safe_export
+    from ragmaker.utils import safe_export, merge_catalog_data
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -151,6 +151,7 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
 
         except Exception as e:
             logger.error(f"Failed to process source {source_root}: {e}")
+            logger.warning("Installation aborted. Target directory might be in a partial state (files copied but catalog not updated).")
             raise
 
     # Save Catalog to Target Root
@@ -158,11 +159,23 @@ def install_knowledge_base(source_roots: List[Path], target_root: Path, force: b
         "documents": all_documents,
         "metadata": {
             "generator": "ragmaker-install-kb",
-            "sources": [str(p) for p in source_roots]
+            "sources": [str(p.resolve()) for p in source_roots]
         }
     }
 
     target_catalog = target_root / "catalog.json"
+
+    if target_catalog.exists():
+        try:
+            with open(target_catalog, 'r', encoding='utf-8') as f:
+                old_catalog = json.load(f)
+            final_catalog = merge_catalog_data(old_catalog, final_catalog)
+            logger.info("Merged existing catalog with new data.")
+        except json.JSONDecodeError:
+            logger.warning(f"Existing catalog at {target_catalog} is invalid. Overwriting.")
+        except Exception as e:
+            logger.error(f"Failed to merge existing catalog: {e}. Overwriting.")
+
     with open(target_catalog, 'w', encoding='utf-8') as f:
         json.dump(final_catalog, f, ensure_ascii=False, indent=2)
 

@@ -53,6 +53,45 @@ def print_catalog_data(
     print_json_stdout(catalog_data)
 
 
+def merge_catalog_data(old_data: dict, new_data: dict) -> dict:
+    """
+    Merges old and new catalog data.
+    Documents are merged by path (new overwrites old).
+    Metadata is merged (sources combined).
+    """
+    merged_docs = {d['path']: d for d in old_data.get('documents', [])}
+    for d in new_data.get('documents', []):
+        merged_docs[d['path']] = d
+
+    merged_metadata = old_data.get('metadata', {}).copy()
+    new_metadata = new_data.get('metadata', {})
+
+    # Update simple fields
+    for k, v in new_metadata.items():
+        if k != 'sources':
+            merged_metadata[k] = v
+
+    # Merge sources specifically
+    old_sources = set(merged_metadata.get('sources', []))
+    new_sources = set(new_metadata.get('sources', []))
+    combined_sources = sorted(list(old_sources | new_sources))
+
+    # Resolve sources to absolute paths (best effort)
+    resolved_sources = []
+    for s in combined_sources:
+        try:
+            resolved_sources.append(str(Path(s).resolve()))
+        except Exception:
+            resolved_sources.append(s)
+
+    merged_metadata['sources'] = sorted(list(set(resolved_sources)))
+
+    return {
+        "documents": list(merged_docs.values()),
+        "metadata": merged_metadata
+    }
+
+
 def cleanup_dir_contents(path: Path) -> None:
     """
     Recursively deletes the contents of a directory while preserving the directory itself.
@@ -86,7 +125,7 @@ def safe_export(src_dir: Path, dst_dir: Path) -> None:
 
     # Pre-check for directory/file conflicts
     # We walk the source directory to find any directories that conflict with files in destination.
-    for root, dirs, _ in os.walk(src_dir):
+    for root, dirs, files in os.walk(src_dir):
         rel_root = Path(root).relative_to(src_dir)
         dst_root = dst_dir / rel_root
 
@@ -98,6 +137,16 @@ def safe_export(src_dir: Path, dst_dir: Path) -> None:
                     dst_path.unlink()
                 except OSError as e:
                     logger.error(f"Failed to remove conflicting file {dst_path}: {e}")
+                    raise
+
+        for f in files:
+            dst_path = dst_root / f
+            if dst_path.exists() and dst_path.is_dir():
+                logger.warning(f"Removing directory '{dst_path}' to replace with file from source")
+                try:
+                    shutil.rmtree(dst_path)
+                except OSError as e:
+                    logger.error(f"Failed to remove conflicting directory {dst_path}: {e}")
                     raise
 
     try:

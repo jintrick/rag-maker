@@ -216,5 +216,90 @@ class TestInstallKB(unittest.TestCase):
         with self.assertRaises(Exception):
             install_knowledge_base([self.source_kb], self.target_kb)
 
+    def test_merge_existing_catalog(self):
+        """Test merging new KB into a target that already has a catalog."""
+        # 1. Setup Target with existing catalog
+        # Since install_kb with single source puts it in subdir, we need to create that subdir
+        target_subdir = self.target_kb / self.source_kb.name
+        target_subdir.mkdir(parents=True)
+        (target_subdir / "cache").mkdir()
+        (target_subdir / "cache" / "existing.txt").write_text("existing content")
+
+        existing_catalog = {
+            "documents": [
+                {"path": "cache/existing.txt", "title": "Existing Doc"}
+            ],
+            "metadata": {
+                "sources": ["/original/source"]
+            }
+        }
+        with open(target_subdir / "catalog.json", 'w') as f:
+            json.dump(existing_catalog, f)
+
+        # 2. Setup Source
+        (self.source_kb / "cache" / "new.txt").write_text("new content")
+        new_catalog = {
+            "documents": [
+                {"path": "cache/new.txt", "title": "New Doc"}
+            ],
+            # No metadata needed in source catalog necessarily, install_kb generates it
+        }
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(new_catalog, f)
+
+        # 3. Install with force=True (to allow install into non-empty dir)
+        result = install_knowledge_base([self.source_kb], self.target_kb, force=True)
+
+        self.assertEqual(result["status"], "success")
+
+        # 4. Verify Catalog Merged
+        with open(target_subdir / "catalog.json") as f:
+            catalog = json.load(f)
+
+            # Check documents
+            doc_paths = [d["path"] for d in catalog["documents"]]
+            self.assertIn("cache/existing.txt", doc_paths)
+            self.assertIn("cache/new.txt", doc_paths)
+
+            # Check sources
+            sources = catalog["metadata"]["sources"]
+            self.assertIn("/original/source", sources)
+            # resolved source path
+            resolved_source = str(self.source_kb.resolve())
+            self.assertIn(resolved_source, sources)
+
+    def test_merge_catalog_overwrite_duplicate(self):
+        """Test that duplicate document paths are overwritten by new source."""
+        # Target has doc1 (v1)
+        target_subdir = self.target_kb / self.source_kb.name
+        target_subdir.mkdir(parents=True)
+        (target_subdir / "cache").mkdir()
+
+        existing_catalog = {
+            "documents": [
+                {"path": "cache/doc1.txt", "title": "Old Title"}
+            ]
+        }
+        with open(target_subdir / "catalog.json", 'w') as f:
+            json.dump(existing_catalog, f)
+
+        # Source has doc1 (v2)
+        new_catalog = {
+            "documents": [
+                {"path": "cache/doc1.txt", "title": "New Title"}
+            ]
+        }
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(new_catalog, f)
+
+        install_knowledge_base([self.source_kb], self.target_kb, force=True)
+
+        with open(target_subdir / "catalog.json") as f:
+            catalog = json.load(f)
+            # Should have only one doc because paths collide
+            self.assertEqual(len(catalog["documents"]), 1)
+            doc = catalog["documents"][0]
+            self.assertEqual(doc["title"], "New Title")
+
 if __name__ == '__main__':
     unittest.main()
