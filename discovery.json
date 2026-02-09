@@ -274,8 +274,11 @@
         "type": "object",
         "properties": {
           "source": {
-            "type": "string",
-            "description": "インストール元となるKBのルートパス。"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "インストール元となるKBのルートパス（複数指定可）。"
           },
           "target-kb-root": {
             "type": "string",
