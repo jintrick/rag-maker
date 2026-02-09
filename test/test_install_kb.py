@@ -258,7 +258,8 @@ class TestInstallKB(unittest.TestCase):
 
             # Check sources
             sources = catalog["metadata"]["sources"]
-            self.assertIn("/original/source", sources)
+            expected_source = str(Path("/original/source").resolve())
+            self.assertIn(expected_source, sources)
             # resolved source path
             resolved_source = str(self.source_kb.resolve())
             self.assertIn(resolved_source, sources)
