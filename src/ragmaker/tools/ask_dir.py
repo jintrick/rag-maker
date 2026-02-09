@@ -76,9 +76,10 @@ def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[
 
         # Set options
         options = dialog.GetOptions()
-        options |= shellcon.FOS_PICKFOLDERS
         if multiple:
-            options |= shellcon.FOS_ALLOWMULTISELECT
+            options |= shellcon.FOS_ALLOWMULTISELECT | shellcon.FOS_FORCEFILESYSTEM
+        else:
+            options |= shellcon.FOS_PICKFOLDERS
         dialog.SetOptions(options)
 
         if initial_dir:
@@ -98,7 +99,8 @@ def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[
             for i in range(count):
                 item = results.GetItemAt(i)
                 path = item.GetDisplayName(shellcon.SIGDN_FILESYSPATH)
-                paths.append(path)
+                if os.path.isdir(path):
+                    paths.append(path)
 
             if not paths:
                 return None
