@@ -40,7 +40,16 @@
       "name": "ask_dir",
       "command": "ragmaker-ask-dir",
       "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",
-      "parameters": {}
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "multiple": {
+            "type": "boolean",
+            "description": "複数のディレクトリを選択可能にするかどうか（Windowsのみ）。",
+            "default": false
+          }
+        }
+      }
     },
     {
       "name": "github_fetch",

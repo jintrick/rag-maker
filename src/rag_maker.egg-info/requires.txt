@@ -6,5 +6,8 @@ beautifulsoup4
 GitPython
 markitdown
 
+[:sys_platform == "win32"]
+pywin32
+
 [test]
 pytest
