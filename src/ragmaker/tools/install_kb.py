@@ -18,6 +18,7 @@ import json
 import shutil
 import os
 from pathlib import Path
+from typing import List
 
 try:
     from ragmaker.io_utils import (
@@ -34,136 +35,124 @@ except ImportError:
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
-def install_knowledge_base(source_root: Path, target_root: Path, force: bool = False):
+def install_knowledge_base(source_roots: List[Path], target_root: Path, force: bool = False):
     """
-    Installs the KB from source_root to target_root.
+    Installs/Merges KBs from source_roots to target_root.
     """
-    if not source_root.exists():
-        raise FileNotFoundError(f"Source directory does not exist: {source_root}")
-
-    source_cache = source_root / "cache"
-
-    # Validate Source Structure
-    if not source_cache.exists():
-        logger.warning(f"'cache' directory not found in {source_root}. Assuming flat structure or missing cache.")
-        # If flat, maybe we should treat source as cache? But let's proceed and see if we can find catalog.
+    # Validate all sources exist first
+    for src in source_roots:
+        if not src.exists():
+            raise FileNotFoundError(f"Source directory does not exist: {src}")
 
     # 1. Prepare Target Directory
-    if target_root.exists() and target_root.is_dir():
-        target_root = target_root / source_root.name
-
-    target_cache = target_root / "cache"
-
     if target_root.exists():
         if not target_root.is_dir():
             raise NotADirectoryError(f"Target path {target_root} exists and is not a directory.")
         if not force:
+             # Check if target is empty.
              if any(target_root.iterdir()):
-                 # If only .gemini exists, maybe it's okay? But safer to ask for force.
-                 raise FileExistsError(f"Target directory {target_root} is not empty. Use --force to overwrite.")
+                 raise FileExistsError(f"Target directory {target_root} is not empty. Use --force to merge/overwrite.")
 
     target_root.mkdir(parents=True, exist_ok=True)
+    target_cache = target_root / "cache"
+    target_cache.mkdir(exist_ok=True)
 
-    # 2. Copy cache directory
-    if source_cache.exists():
-        if target_cache.exists():
-            if not force:
-                 raise FileExistsError(f"Target cache directory {target_cache} already exists. Use --force to overwrite.")
+    all_documents = []
 
-        # Safe export (merge) instead of delete-then-copy
-        safe_export(source_cache, target_cache)
-        logger.info(f"Copied cache from {source_cache} to {target_cache}")
+    for source_root in source_roots:
+        source_cache = source_root / "cache"
 
-    # 3. Locate and Copy Catalog
-    # Priority: source/catalog.json -> source/discovery.json -> source/cache/catalog.json -> source/cache/discovery.json
-    source_catalog = None
-    catalog_source_location = None # "root" or "cache"
+        # 2. Copy cache directory
+        if source_cache.exists():
+            # safe_export handles merging
+            safe_export(source_cache, target_cache)
+            logger.info(f"Merged cache from {source_cache} to {target_cache}")
+        else:
+            logger.warning(f"Source cache not found in {source_root}. Skipping cache copy.")
 
-    candidates = [
-        (source_root / "catalog.json", "root"),
-        (source_root / "discovery.json", "root"),
-        (source_cache / "catalog.json", "cache"),
-        (source_cache / "discovery.json", "cache")
-    ]
+        # 3. Locate and Copy Catalog
+        # Priority: source/catalog.json -> source/discovery.json -> source/cache/catalog.json -> source/cache/discovery.json
+        source_catalog = None
+        catalog_source_location = None # "root" or "cache"
 
-    for path, loc in candidates:
-        if path.exists():
-            source_catalog = path
-            catalog_source_location = loc
-            break
+        candidates = [
+            (source_root / "catalog.json", "root"),
+            (source_root / "discovery.json", "root"),
+            (source_cache / "catalog.json", "cache"),
+            (source_cache / "discovery.json", "cache")
+        ]
 
-    if not source_catalog:
-        raise FileNotFoundError(f"Could not find catalog.json or discovery.json in {source_root} or {source_cache}")
+        for path, loc in candidates:
+            if path.exists():
+                source_catalog = path
+                catalog_source_location = loc
+                break
 
-    logger.info(f"Found catalog at {source_catalog} (location: {catalog_source_location})")
+        if not source_catalog:
+             logger.warning(f"Could not find catalog.json or discovery.json in {source_root}")
+             continue
 
-    # Load Catalog
-    try:
-        with open(source_catalog, 'r', encoding='utf-8') as f:
-            catalog_data = json.load(f)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to decode catalog JSON: {e}")
+        logger.info(f"Found catalog at {source_catalog} (location: {catalog_source_location})")
 
-    # 4. Normalize Paths
-    documents = catalog_data.get("documents", [])
-    updated_documents = []
-
-    for doc in documents:
-        original_path_str = doc.get("path")
-        if not original_path_str:
+        # Load Catalog
+        try:
+            with open(source_catalog, 'r', encoding='utf-8') as f:
+                catalog_data = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode catalog JSON: {e}")
             continue
 
-        # Determine absolute source path of the document
-        doc_path = Path(original_path_str)
-        abs_source_path = None
+        # 4. Normalize Paths
+        documents = catalog_data.get("documents", [])
 
-        if catalog_source_location == "root":
-            abs_source_path = source_root / doc_path
-        else: # cache
-            abs_source_path = source_cache / doc_path
+        for doc in documents:
+            original_path_str = doc.get("path")
+            if not original_path_str:
+                continue
 
-        # Check if file exists in source (warn if not)
-        if not abs_source_path.exists():
-            logger.warning(f"Document file not found in source: {abs_source_path}")
-            # We still keep it in catalog? Or drop it?
-            # Better keep it but warn.
+            doc_path = Path(original_path_str)
+            abs_source_path = None
 
-        # Calculate new path relative to target root
-        # We expect the file to be in target_cache (which is target_root/cache)
-        # We need to find where the file is relative to source_cache to map it to target_cache.
+            if catalog_source_location == "root":
+                abs_source_path = source_root / doc_path
+            else: # cache
+                abs_source_path = source_cache / doc_path
 
-        new_rel_path = None
+            # Calculate new path relative to target root (which expects files in target_root/cache)
+            new_rel_path = None
+            try:
+                # We want to find the path relative to source cache, to map it to target cache.
+                # If abs_source_path is inside source_cache
+                rel_to_cache = abs_source_path.relative_to(source_cache)
 
-        try:
-            # If abs_source_path is inside source_cache
-            rel_to_cache = abs_source_path.relative_to(source_cache)
-            # New path is cache/ + rel_to_cache
-            new_rel_path = Path("cache") / rel_to_cache
-        except ValueError:
-            # File is NOT in source_cache. It wasn't copied!
-            logger.error(f"Document {abs_source_path} is not in cache directory. It was NOT copied to target.")
-            # If it wasn't copied, we can't really point to it in the new KB unless we copy it now.
-            # But we only copied `cache/`.
-            # We skip updating path or mark as broken?
-            # Let's keep original path but it will likely be broken.
-            new_rel_path = doc_path
+                new_rel_path = Path("cache") / rel_to_cache
+            except ValueError:
+                 logger.warning(f"Document {abs_source_path} is outside cache directory. It was likely not copied.")
+                 # Keep original path
+                 new_rel_path = doc_path
 
-        if new_rel_path:
-            doc["path"] = new_rel_path.as_posix()
+            if new_rel_path:
+                doc["path"] = new_rel_path.as_posix()
 
-            # Verify existence in target
-            abs_target_path = target_root / new_rel_path
-            if not abs_target_path.exists():
-                logger.warning(f"Target file missing: {abs_target_path}")
+                # Verify existence in target
+                abs_target_path = target_root / new_rel_path
+                if not abs_target_path.exists():
+                    logger.warning(f"Target file missing: {abs_target_path}")
 
-        updated_documents.append(doc)
-
-    catalog_data["documents"] = updated_documents
+            all_documents.append(doc)
 
     # Save Catalog to Target Root
+    final_catalog = {
+        "documents": all_documents,
+        "metadata": {
+            "generator": "ragmaker-install-kb",
+            "sources": [str(p) for p in source_roots]
+        }
+    }
+
     target_catalog = target_root / "catalog.json"
     with open(target_catalog, 'w', encoding='utf-8') as f:
-        json.dump(catalog_data, f, ensure_ascii=False, indent=2)
+        json.dump(final_catalog, f, ensure_ascii=False, indent=2)
 
     logger.info(f"Saved updated catalog to {target_catalog}")
 
@@ -171,19 +160,20 @@ def install_knowledge_base(source_root: Path, target_root: Path, force: bool = F
         "status": "success",
         "target_kb_root": str(target_root.resolve()),
         "catalog_file": str(target_catalog.resolve()),
-        "document_count": len(updated_documents)
+        "document_count": len(all_documents)
     }
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Install a knowledge base to a target directory.")
-    parser.add_argument("--source", required=True, help="Source KB root directory.")
+    parser.add_argument("--source", required=True, nargs='+', help="Source KB root directory (one or more).")
     parser.add_argument("--target-kb-root", required=True, help="Target KB root directory.")
     parser.add_argument("--force", action="store_true", help="Force overwrite of target.")
 
     try:
         args = parser.parse_args()
-        result = install_knowledge_base(Path(args.source), Path(args.target_kb_root), args.force)
+        source_paths = [Path(p) for p in args.source]
+        result = install_knowledge_base(source_paths, Path(args.target_kb_root), args.force)
         print_json_stdout(result)
 
     except (FileNotFoundError, FileExistsError) as e:
