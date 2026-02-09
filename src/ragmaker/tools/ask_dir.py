@@ -62,9 +62,8 @@ def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[
     Uses Windows IFileOpenDialog to select directory(ies).
     Returns path(s) or None if cancelled.
     """
+    pythoncom.CoInitialize()
     try:
-        pythoncom.CoInitialize()
-
         # Create IFileOpenDialog object
         # CLSID_FileOpenDialog = "{DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7}"
         # IID_IFileOpenDialog = "{d57c7288-d4ad-4768-be02-9d969532d960}"
@@ -100,8 +99,6 @@ def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[
             path = item.GetDisplayName(shellcon.SIGDN_FILESYSPATH)
             paths.append(path)
 
-        pythoncom.CoUninitialize()
-
         if not paths:
             return None
 
@@ -114,11 +111,9 @@ def _ask_directory_windows(initial_dir: Optional[str], multiple: bool) -> Union[
         # HRESULT 0x800704C7 is cancelled (-2147023673)
         if e.hresult == -2147023673:
             return None
-        pythoncom.CoUninitialize()
         raise
-    except Exception:
+    finally:
         pythoncom.CoUninitialize()
-        raise
 
 # --- Core Logic ---
 def ask_for_directory(initial_dir: Optional[str] = None, multiple: bool = False) -> None:
@@ -182,19 +177,11 @@ def ask_for_directory(initial_dir: Optional[str] = None, multiple: bool = False)
         if selected is not None:
             # User selected directory(ies)
             if multiple:
-                # Ensure it is a list
-                if not isinstance(selected, list):
-                    selected = [selected]
-
                 result = {
                     "status": "success",
                     "selected_directories": selected
                 }
             else:
-                # If multiple=False, expecting string
-                if isinstance(selected, list):
-                     selected = selected[0]
-
                 result = {
                     "status": "success",
                     "selected_directory": selected

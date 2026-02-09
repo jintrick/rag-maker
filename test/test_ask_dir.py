@@ -200,11 +200,7 @@ class TestAskDir(unittest.TestCase):
                 importlib.reload(ask_dir)
 
                 # Verify PYWIN32_AVAILABLE is False
-                if ask_dir.PYWIN32_AVAILABLE:
-                    # If this happens, it means pythoncom was imported successfully.
-                    # We should force fail it for this test if we want to test fallback.
-                    # But since we are on Linux (presumably), it should be False.
-                    pass
+                self.assertFalse(ask_dir.PYWIN32_AVAILABLE)
 
                 mock_filedialog.askdirectory.return_value = r"C:\Fallback"
 
