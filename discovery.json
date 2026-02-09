@@ -269,7 +269,7 @@
     {
       "name": "install_kb",
       "command": "ragmaker-install-kb",
-      "description": "既存のKBをインストール先ディレクトリにコピーし、パスを正規化してセットアップするツール。",
+      "description": "既存のKBをインストール先ディレクトリにコピー（単一ソースの場合はサブディレクトリ化、複数ソースの場合はマージ）し、パスを正規化してセットアップする。",
       "parameters": {
         "type": "object",
         "properties": {

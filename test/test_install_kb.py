@@ -84,8 +84,8 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        # Resulting path should be target_kb (DIRECTLY, no subdir)
-        expected_install_path = self.target_kb
+        # Resulting path should be target_kb / source_kb.name (SUBDIR)
+        expected_install_path = self.target_kb / self.source_kb.name
 
         result = install_knowledge_base([self.source_kb], self.target_kb)
 
@@ -102,9 +102,11 @@ class TestInstallKB(unittest.TestCase):
 
     def test_target_exists_error(self):
         """Test error when target directory exists and is not empty, without force."""
-        # Create target structure (directly at target_kb)
+        # Create target structure (target_kb / source_kb)
         self.target_kb.mkdir()
-        (self.target_kb / "existing.txt").write_text("exists")
+        target_subdir = self.target_kb / self.source_kb.name
+        target_subdir.mkdir()
+        (target_subdir / "existing.txt").write_text("exists")
 
         # Setup source catalog
         (self.source_kb / "catalog.json").write_text("{}")
@@ -116,7 +118,9 @@ class TestInstallKB(unittest.TestCase):
         """Test overwriting target when force is True."""
         # Setup existing target
         self.target_kb.mkdir()
-        (self.target_kb / "existing.txt").write_text("exists")
+        target_subdir = self.target_kb / self.source_kb.name
+        target_subdir.mkdir()
+        (target_subdir / "existing.txt").write_text("exists")
 
         # Setup source catalog
         catalog_data = {"documents": []}
@@ -127,9 +131,9 @@ class TestInstallKB(unittest.TestCase):
         self.assertEqual(result["status"], "success")
 
         # Check file in the actual install location
-        self.assertTrue((self.target_kb / "catalog.json").exists())
+        self.assertTrue((target_subdir / "catalog.json").exists())
         # existing.txt should persist because we merge (unless it conflicts)
-        self.assertTrue((self.target_kb / "existing.txt").exists())
+        self.assertTrue((target_subdir / "existing.txt").exists())
 
     def test_merge_multiple_kbs(self):
         """Test merging multiple source KBs into one target."""
@@ -167,6 +171,50 @@ class TestInstallKB(unittest.TestCase):
             self.assertEqual(len(docs), 2)
             paths = sorted([d["path"] for d in docs])
             self.assertEqual(paths, ["cache/doc1.txt", "cache/doc2.txt"])
+
+    def test_path_resolution_with_dots(self):
+        """Test path resolution when path contains '..'."""
+        complex_path = "cache/../cache/doc1.txt"
+        catalog_data = {
+            "documents": [
+                {"path": complex_path, "title": "Doc 1"}
+            ]
+        }
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+
+        # Use new target to avoid subdir creation logic for clarity (target doesn't exist)
+        result = install_knowledge_base([self.source_kb], self.target_kb)
+
+        with open(self.target_kb / "catalog.json") as f:
+            catalog = json.load(f)
+            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+
+    def test_catalog_at_root_path_resolution(self):
+        """Test path resolution when catalog.json is at root."""
+        catalog_data = {
+            "documents": [
+                {"path": "cache/doc1.txt", "title": "Doc 1"}
+            ]
+        }
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+
+        result = install_knowledge_base([self.source_kb], self.target_kb)
+
+        self.assertTrue((self.target_kb / "cache" / "doc1.txt").exists())
+
+        with open(self.target_kb / "catalog.json") as f:
+            catalog = json.load(f)
+            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+
+    def test_error_handling(self):
+        """Test that errors during source processing are caught and raised."""
+        # Create a directory named "catalog.json" to cause IsADirectoryError/PermissionError when opening
+        (self.source_kb / "catalog.json").mkdir()
+
+        with self.assertRaises(Exception):
+            install_knowledge_base([self.source_kb], self.target_kb)
 
 if __name__ == '__main__':
     unittest.main()
