@@ -297,6 +297,11 @@
             "type": "boolean",
             "description": "インストール先が存在する場合に上書きを許可するかどうか。",
             "default": false
+          },
+          "merge": {
+            "type": "boolean",
+            "description": "複数のソースを一つのターゲットディレクトリにマージするかどうか。false（デフォルト）の場合は、ソースごとにサブディレクトリを作成する。",
+            "default": false
           }
         },
         "required": [

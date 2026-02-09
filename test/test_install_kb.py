@@ -40,8 +40,8 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "discovery.json", 'w') as f:
             json.dump(discovery_data, f)
 
-        # Pass list of sources
-        result = install_knowledge_base([self.source_kb], self.target_kb)
+        # Pass list of sources with merge=True
+        result = install_knowledge_base([self.source_kb], self.target_kb, merge=True)
 
         self.assertEqual(result["status"], "success")
         self.assertTrue((self.target_kb / "catalog.json").exists())
@@ -66,7 +66,7 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        result = install_knowledge_base([self.source_kb], self.target_kb)
+        result = install_knowledge_base([self.source_kb], self.target_kb, merge=True)
 
         self.assertEqual(result["status"], "success")
         self.assertTrue((self.target_kb / "catalog.json").exists())
@@ -88,8 +88,8 @@ class TestInstallKB(unittest.TestCase):
         # Resulting path should be target_kb directly (no subdir)
         expected_install_path = self.target_kb
 
-        # Use force=True because target exists
-        result = install_knowledge_base([self.source_kb], self.target_kb, force=True)
+        # Use force=True because target exists, merge=True
+        result = install_knowledge_base([self.source_kb], self.target_kb, force=True, merge=True)
 
         self.assertEqual(result["status"], "success")
         self.assertEqual(Path(result["target_kb_root"]).resolve(), expected_install_path.resolve())
@@ -100,7 +100,7 @@ class TestInstallKB(unittest.TestCase):
         """Test error when source directory does not exist."""
         missing_source = self.root / "missing"
         with self.assertRaises(FileNotFoundError):
-            install_knowledge_base([missing_source], self.target_kb)
+            install_knowledge_base([missing_source], self.target_kb, merge=True)
 
     def test_target_exists_error(self):
         """Test error when target directory exists and is not empty, without force."""
@@ -112,7 +112,7 @@ class TestInstallKB(unittest.TestCase):
         (self.source_kb / "catalog.json").write_text("{}")
 
         with self.assertRaises(FileExistsError):
-            install_knowledge_base([self.source_kb], self.target_kb)
+            install_knowledge_base([self.source_kb], self.target_kb, merge=True)
 
     def test_target_exists_force(self):
         """Test overwriting target when force is True."""
@@ -125,7 +125,7 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        result = install_knowledge_base([self.source_kb], self.target_kb, force=True)
+        result = install_knowledge_base([self.source_kb], self.target_kb, force=True, merge=True)
         self.assertEqual(result["status"], "success")
 
         # Check file in the actual install location
@@ -152,8 +152,8 @@ class TestInstallKB(unittest.TestCase):
         with open(source2 / "catalog.json", 'w') as f:
             json.dump(cat2, f)
 
-        # Install both
-        result = install_knowledge_base([self.source_kb, source2], self.target_kb)
+        # Install both with merge=True
+        result = install_knowledge_base([self.source_kb, source2], self.target_kb, merge=True)
 
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["document_count"], 2)
@@ -170,6 +170,46 @@ class TestInstallKB(unittest.TestCase):
             paths = sorted([d["path"] for d in docs])
             self.assertEqual(paths, ["cache/doc1.txt", "cache/doc2.txt"])
 
+    def test_default_no_merge(self):
+        """Test default behavior (no merge): install into subdirectories."""
+        # Create second source KB
+        source2 = self.root / "source2"
+        source2.mkdir()
+        (source2 / "cache").mkdir()
+        (source2 / "cache" / "doc2.txt").write_text("content 2")
+
+        # Setup catalogs
+        cat1 = {"documents": [{"path": "cache/doc1.txt", "title": "Doc 1"}]}
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(cat1, f)
+
+        cat2 = {"documents": [{"path": "cache/doc2.txt", "title": "Doc 2"}]}
+        with open(source2 / "catalog.json", 'w') as f:
+            json.dump(cat2, f)
+
+        # Install both with merge=False (default)
+        result = install_knowledge_base([self.source_kb, source2], self.target_kb, merge=False)
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(len(result["installed_kbs"]), 2)
+
+        # Check subdirectory creation
+        sub1 = self.target_kb / self.source_kb.name
+        sub2 = self.target_kb / source2.name
+
+        self.assertTrue(sub1.exists())
+        self.assertTrue(sub2.exists())
+
+        # Check contents
+        self.assertTrue((sub1 / "cache" / "doc1.txt").exists())
+        self.assertTrue((sub1 / "catalog.json").exists())
+        self.assertTrue((sub2 / "cache" / "doc2.txt").exists())
+        self.assertTrue((sub2 / "catalog.json").exists())
+
+        # Check no cross-pollution
+        self.assertFalse((sub1 / "cache" / "doc2.txt").exists())
+        self.assertFalse((sub2 / "cache" / "doc1.txt").exists())
+
     def test_path_resolution_with_dots(self):
         """Test path resolution when path contains '..'."""
         complex_path = "cache/../cache/doc1.txt"
@@ -181,7 +221,7 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        result = install_knowledge_base([self.source_kb], self.target_kb)
+        result = install_knowledge_base([self.source_kb], self.target_kb, merge=True)
 
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
@@ -197,7 +237,7 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        result = install_knowledge_base([self.source_kb], self.target_kb)
+        result = install_knowledge_base([self.source_kb], self.target_kb, merge=True)
 
         self.assertTrue((self.target_kb / "cache" / "doc1.txt").exists())
 
@@ -211,7 +251,7 @@ class TestInstallKB(unittest.TestCase):
         (self.source_kb / "catalog.json").mkdir()
 
         with self.assertRaises(Exception):
-            install_knowledge_base([self.source_kb], self.target_kb)
+            install_knowledge_base([self.source_kb], self.target_kb, merge=True)
 
     def test_merge_existing_catalog(self):
         """Test merging new KB into a target that already has a catalog."""
@@ -243,7 +283,7 @@ class TestInstallKB(unittest.TestCase):
             json.dump(new_catalog, f)
 
         # 3. Install with force=True (to allow install into non-empty dir)
-        result = install_knowledge_base([self.source_kb], self.target_kb, force=True)
+        result = install_knowledge_base([self.source_kb], self.target_kb, force=True, merge=True)
 
         self.assertEqual(result["status"], "success")
 
@@ -287,7 +327,7 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(new_catalog, f)
 
-        install_knowledge_base([self.source_kb], self.target_kb, force=True)
+        install_knowledge_base([self.source_kb], self.target_kb, force=True, merge=True)
 
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
@@ -323,7 +363,7 @@ class TestInstallKB(unittest.TestCase):
         with open(self.target_kb / "catalog.json", 'w') as f:
             json.dump(target_catalog, f)
 
-        install_knowledge_base([self.source_kb], self.target_kb, force=True)
+        install_knowledge_base([self.source_kb], self.target_kb, force=True, merge=True)
 
         with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
@@ -354,7 +394,7 @@ class TestInstallKB(unittest.TestCase):
             (self.source_kb / "catalog.json").write_text('{"documents": []}')
 
             with self.assertRaises(RuntimeError):
-                install_knowledge_base([self.source_kb], self.target_kb, force=True)
+                install_knowledge_base([self.source_kb], self.target_kb, force=True, merge=True)
 
         # Verify target is unchanged
         self.assertTrue((self.target_kb / "initial.txt").exists())
@@ -370,7 +410,7 @@ class TestInstallKB(unittest.TestCase):
             # Setup source catalog
             (self.source_kb / "catalog.json").write_text('{"documents": []}')
 
-            install_knowledge_base([self.source_kb], self.target_kb)
+            install_knowledge_base([self.source_kb], self.target_kb, merge=True)
 
             # Verify call args. dir should be the parent of target_kb
             # self.target_kb is .../target_kb, parent is .../
@@ -395,7 +435,7 @@ class TestInstallKB(unittest.TestCase):
                 # Mock logger to capture output
                 with patch('ragmaker.tools.install_kb.logger') as mock_logger:
                     with self.assertRaises(RuntimeError):
-                        install_knowledge_base([self.source_kb], self.target_kb, force=True)
+                        install_knowledge_base([self.source_kb], self.target_kb, force=True, merge=True)
 
                     # Verify critical log was called
                     # We expect a critical log because restoration failed

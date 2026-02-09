@@ -19,7 +19,7 @@ import shutil
 import os
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any
 
 try:
     from ragmaker.io_utils import (
@@ -36,9 +36,54 @@ except ImportError:
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
-def install_knowledge_base(source_roots: List[Path], target_root: Path, force: bool = False):
+def install_knowledge_base(source_roots: List[Path], target_root: Path, force: bool = False, merge: bool = False):
     """
     Installs/Merges KBs from source_roots to target_root.
+
+    If merge is True, all sources are merged into target_root.
+    If merge is False (default), each source is installed into a subdirectory of target_root named after the source directory.
+    """
+    if merge:
+        return _install_merged(source_roots, target_root, force)
+    else:
+        results = []
+        # Validate all sources exist first
+        for src in source_roots:
+            if not src.exists():
+                raise FileNotFoundError(f"Source directory does not exist: {src}")
+
+        # Ensure target root exists (it's a container for KBs now)
+        target_root.mkdir(parents=True, exist_ok=True)
+
+        for source_root in source_roots:
+            # Determine subdirectory name
+            sub_target_name = source_root.name
+            sub_target_root = target_root / sub_target_name
+
+            # Install this single source into the sub-target
+            # We treat this as a "merge" of one source into a specific target directory.
+            # Use force=True because we might be overwriting a previous installation of the same source
+            # However, the user passed 'force', which might mean "force overwrite existing target dir".
+            # If sub_target_root exists, _install_merged checks for force.
+            # So we should pass the 'force' flag down.
+            try:
+                res = _install_merged([source_root], sub_target_root, force)
+                results.append(res)
+            except Exception as e:
+                # If one fails, do we abort or continue?
+                # The requirement says "maintain atomicity per source".
+                # We should probably let the exception propagate if it's critical, or return partial success.
+                # Given _install_merged raises exceptions on error, let's let it propagate for now.
+                raise e
+
+        return {
+            "status": "success",
+            "installed_kbs": results
+        }
+
+def _install_merged(source_roots: List[Path], target_root: Path, force: bool = False) -> Dict[str, Any]:
+    """
+    Internal function to merge multiple sources into a single target root.
     """
     # Validate all sources exist first
     for src in source_roots:
@@ -235,11 +280,12 @@ def main():
     parser.add_argument("--source", required=True, nargs='+', help="Source KB root directory (one or more).")
     parser.add_argument("--target-kb-root", required=True, help="Target KB root directory.")
     parser.add_argument("--force", action="store_true", help="Force overwrite of target.")
+    parser.add_argument("--merge", action="store_true", help="Merge all sources into the target root instead of creating subdirectories.")
 
     try:
         args = parser.parse_args()
         source_paths = [Path(p) for p in args.source]
-        result = install_knowledge_base(source_paths, Path(args.target_kb_root), args.force)
+        result = install_knowledge_base(source_paths, Path(args.target_kb_root), args.force, args.merge)
         print_json_stdout(result)
 
     except (FileNotFoundError, FileExistsError) as e:
