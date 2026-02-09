@@ -5,6 +5,7 @@ import shutil
 import os
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 # Add src to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
@@ -84,10 +85,11 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        # Resulting path should be target_kb / source_kb.name (SUBDIR)
-        expected_install_path = self.target_kb / self.source_kb.name
+        # Resulting path should be target_kb directly (no subdir)
+        expected_install_path = self.target_kb
 
-        result = install_knowledge_base([self.source_kb], self.target_kb)
+        # Use force=True because target exists
+        result = install_knowledge_base([self.source_kb], self.target_kb, force=True)
 
         self.assertEqual(result["status"], "success")
         self.assertEqual(Path(result["target_kb_root"]).resolve(), expected_install_path.resolve())
@@ -102,11 +104,9 @@ class TestInstallKB(unittest.TestCase):
 
     def test_target_exists_error(self):
         """Test error when target directory exists and is not empty, without force."""
-        # Create target structure (target_kb / source_kb)
+        # Create target structure
         self.target_kb.mkdir()
-        target_subdir = self.target_kb / self.source_kb.name
-        target_subdir.mkdir()
-        (target_subdir / "existing.txt").write_text("exists")
+        (self.target_kb / "existing.txt").write_text("exists")
 
         # Setup source catalog
         (self.source_kb / "catalog.json").write_text("{}")
@@ -118,9 +118,7 @@ class TestInstallKB(unittest.TestCase):
         """Test overwriting target when force is True."""
         # Setup existing target
         self.target_kb.mkdir()
-        target_subdir = self.target_kb / self.source_kb.name
-        target_subdir.mkdir()
-        (target_subdir / "existing.txt").write_text("exists")
+        (self.target_kb / "existing.txt").write_text("exists")
 
         # Setup source catalog
         catalog_data = {"documents": []}
@@ -131,9 +129,9 @@ class TestInstallKB(unittest.TestCase):
         self.assertEqual(result["status"], "success")
 
         # Check file in the actual install location
-        self.assertTrue((target_subdir / "catalog.json").exists())
-        # existing.txt should persist because we merge (unless it conflicts)
-        self.assertTrue((target_subdir / "existing.txt").exists())
+        self.assertTrue((self.target_kb / "catalog.json").exists())
+        # existing.txt should persist because we merge
+        self.assertTrue((self.target_kb / "existing.txt").exists())
 
     def test_merge_multiple_kbs(self):
         """Test merging multiple source KBs into one target."""
@@ -183,7 +181,6 @@ class TestInstallKB(unittest.TestCase):
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
 
-        # Use new target to avoid subdir creation logic for clarity (target doesn't exist)
         result = install_knowledge_base([self.source_kb], self.target_kb)
 
         with open(self.target_kb / "catalog.json") as f:
@@ -219,11 +216,9 @@ class TestInstallKB(unittest.TestCase):
     def test_merge_existing_catalog(self):
         """Test merging new KB into a target that already has a catalog."""
         # 1. Setup Target with existing catalog
-        # Since install_kb with single source puts it in subdir, we need to create that subdir
-        target_subdir = self.target_kb / self.source_kb.name
-        target_subdir.mkdir(parents=True)
-        (target_subdir / "cache").mkdir()
-        (target_subdir / "cache" / "existing.txt").write_text("existing content")
+        self.target_kb.mkdir(parents=True)
+        (self.target_kb / "cache").mkdir()
+        (self.target_kb / "cache" / "existing.txt").write_text("existing content")
 
         existing_catalog = {
             "documents": [
@@ -233,7 +228,7 @@ class TestInstallKB(unittest.TestCase):
                 "sources": ["/original/source"]
             }
         }
-        with open(target_subdir / "catalog.json", 'w') as f:
+        with open(self.target_kb / "catalog.json", 'w') as f:
             json.dump(existing_catalog, f)
 
         # 2. Setup Source
@@ -253,7 +248,7 @@ class TestInstallKB(unittest.TestCase):
         self.assertEqual(result["status"], "success")
 
         # 4. Verify Catalog Merged
-        with open(target_subdir / "catalog.json") as f:
+        with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
 
             # Check documents
@@ -271,16 +266,15 @@ class TestInstallKB(unittest.TestCase):
     def test_merge_catalog_overwrite_duplicate(self):
         """Test that duplicate document paths are overwritten by new source."""
         # Target has doc1 (v1)
-        target_subdir = self.target_kb / self.source_kb.name
-        target_subdir.mkdir(parents=True)
-        (target_subdir / "cache").mkdir()
+        self.target_kb.mkdir(parents=True)
+        (self.target_kb / "cache").mkdir()
 
         existing_catalog = {
             "documents": [
                 {"path": "cache/doc1.txt", "title": "Old Title"}
             ]
         }
-        with open(target_subdir / "catalog.json", 'w') as f:
+        with open(self.target_kb / "catalog.json", 'w') as f:
             json.dump(existing_catalog, f)
 
         # Source has doc1 (v2)
@@ -294,12 +288,77 @@ class TestInstallKB(unittest.TestCase):
 
         install_knowledge_base([self.source_kb], self.target_kb, force=True)
 
-        with open(target_subdir / "catalog.json") as f:
+        with open(self.target_kb / "catalog.json") as f:
             catalog = json.load(f)
             # Should have only one doc because paths collide
             self.assertEqual(len(catalog["documents"]), 1)
             doc = catalog["documents"][0]
             self.assertEqual(doc["title"], "New Title")
+
+    def test_metadata_whitelist(self):
+        """Test that only allowed metadata fields are merged."""
+        # Source has extra metadata (Note: install_kb ignores source metadata except docs)
+        catalog_data = {
+            "documents": [],
+            "metadata": {
+                "generator": "custom-generator",
+                "extra_field": "should be ignored",
+                "created_at": "2023-01-01"
+            }
+        }
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+
+        # Target exists with some metadata including unwhitelisted fields
+        self.target_kb.mkdir()
+        target_catalog = {
+            "documents": [],
+            "metadata": {
+                "generator": "old-generator",
+                "created_at": "2022-01-01",
+                "original_field": "should be dropped"
+            }
+        }
+        with open(self.target_kb / "catalog.json", 'w') as f:
+            json.dump(target_catalog, f)
+
+        install_knowledge_base([self.source_kb], self.target_kb, force=True)
+
+        with open(self.target_kb / "catalog.json") as f:
+            catalog = json.load(f)
+            metadata = catalog["metadata"]
+
+            # Check whitelist behavior
+            self.assertIn("generator", metadata)
+            self.assertEqual(metadata["generator"], "ragmaker-install-kb") # Updated by install_kb
+
+            # created_at should be preserved from target if it exists, but install_kb doesn't provide new created_at.
+            # So merged_metadata['created_at'] takes old value.
+            self.assertIn("created_at", metadata)
+            self.assertEqual(metadata["created_at"], "2022-01-01")
+
+            # Non-whitelisted fields should be dropped
+            self.assertNotIn("extra_field", metadata)
+            self.assertNotIn("original_field", metadata)
+
+    def test_atomicity_failure(self):
+        """Test that target is unchanged if an error occurs during processing."""
+        # Create target with initial state
+        self.target_kb.mkdir()
+        (self.target_kb / "initial.txt").write_text("initial")
+
+        # Mock safe_export to fail to simulate failure during installation
+        with patch('ragmaker.tools.install_kb.safe_export', side_effect=RuntimeError("Simulated Failure")):
+            # Create a source catalog so it tries to proceed
+            (self.source_kb / "catalog.json").write_text('{"documents": []}')
+
+            with self.assertRaises(RuntimeError):
+                install_knowledge_base([self.source_kb], self.target_kb, force=True)
+
+        # Verify target is unchanged
+        self.assertTrue((self.target_kb / "initial.txt").exists())
+        # Should NOT have catalog.json
+        self.assertFalse((self.target_kb / "catalog.json").exists())
 
 if __name__ == '__main__':
     unittest.main()

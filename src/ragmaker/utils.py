@@ -63,16 +63,21 @@ def merge_catalog_data(old_data: dict, new_data: dict) -> dict:
     for d in new_data.get('documents', []):
         merged_docs[d['path']] = d
 
-    merged_metadata = old_data.get('metadata', {}).copy()
+    old_metadata = old_data.get('metadata', {})
     new_metadata = new_data.get('metadata', {})
+    merged_metadata = {}
 
-    # Update simple fields
-    for k, v in new_metadata.items():
-        if k != 'sources':
-            merged_metadata[k] = v
+    # Whitelist fields to update
+    allowed_fields = {'generator', 'created_at', 'updated_at'}
+
+    for k in allowed_fields:
+        if k in new_metadata:
+            merged_metadata[k] = new_metadata[k]
+        elif k in old_metadata:
+            merged_metadata[k] = old_metadata[k]
 
     # Merge sources specifically
-    old_sources = set(merged_metadata.get('sources', []))
+    old_sources = set(old_metadata.get('sources', []))
     new_sources = set(new_metadata.get('sources', []))
     combined_sources = sorted(list(old_sources | new_sources))
 
@@ -81,7 +86,7 @@ def merge_catalog_data(old_data: dict, new_data: dict) -> dict:
     for s in combined_sources:
         try:
             resolved_sources.append(str(Path(s).resolve()))
-        except Exception:
+        except (OSError, RuntimeError):
             resolved_sources.append(s)
 
     merged_metadata['sources'] = sorted(list(set(resolved_sources)))
@@ -132,6 +137,10 @@ def safe_export(src_dir: Path, dst_dir: Path) -> None:
         for d in dirs:
             dst_path = dst_root / d
             if dst_path.exists() and not dst_path.is_dir():
+                if os.path.islink(dst_path):
+                    logger.error(f"Destination path '{dst_path}' is a symlink. Aborting to prevent unsafe deletion.")
+                    raise FileExistsError(f"Destination path '{dst_path}' is a symlink. Aborting.")
+
                 logger.warning(f"Removing file '{dst_path}' to replace with directory from source")
                 try:
                     dst_path.unlink()
@@ -142,6 +151,10 @@ def safe_export(src_dir: Path, dst_dir: Path) -> None:
         for f in files:
             dst_path = dst_root / f
             if dst_path.exists() and dst_path.is_dir():
+                if os.path.islink(dst_path):
+                    logger.error(f"Destination path '{dst_path}' is a symlink. Aborting to prevent unsafe deletion.")
+                    raise FileExistsError(f"Destination path '{dst_path}' is a symlink. Aborting.")
+
                 logger.warning(f"Removing directory '{dst_path}' to replace with file from source")
                 try:
                     shutil.rmtree(dst_path)
