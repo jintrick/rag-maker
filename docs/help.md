@@ -1,21 +1,45 @@
-# RAGMaker: フォルダ複数選択 UI 実装に関する技術相談
+# pywin32 (IFileOpenDialog) でのフォルダ複数選択の実装方法
 
-## 背景
-RAGMaker は、ディレクトリ単位で管理される「ナレッジベース」を扱うツールです。
-現在、複数のディレクトリを一括選択して AI エージェントに渡すための GUI ツール（`ragmaker-ask-dir`）の拡張を行っています。
+## 目的
+Windows 10/11 環境において、Python (`pywin32`) を使用して**ネイティブなフォルダ選択ダイアログ**を表示し、ユーザーに**複数のフォルダを一括選択**させたい。
 
-## 課題
-Python の標準ライブラリである `tkinter.filedialog.askdirectory` は、単一のディレクトリ選択しかサポートしておらず、複数選択（Multiple Selection）ができません。
+## 現状の問題
+`IFileOpenDialog` インターフェースを使用し、オプションとして `FOS_PICKFOLDERS | FOS_ALLOWMULTISELECT` を設定しても、ダイアログ上で複数のフォルダを選択（ハイライト）することができない。単一選択の挙動になってしまう。
 
-## 実装要件
-1. **ネイティブな操作感**: OS 標準（Windows ならエクスプローラー形式）のダイアログで、Ctrl や Shift を使った複数フォルダ選択を実現したい。
-2. **ディレクトリ構造の維持**: ファイルではなく、あくまで「ディレクトリ」そのものを選択対象としたい。
-3. **軽量な依存関係**: プロジェクトの性質上、PyQt などの巨大なフレームワークの導入は避けたい。Python 標準ライブラリ、または `pywin32` などの軽量な Windows API ラッパー、あるいは `plyer` や `filetype` 系の小さなライブラリでの解決を希望。
-4. **出力**: 選択されたパスのリストを JSON 形式で標準出力する Python コード。
+## コードスニペット (抜粋)
+```python
+import pythoncom
+from win32com.shell import shell, shellcon
 
-## 避けるべき実装（アンチパターン）
-- フォルダ選択ダイアログを何度も繰り返し表示する。
-- 独自のリストボックス UI を作成して、1つずつパスを追加させる（車輪の再発明）。
-- 「ファイル選択ダイアログ」で代用し、中にあるファイルを選ばせる（ユーザーを混乱させるため）。
+def ask_multiple_folders():
+    try:
+        pythoncom.CoInitialize()
+        dialog = pythoncom.CoCreateInstance(
+            shell.CLSID_FileOpenDialog,
+            None,
+            pythoncom.CLSCTX_INPROC_SERVER,
+            shell.IID_IFileOpenDialog
+        )
+        
+        # フラグ設定
+        # FOS_PICKFOLDERS (0x20) : フォルダ選択モード
+        # FOS_ALLOWMULTISELECT (0x200) : 複数選択許可
+        options = dialog.GetOptions()
+        options |= shellcon.FOS_PICKFOLDERS | shellcon.FOS_ALLOWMULTISELECT
+        dialog.SetOptions(options)
+        
+        dialog.Show(None)
+        
+        # 結果取得 (GetResults)
+        results = dialog.GetResults()
+        # ...
+    finally:
+        pythoncom.CoUninitialize()
+```
 
-この要件を満たす、Windows 10/11 で確実に動作する実装方法を教えてください。
+## 質問
+1. `FOS_PICKFOLDERS` と `FOS_ALLOWMULTISELECT` は本当に共存できないのか？
+2. VBA の `msoFileDialogFolderPicker` + `AllowMultiSelect` のように、ネイティブダイアログでフォルダ複数選択を実現するための正しいフラグ設定や回避策はあるか？
+3. `IFileOpenDialog` ではなく、より古い `SHBrowseForFolder` や別の API を使うべきか？（ただしモダンな UI が望ましい）
+
+正しい実装方法、または `pywin32` での動作確認済みコードを提示してください。
