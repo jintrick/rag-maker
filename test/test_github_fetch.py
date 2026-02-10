@@ -127,8 +127,7 @@ class TestGitHubFetch(unittest.TestCase):
         except json.JSONDecodeError:
             self.fail(f"Stdout was not valid JSON.\nStdout: {stdout}\nStderr: {stderr}")
 
-        self.assertEqual(len(stdout_json["documents"]),
- 2)
+        self.assertEqual(len(stdout_json["documents"]), 2)
 
     def test_fetch_and_stdout_json(self):
         """
@@ -157,8 +156,7 @@ class TestGitHubFetch(unittest.TestCase):
         self.assertTrue(discovery_file.exists(), "catalog.json was not automatically saved.")
         with open(discovery_file, 'r', encoding='utf-8') as f:
             saved_data = json.load(f)
-        self.assertEqual(len(saved_data["documents"]),
- 1)
+        self.assertEqual(len(saved_data["documents"]), 1)
 
         try:
             stdout_json = json.loads(stdout)
@@ -166,8 +164,7 @@ class TestGitHubFetch(unittest.TestCase):
             self.fail(f"Stdout was not valid JSON.\nStdout: {stdout}")
 
         self.assertIn("documents", stdout_json)
-        self.assertEqual(len(stdout_json["documents"]),
- 1)
+        self.assertEqual(len(stdout_json["documents"]), 1)
         self.assertEqual(stdout_json["documents"][0]["path"], "docs/test_file.md")
 
     def test_fetch_root_directory(self):

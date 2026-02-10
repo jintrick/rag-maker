@@ -49,7 +49,14 @@ try:
     )
     from ragmaker.utils import print_catalog_data, safe_export
 except ImportError:
-    sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
+    # This is a fallback for when the script is run in an environment
+    # where the ragmaker package is not installed.
+    print(json.dumps({
+        "status": "error",
+        "error_code": "DEPENDENCY_ERROR",
+        "message": "The 'ragmaker' package is not installed or not in the Python path.",
+        "remediation_suggestion": "Please install the package, e.g., via 'pip install . '"
+    }, ensure_ascii=False), file=sys.stderr)
     sys.exit(1)
 
 try:
@@ -61,7 +68,7 @@ except ImportError:
     eprint_error({
         "status": "error",
         "error_code": "DEPENDENCY_ERROR",
-        "message": "Required libraries 'beautifulsoup4', 'markdownify', or 'readabilipy' not found.",
+        "message": "Required libraries 'beautifulsoup4', 'markdownify', 'readabilipy' or 'markitdown' not found.",
         "remediation_suggestion": "Please ensure required libraries are installed by running: pip install -r requirements.txt"
     })
     sys.exit(1)
@@ -144,8 +151,11 @@ class DocumentProcessor:
             # MarkItDown is instantiated and used to convert the file.
             converter = MarkItDown()
             # The convert method takes a Path object and returns a string.
-            markdown_content = converter.convert(file_path)
-            return markdown_content
+            markdown_content = converter.convert(str(file_path))
+            # Check if result has text_content or is string
+            if hasattr(markdown_content, 'text_content'):
+                return markdown_content.text_content
+            return str(markdown_content)
         except Exception as e:
             logger.error(f"Failed during document conversion for {file_path}: {e}", exc_info=True)
             return None

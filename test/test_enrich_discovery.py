@@ -13,7 +13,7 @@ class TestEnrichDiscovery(unittest.TestCase):
 
     def setUp(self):
         self.test_dir = tempfile.TemporaryDirectory()
-        self.discovery_path = Path(self.test_dir.name) / "catalog.json"
+        self.catalog_path = Path(self.test_dir.name) / "catalog.json"
         
         # Create a sample catalog.json
         self.sample_data = {
@@ -23,7 +23,7 @@ class TestEnrichDiscovery(unittest.TestCase):
             ],
             "metadata": {"source": "test"}
         }
-        with open(self.discovery_path, 'w', encoding='utf-8') as f:
+        with open(self.catalog_path, 'w', encoding='utf-8') as f:
             json.dump(self.sample_data, f)
 
     def tearDown(self):
@@ -32,7 +32,7 @@ class TestEnrichDiscovery(unittest.TestCase):
     def run_script(self, updates_json):
         result = subprocess.run(
             [sys.executable, "-m", "ragmaker.tools.enrich_discovery",
-             "--catalog-path", str(self.discovery_path),
+             "--catalog-path", str(self.catalog_path),
              "--updates", updates_json],
             capture_output=True,
             text=True,
@@ -52,7 +52,7 @@ class TestEnrichDiscovery(unittest.TestCase):
         result = self.run_script(updates_json)
         self.assertEqual(result.returncode, 0)
 
-        with open(self.discovery_path, 'r', encoding='utf-8') as f:
+        with open(self.catalog_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         self.assertEqual(data["documents"][0]["title"], "New Title 0")
@@ -70,7 +70,7 @@ class TestEnrichDiscovery(unittest.TestCase):
         result = self.run_script(str(updates_file))
         self.assertEqual(result.returncode, 0)
 
-        with open(self.discovery_path, 'r', encoding='utf-8') as f:
+        with open(self.catalog_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         self.assertEqual(data["documents"][0]["title"], "File Title 0")

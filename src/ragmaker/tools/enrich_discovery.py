@@ -81,7 +81,6 @@ def main():
 
         if not_found_paths:
             # We treat this as a warning or informational rather than a fatal error to allow partial updates?
-            # Actually the original code raised FileNotFoundError. Let's keep it consistent but maybe more descriptive.
             print(json.dumps({
                 "status": "warning",
                 "message": f"Some document paths from the updates were not found in {catalog_path}.",
