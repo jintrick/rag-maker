@@ -25,8 +25,13 @@
     -   `--base-url` には、収集範囲の基点となるURLを指定します（`{{args}}` から適切に判断してください）。
     -   `--output-dir` に `<プロジェクトルート>/.tmp/cache/` を指定します。
     -   このツールは、HTMLの取得、本文抽出、Markdown変換までをすべて行い、結果のJSONを**標準出力**に返します。
-2.  **一時ファイルへ保存:** `http_fetch` の標準出力をキャプチャし、`write_file` ツールを使って `<プロジェクトルート>/.tmp/cache/catalog.json` に保存します。
-3.  **次のステップへ:** **ステップ2. ドキュメントのエンリッチ** に進んでください。
+2.  **結果の評価とフォールバック:**
+    -   `http_fetch` の実行結果（JSON）を確認します。
+    -   `documents` が空、または `metadata.status` が `"fallback_recommended"` の場合、SPAや動的サイトである可能性が高いため、`browser_fetch` を実行します。
+        -   `browser_fetch` ツールを実行します。引数は `http_fetch` と同様（`--url`, `--base-url`, `--output-dir`）です。出力先も同じ `<プロジェクトルート>/.tmp/cache/` を指定し、ファイルを上書きします。
+        -   `browser_fetch` の結果（JSON）を、最終的な結果として扱います。
+3.  **一時ファイルへ保存:** 最終的に採用したツール（`http_fetch` または `browser_fetch`）の標準出力をキャプチャし、`write_file` ツールを使って `<プロジェクトルート>/.tmp/cache/catalog.json` に保存します。
+4.  **次のステップへ:** **ステップ2. ドキュメントのエンリッチ** に進んでください。
 
 #### B) GitHubソースの場合 (`github.com` を含むURL)
 1.  **データ取得と変換:** `github_fetch` ツールを実行します。

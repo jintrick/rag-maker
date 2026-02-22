@@ -10,6 +10,7 @@ src/ragmaker/io_utils.py
 src/ragmaker/utils.py
 src/ragmaker/data/ask.toml
 src/ragmaker/tools/ask_dir.py
+src/ragmaker/tools/browser_fetch.py
 src/ragmaker/tools/cache_cleanup.py
 src/ragmaker/tools/create_knowledge_base.py
 src/ragmaker/tools/enrich_discovery.py

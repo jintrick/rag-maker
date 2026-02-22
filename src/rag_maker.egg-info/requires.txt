@@ -6,6 +6,7 @@ beautifulsoup4
 GitPython
 markitdown
 tkfilebrowser
+playwright
 
 [:sys_platform == "win32"]
 pywin32

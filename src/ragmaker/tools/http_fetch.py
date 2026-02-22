@@ -97,6 +97,36 @@ class WebFetcher:
         self.depth = args.depth
         self.visited_urls: set[str] = set()
         self.documents: list[dict] = []
+        self.fallback_recommended = False
+        self.fallback_reason = None
+        self.fallback_details = None
+
+    def _check_spa_patterns(self, html: str) -> bool:
+        """Check for common SPA patterns in the raw HTML."""
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            body = soup.body
+            if not body:
+                return False
+
+            # Check for empty body or just scripts/root div
+            relevant_tags = [t for t in body.find_all(recursive=False) if t.name not in ['script', 'style', 'noscript']]
+
+            if len(relevant_tags) == 0:
+                # Almost empty body
+                if not body.get_text(strip=True):
+                    return True
+                return False
+
+            if len(relevant_tags) <= 2:
+                for tag in relevant_tags:
+                    if tag.get('id') in ['root', 'app', '__next', 'app-root', 'main']:
+                        # Check if this root element is empty or contains no text
+                        if not tag.get_text(strip=True):
+                            return True
+            return False
+        except Exception:
+            return False
 
     def _fetch_html_for_links(self, url: str) -> str | None:
         """Fetch HTML string for link discovery."""
@@ -159,6 +189,9 @@ class WebFetcher:
 
         except subprocess.CalledProcessError as e:
             logger.error(f"readable-cli failed for {url} with code {e.returncode}.")
+            self.fallback_recommended = True
+            self.fallback_reason = "EXTRACTION_FAILED"
+            self.fallback_details = f"readable-cli failed with code {e.returncode}."
             return None
         except FileNotFoundError:
             logger.error("The 'readable' command could not be executed.")
@@ -208,19 +241,34 @@ class WebFetcher:
             logger.info(f"Fetching: {current_url} at depth {current_depth}")
             self.visited_urls.add(current_url)
 
-            if self.recursive and current_depth < self.depth:
-                html_for_links = self._fetch_html_for_links(current_url)
-                if html_for_links:
-                    found_links = self._find_links(html_for_links, current_url)
-                    for link in found_links:
-                        parsed_url = urlparse(link)
-                        if parsed_url.scheme not in ['http', 'https']:
-                            continue
-                        clean_url = parsed_url._replace(fragment="").geturl()
-                        if clean_url.startswith(self.base_url) and clean_url not in self.visited_urls:
-                            urls_to_visit.append((clean_url, current_depth + 1))
+            # Fetch raw HTML for link discovery and SPA detection
+            raw_html = self._fetch_html_for_links(current_url)
+            raw_html_len = len(raw_html) if raw_html else 0
+
+            # SPA Check 1: Check for SPA patterns in raw HTML
+            if raw_html and self._check_spa_patterns(raw_html):
+                 self.fallback_recommended = True
+                 self.fallback_reason = "SPA_DETECTED"
+                 self.fallback_details = "Raw HTML contains SPA patterns (empty body or root div)."
+
+            if raw_html and self.recursive and current_depth < self.depth:
+                found_links = self._find_links(raw_html, current_url)
+                for link in found_links:
+                    parsed_url = urlparse(link)
+                    if parsed_url.scheme not in ['http', 'https']:
+                        continue
+                    clean_url = parsed_url._replace(fragment="").geturl()
+                    if clean_url.startswith(self.base_url) and clean_url not in self.visited_urls:
+                        urls_to_visit.append((clean_url, current_depth + 1))
             
             markdown_content = self._extract_and_convert(current_url)
+
+            # SPA Check 2: Content length too short compared to HTML source
+            if markdown_content and raw_html_len > 2000 and len(markdown_content) < 200:
+                 self.fallback_recommended = True
+                 self.fallback_reason = "SPA_DETECTED"
+                 self.fallback_details = "Content length too short compared to HTML source size."
+
             if not markdown_content:
                 continue
 
@@ -237,6 +285,11 @@ class WebFetcher:
                 page_counter += 1
             except IOError as e:
                 logger.error(f"Failed to write file for {current_url}: {e}")
+
+        if not self.documents and not self.fallback_recommended:
+             self.fallback_recommended = True
+             self.fallback_reason = "NO_DOCUMENTS"
+             self.fallback_details = "No documents were successfully extracted."
 
 
 
@@ -262,6 +315,9 @@ def main() -> None:
     try:
         args = parser.parse_args()
 
+        # Update logging level based on arguments
+        logging.getLogger().setLevel(args.log_level)
+
         if sys.platform == "win32":
             p = Path(args.output_dir)
             sanitized_name = p.name.replace("'", "").replace('"', "").strip()
@@ -285,6 +341,13 @@ def main() -> None:
             "depth": args.depth,
             "fetched_at": datetime.now(timezone.utc).isoformat()
         }
+
+        if fetcher.fallback_recommended:
+            metadata["status"] = "fallback_recommended"
+            metadata["reason"] = fetcher.fallback_reason
+            if fetcher.fallback_details:
+                metadata["details"] = fetcher.fallback_details
+
         print_catalog_data(fetcher.documents, metadata, output_dir=output_dir_path)
 
     except ArgumentParsingError as e:

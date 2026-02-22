@@ -37,6 +37,43 @@
       }
     },
     {
+      "name": "browser_fetch",
+      "command": "ragmaker-browser-fetch",
+      "description": "Playwrightを使用してWebページを収集するツール。JavaScript駆動のSPAサイトや動的コンテンツの取得に特化しており、レンダリング後のDOMからコンテンツを抽出する。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "取得対象のWebページのURL。"
+          },
+          "base-url": {
+            "type": "string",
+            "description": "ドキュメントの範囲を定義するためのベースURL。このURLのパス以下のみをドキュメントとして扱う。"
+          },
+          "output-dir": {
+            "type": "string",
+            "description": "取得したMarkdownファイルを保存する出力先ディレクトリ。"
+          },
+          "recursive": {
+            "type": "boolean",
+            "description": "ページ内のリンクを再帰的に探索し、コンテンツを収集するかどうか。",
+            "default": true
+          },
+          "depth": {
+            "type": "integer",
+            "description": "再帰探索の最大深度。",
+            "default": 5
+          }
+        },
+        "required": [
+          "url",
+          "base-url",
+          "output-dir"
+        ]
+      }
+    },
+    {
       "name": "ask_dir",
       "command": "ragmaker-ask-dir",
       "description": "ユーザーが選択したディレクトリのパスを標準出力で返すツール。",

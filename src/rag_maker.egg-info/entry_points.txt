@@ -1,5 +1,6 @@
 [console_scripts]
 ragmaker-ask-dir = ragmaker.tools.ask_dir:main
+ragmaker-browser-fetch = ragmaker.tools.browser_fetch:main
 ragmaker-cache-cleanup = ragmaker.tools.cache_cleanup:main
 ragmaker-create-knowledge-base = ragmaker.tools.create_knowledge_base:main
 ragmaker-enrich-discovery = ragmaker.tools.enrich_discovery:main
