@@ -29,6 +29,7 @@ try:
     )
     from ragmaker.browser_manager import BrowserManager, FatalBrowserError
     from ragmaker.utils import atomic_write_json
+    from ragmaker.constants import DEFAULT_CATALOG_PATH, DEFAULT_BROWSER_PROFILE_DIR
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -45,7 +46,9 @@ def update_catalog(catalog_path: Path, new_doc: Dict[str, Any]):
         try:
             with open(catalog_path, 'r', encoding='utf-8') as f:
                 catalog_data = json.load(f)
-        except Exception as e:
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse existing catalog at {catalog_path}: {e}. Creating new.")
+        except IOError as e:
             logger.warning(f"Failed to read existing catalog at {catalog_path}: {e}. Creating new.")
 
     documents = catalog_data.get("documents", [])
@@ -81,14 +84,10 @@ def get_filename_for_url(url: str, output_dir: Path, catalog_path: Path) -> str:
                 data = json.load(f)
                 for doc in data.get("documents", []):
                     if doc.get("url") == url:
-                        # doc["path"] is relative to catalog dir.
-                        # We need to resolve it to get the filename if it's simple.
-                        # Or return the resolved absolute path? No, we return the filename to use in output_dir.
-                        # Assuming doc["path"] points to a file inside output_dir relative to catalog_dir.
-                        # This logic is a bit circular if directories don't align.
-                        # Simplified: Just grab the filename part.
+                        # Return the filename part of the path
                         return Path(doc.get("path")).name
-        except:
+        except (json.JSONDecodeError, IOError, KeyError):
+            # If catalog is corrupted or unreadable, fall back to generating new filename
             pass
 
     # Generate new filename
@@ -109,7 +108,7 @@ async def main_async():
     parser = GracefulArgumentParser(description="Extract content from a URL and save as Markdown using persistent browser context.")
     parser.add_argument("--url", required=True, help="URL to extract content from.")
     parser.add_argument("--output-dir", required=True, help="Directory to save the Markdown file.")
-    parser.add_argument("--catalog-path", required=False, default=".tmp/cache/catalog.json", help="Path to the catalog.json file to update.")
+    parser.add_argument("--catalog-path", required=False, default=str(DEFAULT_CATALOG_PATH), help="Path to the catalog.json file to update.")
     parser.add_argument("--no-headless", action="store_true", help="Run browser visibly.")
 
     try:
@@ -122,7 +121,7 @@ async def main_async():
         # Ensure catalog directory exists
         catalog_path.parent.mkdir(parents=True, exist_ok=True)
 
-        profile_path = Path(".tmp/cache/browser_profile")
+        profile_path = DEFAULT_BROWSER_PROFILE_DIR
 
         async with BrowserManager(user_data_dir=profile_path, headless=not args.no_headless) as browser:
             page, _ = await browser.navigate(args.url)
@@ -167,6 +166,9 @@ async def main_async():
             "error_code": "FATAL_BROWSER_ERROR",
             "message": str(e)
         })
+        sys.exit(1)
+    except KeyboardInterrupt:
+        logger.info("Process interrupted by user.")
         sys.exit(1)
     except Exception as e:
         logger.exception("An unexpected error occurred.")

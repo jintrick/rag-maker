@@ -23,6 +23,7 @@ try:
         print_json_stdout,
     )
     from ragmaker.browser_manager import BrowserManager, FatalBrowserError
+    from ragmaker.constants import DEFAULT_BROWSER_PROFILE_DIR
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -44,7 +45,7 @@ async def main_async():
 
     try:
         args = parser.parse_args()
-        profile_path = Path(".tmp/cache/browser_profile")
+        profile_path = DEFAULT_BROWSER_PROFILE_DIR
 
         async with BrowserManager(user_data_dir=profile_path, headless=not args.no_headless) as browser:
             page, is_bot_detected = await browser.navigate(args.url)
@@ -71,6 +72,9 @@ async def main_async():
             "error_code": "FATAL_BROWSER_ERROR",
             "message": str(e)
         })
+        sys.exit(1)
+    except KeyboardInterrupt:
+        logger.info("Process interrupted by user.")
         sys.exit(1)
     except Exception as e:
         logger.exception("An unexpected error occurred.")

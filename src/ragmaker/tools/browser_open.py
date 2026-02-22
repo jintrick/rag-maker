@@ -23,6 +23,7 @@ try:
         print_json_stdout,
     )
     from ragmaker.browser_manager import BrowserManager
+    from ragmaker.constants import DEFAULT_BROWSER_PROFILE_DIR
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -45,7 +46,7 @@ async def main_async():
     try:
         args = parser.parse_args()
 
-        profile_path = Path(".tmp/cache/browser_profile")
+        profile_path = DEFAULT_BROWSER_PROFILE_DIR
         profile_path.mkdir(parents=True, exist_ok=True)
 
         if args.no_headless:
@@ -67,6 +68,9 @@ async def main_async():
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        logger.info("Process interrupted by user.")
         sys.exit(1)
     except Exception as e:
         logger.exception("An unexpected error occurred.")

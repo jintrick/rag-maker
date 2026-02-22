@@ -75,13 +75,13 @@ class BrowserManager:
         try:
             if self.context:
                 await self.context.close()
-        except Exception:
-            pass
+        except Exception as e:
+             logger.warning(f"Error closing browser context: {e}")
         try:
             if self.playwright:
                 await self.playwright.stop()
-        except Exception:
-            pass
+        except Exception as e:
+             logger.warning(f"Error stopping Playwright: {e}")
 
     async def _apply_stealth_scripts(self, page: Page):
         """Inject scripts to bypass basic bot detection."""
@@ -132,6 +132,7 @@ class BrowserManager:
         except Exception as e:
             if "Bot detection screen" in str(e):
                 raise
+            logger.debug(f"Error during bot detection check (non-fatal): {e}")
             return False
 
     async def navigate(self, url: str) -> Tuple[Page, bool]:

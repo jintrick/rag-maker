@@ -30,6 +30,7 @@ try:
     )
     from ragmaker.utils import print_catalog_data
     from ragmaker.browser_manager import BrowserManager, FatalBrowserError
+    from ragmaker.constants import DEFAULT_BROWSER_PROFILE_DIR
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -65,7 +66,7 @@ class WebFetcher:
 
     async def run(self):
         """Execute fetch and conversion process."""
-        user_data_dir = Path(".tmp/cache/browser_profile")
+        user_data_dir = DEFAULT_BROWSER_PROFILE_DIR
 
         async with BrowserManager(user_data_dir=user_data_dir, headless=not self.no_headless) as browser:
             logger.info(f"Starting fetch for URL: {self.start_url}")
@@ -104,8 +105,6 @@ class WebFetcher:
                          for link in info['links']:
                              links.append(link['href'])
 
-                    # Close page explicitly to free resources? BrowserManager manages context, but pages pile up.
-                    # BrowserManager.navigate creates a new page. We should close it.
                     await page.close()
 
                     if self.recursive and current_depth < self.depth:
@@ -138,6 +137,8 @@ class WebFetcher:
                 except FatalBrowserError as e:
                     logger.error(f"Fatal browser error: {e}. Stopping crawl.")
                     break
+                except KeyboardInterrupt:
+                    raise
                 except Exception as e:
                     handle_request_error(current_url, e)
 
