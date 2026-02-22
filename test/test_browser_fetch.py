@@ -36,21 +36,25 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
     async def test_fetch_content(self, mock_playwright):
         # Mock Playwright structure
         mock_p = MagicMock()
-        mock_browser = MagicMock()
         mock_context = MagicMock()
         mock_page = MagicMock()
 
         # Correctly setup AsyncMocks for async methods
         mock_playwright.return_value.start = AsyncMock(return_value=mock_p)
-        mock_p.chromium.launch = AsyncMock(return_value=mock_browser)
-        mock_browser.new_context = AsyncMock(return_value=mock_context)
+        # Use launch_persistent_context instead of launch/new_context
+        mock_p.chromium.launch_persistent_context = AsyncMock(return_value=mock_context)
         mock_context.new_page = AsyncMock(return_value=mock_page)
 
         mock_p.stop = AsyncMock()
-        mock_browser.close = AsyncMock()
         mock_context.close = AsyncMock()
         mock_page.close = AsyncMock()
         mock_page.goto = AsyncMock()
+        mock_page.add_init_script = AsyncMock()
+
+        # Mocks for bot detection check
+        mock_page.title = AsyncMock(return_value="Safe Title")
+        mock_page.content = AsyncMock(return_value="Safe content")
+        mock_page.query_selector = AsyncMock(return_value=None)
 
         # Mock page.evaluate return value
         mock_page.evaluate = AsyncMock(return_value={
@@ -66,6 +70,12 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(fetcher.documents), 1)
         self.assertEqual(fetcher.documents[0]['url'], "http://example.com")
 
+        # Verify launch_persistent_context was called
+        mock_p.chromium.launch_persistent_context.assert_called_once()
+
+        # Verify stealth script was added
+        mock_page.add_init_script.assert_called()
+
         # Check file content
         file_path = self.output_dir / fetcher.documents[0]['path']
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -77,21 +87,24 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
     async def test_recursion(self, mock_playwright):
         # Mock Playwright
         mock_p = MagicMock()
-        mock_browser = MagicMock()
         mock_context = MagicMock()
         mock_page = MagicMock()
 
         # Correctly setup AsyncMocks
         mock_playwright.return_value.start = AsyncMock(return_value=mock_p)
-        mock_p.chromium.launch = AsyncMock(return_value=mock_browser)
-        mock_browser.new_context = AsyncMock(return_value=mock_context)
+        mock_p.chromium.launch_persistent_context = AsyncMock(return_value=mock_context)
         mock_context.new_page = AsyncMock(return_value=mock_page)
 
         mock_p.stop = AsyncMock()
-        mock_browser.close = AsyncMock()
         mock_context.close = AsyncMock()
         mock_page.close = AsyncMock()
         mock_page.goto = AsyncMock()
+        mock_page.add_init_script = AsyncMock()
+
+        # Mocks for bot detection check
+        mock_page.title = AsyncMock(return_value="Safe Title")
+        mock_page.content = AsyncMock(return_value="Safe content")
+        mock_page.query_selector = AsyncMock(return_value=None)
 
         # Define behavior for recursion
         # First call returns link to sub
