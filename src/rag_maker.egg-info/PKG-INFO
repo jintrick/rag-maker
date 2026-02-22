@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: rag-maker
-Version: 0.8.1
+Version: 0.8.2
 Summary: A collection of tools for building RAG knowledge bases.
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License

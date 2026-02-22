@@ -16,6 +16,7 @@ logging.disable(logging.CRITICAL)
 import argparse
 import json
 import re
+import random
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 from datetime import datetime, timezone
@@ -83,8 +84,18 @@ class WebFetcher:
     async def _setup_browser(self):
         """Initialize the browser instance."""
         self.playwright = await async_playwright().start()
+        user_data_dir = Path(".tmp/cache/browser_profile").resolve()
+
         try:
-            self.browser = await self.playwright.chromium.launch(headless=not self.no_headless)
+            self.context = await self.playwright.chromium.launch_persistent_context(
+                user_data_dir,
+                headless=not self.no_headless,
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                viewport={"width": 1280, "height": 720}
+            )
+            # With launch_persistent_context, the browser object is not exposed directly.
+            # The context acts as the main interface.
+            self.browser = None
         except Exception as e:
             if "Executable doesn't exist" in str(e) or "playwright install" in str(e):
                 eprint_error({
@@ -95,7 +106,6 @@ class WebFetcher:
                 })
                 sys.exit(1)
             raise
-        self.context = await self.browser.new_context()
 
     async def _close_browser(self):
         """Close the browser instance."""
@@ -105,11 +115,7 @@ class WebFetcher:
         except Exception:
             pass
 
-        try:
-            if self.browser:
-                await self.browser.close()
-        except Exception:
-            pass
+        # self.browser is None when using launch_persistent_context
 
         try:
             if self.playwright:
@@ -117,22 +123,81 @@ class WebFetcher:
         except Exception:
             pass
 
+    async def _apply_stealth_scripts(self, page):
+        """Inject scripts to bypass basic bot detection."""
+        await page.add_init_script("""
+            () => {
+                Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+                Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
+                window.chrome = { runtime: {} };
+                Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+            }
+        """)
+
+    async def _check_bot_detection(self, page, url: str):
+        """Check for common bot detection screens and pause if interactive."""
+        # Check for keywords
+        try:
+            title = await page.title()
+            content = await page.content()
+            # Simple text check (performance optimized compared to full text extraction)
+
+            keywords = [
+                "Just a moment...", "Checking your browser", "Verify you are human",
+                "cf-challenge", "ray_id"
+            ]
+
+            selectors = [
+                "#challenge-running", "#challenge-form", ".cf-browser-verification", ".g-recaptcha"
+            ]
+
+            detected = False
+
+            if any(k in title for k in keywords):
+                detected = True
+
+            if not detected:
+                 # Check content for keywords - this might be heavy for large pages but necessary for some
+                 if any(k in content for k in keywords):
+                     detected = True
+
+            if not detected:
+                for selector in selectors:
+                    if await page.query_selector(selector):
+                        detected = True
+                        break
+
+            if detected:
+                msg = f"Bot detection suspected on {url}."
+                if self.no_headless:
+                    sys.stderr.write(f"\n[WARNING] {msg}\n")
+                    sys.stderr.write("Please manually solve the CAPTCHA or challenge in the browser window.\n")
+                    sys.stderr.write("Press ENTER in this terminal once the challenge is cleared and content is visible...\n")
+                    sys.stderr.flush()
+                    await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
+                else:
+                    logger.error(f"{msg} Skipping. Run with --no-headless to solve manually.")
+                    raise Exception("Bot detection screen encountered in headless mode.")
+
+        except Exception as e:
+            if "Bot detection screen" in str(e):
+                raise
+            # Ignore other errors during check (e.g. page closed)
+            pass
+
     async def _process_page(self, url: str) -> tuple[str | None, list[str]]:
         """Fetch page, extract content and links."""
         try:
             page = await self.context.new_page()
+            await self._apply_stealth_scripts(page)
+
             try:
                 await page.goto(url, timeout=60000, wait_until="networkidle")
             except Exception as e:
                 # If networkidle fails/times out, we might still have content loaded.
                 logger.warning(f"Navigation to {url} had issues: {e}. Attempting to process anyway.")
 
-            if self.no_headless:
-                sys.stderr.write(f"\n[INTERACTIVE MODE] Browser is open for {url}.\n")
-                sys.stderr.write("Perform any necessary manual actions (e.g., CAPTCHA, login).\n")
-                sys.stderr.write("Press ENTER in this terminal to continue capturing content...\n")
-                sys.stderr.flush()
-                await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
+            await self._check_bot_detection(page, url)
 
             # JavaScript to extract initial content and links
             result = await page.evaluate("""() => {
@@ -218,6 +283,9 @@ class WebFetcher:
 
                 logger.info(f"Fetching: {current_url} at depth {current_depth}")
                 self.visited_urls.add(current_url)
+
+                # Human-like delay
+                await asyncio.sleep(random.uniform(1.0, 3.0))
 
                 # Process the page
                 markdown_content, links = await self._process_page(current_url)
