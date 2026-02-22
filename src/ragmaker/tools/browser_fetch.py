@@ -82,17 +82,39 @@ class WebFetcher:
     async def _setup_browser(self):
         """Initialize the browser instance."""
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=True)
+        try:
+            self.browser = await self.playwright.chromium.launch(headless=True)
+        except Exception as e:
+            if "Executable doesn't exist" in str(e) or "playwright install" in str(e):
+                eprint_error({
+                    "status": "error",
+                    "error_code": "BROWSER_BINARY_MISSING",
+                    "message": "Playwright browsers are not installed.",
+                    "remediation_suggestion": "Please run 'playwright install chromium' or 'python -m playwright install chromium'."
+                })
+                sys.exit(1)
+            raise
         self.context = await self.browser.new_context()
 
     async def _close_browser(self):
         """Close the browser instance."""
-        if self.context:
-            await self.context.close()
-        if self.browser:
-            await self.browser.close()
-        if self.playwright:
-            await self.playwright.stop()
+        try:
+            if self.context:
+                await self.context.close()
+        except Exception:
+            pass
+
+        try:
+            if self.browser:
+                await self.browser.close()
+        except Exception:
+            pass
+
+        try:
+            if self.playwright:
+                await self.playwright.stop()
+        except Exception:
+            pass
 
     async def _process_page(self, url: str) -> tuple[str | None, list[str]]:
         """Fetch page, extract content and links."""

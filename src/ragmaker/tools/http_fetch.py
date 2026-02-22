@@ -103,6 +103,10 @@ class WebFetcher:
 
     def _check_spa_patterns(self, html: str) -> bool:
         """Check for common SPA patterns in the raw HTML."""
+        # Check cached state
+        if self.fallback_recommended and self.fallback_reason == "SPA_DETECTED":
+            return True
+
         try:
             soup = BeautifulSoup(html, 'html.parser')
             body = soup.body

@@ -32,7 +32,8 @@
         },
         "required": [
           "url",
-          "base-url"
+          "base-url",
+          "output-dir"
         ]
       }
     },
