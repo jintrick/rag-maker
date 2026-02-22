@@ -65,8 +65,19 @@ def handle_request_error(url: str, exception: Exception):
         "details": {"url": url, "error_type": type(exception).__name__, "error": str(exception)}
     })
 
+class FatalBrowserError(Exception):
+    """Raised when the browser or context is closed and further fetching is impossible."""
+    pass
+
+
 class WebFetcher:
     """Encapsulates logic for fetching and converting web pages using Playwright."""
+
+    def _is_fatal_error(self, e: Exception) -> bool:
+        """Determines if the exception indicates a fatal browser loss."""
+        msg = str(e).lower()
+        fatal_keywords = ["closed", "connection closed", "target closed", "context closed"]
+        return any(k in msg for k in fatal_keywords)
 
     def __init__(self, args: argparse.Namespace):
         self.start_url = args.url.rstrip('/')
@@ -192,8 +203,12 @@ class WebFetcher:
             await self._apply_stealth_scripts(page)
 
             try:
-                await page.goto(url, timeout=60000, wait_until="networkidle")
+                # Set timeout to 0 (infinite) if no_headless is True, else 60000ms
+                timeout = 0 if self.no_headless else 60000
+                await page.goto(url, timeout=timeout, wait_until="networkidle")
             except Exception as e:
+                if self._is_fatal_error(e):
+                    raise FatalBrowserError(str(e)) from e
                 # If networkidle fails/times out, we might still have content loaded.
                 logger.warning(f"Navigation to {url} had issues: {e}. Attempting to process anyway.")
 
@@ -257,6 +272,8 @@ class WebFetcher:
             return markdown_content, links
 
         except Exception as e:
+            if self._is_fatal_error(e):
+                raise FatalBrowserError(str(e)) from e
             handle_request_error(url, e)
             return None, []
 
@@ -287,34 +304,39 @@ class WebFetcher:
                 # Human-like delay
                 await asyncio.sleep(random.uniform(1.0, 3.0))
 
-                # Process the page
-                markdown_content, links = await self._process_page(current_url)
-
-                if self.recursive and current_depth < self.depth:
-                    for link in links:
-                        parsed_url = urlparse(link)
-                        if parsed_url.scheme not in ['http', 'https']:
-                            continue
-                        clean_url = parsed_url._replace(fragment="").geturl()
-                        if clean_url.startswith(self.base_url) and clean_url not in self.visited_urls:
-                            urls_to_visit.append((clean_url, current_depth + 1))
-
-                if not markdown_content:
-                    continue
-
                 try:
-                    filename = f"page_{page_counter}.md"
-                    file_path = self.output_dir / filename
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(markdown_content)
+                    # Process the page
+                    markdown_content, links = await self._process_page(current_url)
 
-                    self.documents.append({
-                        "url": current_url,
-                        "path": filename
-                    })
-                    page_counter += 1
-                except IOError as e:
-                    logger.error(f"Failed to write file for {current_url}: {e}")
+                    if self.recursive and current_depth < self.depth:
+                        for link in links:
+                            parsed_url = urlparse(link)
+                            if parsed_url.scheme not in ['http', 'https']:
+                                continue
+                            clean_url = parsed_url._replace(fragment="").geturl()
+                            if clean_url.startswith(self.base_url) and clean_url not in self.visited_urls:
+                                urls_to_visit.append((clean_url, current_depth + 1))
+
+                    if not markdown_content:
+                        continue
+
+                    try:
+                        filename = f"page_{page_counter}.md"
+                        file_path = self.output_dir / filename
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            f.write(markdown_content)
+
+                        self.documents.append({
+                            "url": current_url,
+                            "path": filename
+                        })
+                        page_counter += 1
+                    except IOError as e:
+                        logger.error(f"Failed to write file for {current_url}: {e}")
+
+                except FatalBrowserError as e:
+                    logger.error(f"Fatal browser error: {e}. Stopping crawl.")
+                    break
 
         finally:
             await self._close_browser()
