@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag-maker"
-version = "0.8.3"
+version = "0.9.1"
 description = "A collection of tools for building RAG knowledge bases."
 readme = "README.md"
 requires-python = ">=3.8"
