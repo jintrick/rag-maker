@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """
 Tool to explicitly close the browser session (cleanup).
-Currently, browser context is closed after each tool execution, so this tool serves as a semantic end of session.
 """
 
 import sys
 import logging
 import argparse
+import json
+import os
+import signal
+from pathlib import Path
 
 # Suppress logging
 logging.disable(logging.CRITICAL)
@@ -33,8 +36,37 @@ def main():
 
     try:
         args = parser.parse_args()
-        # No actual cleanup needed as each tool invocation handles its own context closure.
-        # Could potentially clear temporary files here if desired, but user_data_dir is persistent.
+
+        cdp_file = Path(".tmp/browser_cdp.json")
+        if not cdp_file.exists():
+            print_json_stdout({
+                "status": "success",
+                "message": "No active browser session found."
+            })
+            return
+
+        try:
+            with open(cdp_file, 'r') as f:
+                data = json.load(f)
+                pid = data.get("pid")
+        except Exception as e:
+            logger.warning(f"Failed to read CDP file: {e}")
+            pid = None
+
+        if pid:
+            try:
+                # Terminate process
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                # Already gone
+                pass
+            except OSError as e:
+                logger.warning(f"Failed to kill browser process {pid}: {e}")
+
+        try:
+            cdp_file.unlink()
+        except OSError:
+            pass
 
         print_json_stdout({
             "status": "success",

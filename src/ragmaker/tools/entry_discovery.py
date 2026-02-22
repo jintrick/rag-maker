@@ -23,6 +23,7 @@ try:
         print_json_stdout,
         eprint_error
     )
+    from ragmaker.utils import LockedJsonWriter
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -38,37 +39,25 @@ def create_initial_catalog(catalog_path: Path, uri: str, title: str = None, summ
     Creates a new catalog.json file with metadata and an 'unknowns' entry.
     If the file exists, it updates the metadata.
     """
-    # Ensure the parent directory exists.
-    catalog_path.parent.mkdir(parents=True, exist_ok=True)
+    with LockedJsonWriter(catalog_path) as data:
+        # Update or set metadata
+        if title:
+            data['title'] = title
+        if summary:
+            data['summary'] = summary
+        if src_type:
+            data['src_type'] = src_type
 
-    data = {}
-    if catalog_path.exists():
-        with open(catalog_path, 'r', encoding='utf-8') as f:
-            try:
-                data = json.load(f)
-            except json.JSONDecodeError:
-                pass # Start fresh if corrupt
+        # Ensure source_url matches the initial URI if not already present or if we are initializing
+        if uri:
+            data['source_url'] = uri
 
-    # Update or set metadata
-    if title:
-        data['title'] = title
-    if summary:
-        data['summary'] = summary
-    if src_type:
-        data['src_type'] = src_type
+            # Ensure 'unknowns' exists and verify URI
+            if 'unknowns' not in data:
+                data['unknowns'] = [{"uri": uri}]
 
-    # Ensure source_url matches the initial URI if not already present or if we are initializing
-    data['source_url'] = uri
-
-    # Ensure 'unknowns' exists and verify URI
-    if 'unknowns' not in data:
-        data['unknowns'] = [{"uri": uri}]
-
-    # Note: We don't force-add the URI to unknowns if it's already a document,
-    # but for initialization, it's safe to ensure it's tracked if the file was empty.
-
-    with open(catalog_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        # Note: We don't force-add the URI to unknowns if it's already a document,
+        # but for initialization, it's safe to ensure it's tracked if the file was empty.
 
     message = f"Successfully updated catalog file at {catalog_path.resolve()}"
     logger.info(message)
@@ -79,7 +68,8 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Create or update catalog.json with metadata and source URI.")
     # Renamed --discovery-path to --kb-root to align with master catalog (discovery.json) and new naming convention.
-    parser.add_argument("--kb-root", required=True, help="The root path of the knowledge base where catalog.json will be created.")
+    parser.add_argument("--catalog-path", required=False, help="The full path to catalog.json.")
+    parser.add_argument("--kb-root", required=False, help="The root path of the knowledge base where catalog.json will be created (deprecated in favor of --catalog-path).")
     parser.add_argument("--uri", required=False, help="The initial source URI/URL.") # Made optional for updates, but logic handles it.
     parser.add_argument("--source-url", required=False, help="Alias for --uri.")
     
@@ -90,8 +80,15 @@ def main():
 
     try:
         args = parser.parse_args()
-        catalog_path = Path(args.kb_root) / "catalog.json"
         
+        if args.catalog_path:
+            catalog_path = Path(args.catalog_path)
+        elif args.kb_root:
+            catalog_path = Path(args.kb_root) / "catalog.json"
+        else:
+            eprint_error({"status": "error", "message": "Either --catalog-path or --kb-root must be provided."})
+            sys.exit(1)
+
         # Handle uri vs source-url alias
         uri = args.uri or args.source_url
         if not uri and not catalog_path.exists():

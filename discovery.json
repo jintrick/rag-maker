@@ -119,7 +119,7 @@
     {
       "name": "browser_extract",
       "command": "ragmaker-browser-extract",
-      "description": "現在のブラウザセッションで指定されたURLのコンテンツをMarkdownとして抽出し、保存するツール。",
+      "description": "現在のブラウザセッションで指定されたURLのコンテンツをMarkdownとして抽出し、保存するツール。抽出結果（Markdown内容、タイトル、パス）をJSONで返却するが、catalog.jsonの更新は行わない。",
       "parameters": {
         "type": "object",
         "properties": {
@@ -130,11 +130,6 @@
           "output-dir": {
             "type": "string",
             "description": "Markdownファイルの保存先ディレクトリ。"
-          },
-          "catalog-path": {
-            "type": "string",
-            "description": "更新するcatalog.jsonのパス。デフォルトは .tmp/cache/catalog.json。",
-            "default": ".tmp/cache/catalog.json"
           },
           "no-headless": {
             "type": "boolean",
@@ -228,13 +223,17 @@
     {
       "name": "entry_discovery",
       "command": "ragmaker-entry-discovery",
-      "description": "ドキュメントをシステムに登録するツール。",
+      "description": "catalog.jsonを作成・初期化するツール。",
       "parameters": {
         "type": "object",
         "properties": {
+          "catalog-path": {
+            "type": "string",
+            "description": "作成・更新するcatalog.jsonのパス。"
+          },
           "kb-root": {
             "type": "string",
-            "description": "ドキュメント情報を登録するナレッジベースのルートパス。"
+            "description": "（非推奨）ドキュメント情報を登録するナレッジベースのルートパス。指定された場合、直下のcatalog.jsonが対象となる。"
           },
           "title": {
             "type": "string",
@@ -254,7 +253,6 @@
           }
         },
         "required": [
-          "kb-root",
           "source-url"
         ]
       }
