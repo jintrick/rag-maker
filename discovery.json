@@ -28,6 +28,11 @@
             "type": "integer",
             "description": "再帰探索の最大深度。",
             "default": 5
+          },
+          "no-headless": {
+            "type": "boolean",
+            "description": "ブラウザを可視状態で起動し、手動操作（CAPTCHA解決など）を待機する対話モードを有効にする。",
+            "default": false
           }
         },
         "required": [

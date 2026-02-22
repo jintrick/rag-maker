@@ -24,6 +24,7 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
             output_dir=str(self.output_dir),
             recursive=False,
             depth=1,
+            no_headless=False,
             verbose=False,
             log_level='INFO'
         )
@@ -115,6 +116,7 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
             output_dir=str(self.output_dir),
             recursive=True,
             depth=2,
+            no_headless=False,
             verbose=False,
             log_level='INFO'
         )

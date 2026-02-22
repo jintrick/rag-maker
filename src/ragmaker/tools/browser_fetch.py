@@ -73,6 +73,7 @@ class WebFetcher:
         self.output_dir = Path(args.output_dir)
         self.recursive = args.recursive
         self.depth = args.depth
+        self.no_headless = args.no_headless
         self.visited_urls: set[str] = set()
         self.documents: list[dict] = []
         self.playwright = None
@@ -83,7 +84,7 @@ class WebFetcher:
         """Initialize the browser instance."""
         self.playwright = await async_playwright().start()
         try:
-            self.browser = await self.playwright.chromium.launch(headless=True)
+            self.browser = await self.playwright.chromium.launch(headless=not self.no_headless)
         except Exception as e:
             if "Executable doesn't exist" in str(e) or "playwright install" in str(e):
                 eprint_error({
@@ -125,6 +126,13 @@ class WebFetcher:
             except Exception as e:
                 # If networkidle fails/times out, we might still have content loaded.
                 logger.warning(f"Navigation to {url} had issues: {e}. Attempting to process anyway.")
+
+            if self.no_headless:
+                sys.stderr.write(f"\n[INTERACTIVE MODE] Browser is open for {url}.\n")
+                sys.stderr.write("Perform any necessary manual actions (e.g., CAPTCHA, login).\n")
+                sys.stderr.write("Press ENTER in this terminal to continue capturing content...\n")
+                sys.stderr.flush()
+                await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline)
 
             # JavaScript to extract initial content and links
             result = await page.evaluate("""() => {
@@ -259,6 +267,7 @@ def main() -> None:
     parser.add_argument("--output-dir", required=True, help="Output directory.")
     parser.add_argument("--recursive", action=argparse.BooleanOptionalAction, default=True, help="Enable recursion.")
     parser.add_argument("--depth", type=int, default=5, help="Max depth.")
+    parser.add_argument("--no-headless", action="store_true", help="Run browser in non-headless mode for manual intervention.")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     parser.add_argument("--log-level", choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO', help="Set logging level")
 
