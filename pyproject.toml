@@ -1,34 +1,18 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = [ "setuptools>=61.0" ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag-maker"
-version = "0.5.0"
+version = "0.8.0"
 description = "A collection of tools for building RAG knowledge bases."
 readme = "README.md"
 requires-python = ">=3.8"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-dependencies = [
-    "readabilipy",
-    "markdownify",
-    "requests",
-    "trafilatura",
-    "beautifulsoup4",
-    "GitPython",
-    "markitdown",
-    "pywin32; sys_platform == 'win32'",
-    "tkfilebrowser",
-]
+classifiers = [ "Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent" ]
+dependencies = [ "readabilipy", "markdownify", "requests", "trafilatura", "beautifulsoup4", "GitPython", "markitdown", "pywin32; sys_platform == 'win32'", "tkfilebrowser", "playwright" ]
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-]
+test = [ "pytest" ]
 
 [project.scripts]
 ragmaker-ask-dir = "ragmaker.tools.ask_dir:main"
@@ -49,11 +33,8 @@ ragmaker-read-file = "ragmaker.tools.read_file:main"
 ragmaker-write-file = "ragmaker.tools.write_file:main"
 
 [tool.setuptools.package-data]
-"ragmaker.data" = ["*.toml"]
+"ragmaker.data" = [ "*.toml" ]
 
 [tool.pylint.main]
 max-line-length = 120
-disable = [
-    "trailing-whitespace",
-    "missing-final-newline",
-]
+disable = [ "trailing-whitespace", "missing-final-newline" ]
