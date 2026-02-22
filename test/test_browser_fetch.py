@@ -32,36 +32,22 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
-    @patch('ragmaker.tools.browser_fetch.async_playwright')
-    async def test_fetch_content(self, mock_playwright):
-        # Mock Playwright structure
-        mock_p = MagicMock()
-        mock_context = MagicMock()
+    @patch('ragmaker.tools.browser_fetch.BrowserManager')
+    async def test_fetch_content(self, MockBrowserManager):
+        # Mock BrowserManager structure
+        mock_instance = MagicMock()
+
+        # Async context manager mocking
+        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_instance.__aexit__ = AsyncMock(return_value=None)
+
+        MockBrowserManager.return_value = mock_instance
+
         mock_page = MagicMock()
+        mock_page.close = AsyncMock() # Ensure close is async
 
-        # Correctly setup AsyncMocks for async methods
-        mock_playwright.return_value.start = AsyncMock(return_value=mock_p)
-        # Use launch_persistent_context instead of launch/new_context
-        mock_p.chromium.launch_persistent_context = AsyncMock(return_value=mock_context)
-        mock_context.new_page = AsyncMock(return_value=mock_page)
-
-        mock_p.stop = AsyncMock()
-        mock_context.close = AsyncMock()
-        mock_page.close = AsyncMock()
-        mock_page.goto = AsyncMock()
-        mock_page.add_init_script = AsyncMock()
-
-        # Mocks for bot detection check
-        mock_page.title = AsyncMock(return_value="Safe Title")
-        mock_page.content = AsyncMock(return_value="Safe content")
-        mock_page.query_selector = AsyncMock(return_value=None)
-
-        # Mock page.evaluate return value
-        mock_page.evaluate = AsyncMock(return_value={
-            "html": "<html><body><h1>Test Title</h1><p>Test content.</p></body></html>",
-            "links": ["http://example.com/page2"],
-            "title": "Test Page"
-        })
+        mock_instance.navigate = AsyncMock(return_value=(mock_page, False))
+        mock_instance.extract_content = AsyncMock(return_value=("# Test Title\nTest content.", "Test Page"))
 
         fetcher = browser_fetch.WebFetcher(self.args)
         await fetcher.run()
@@ -69,12 +55,11 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
         # Verify results
         self.assertEqual(len(fetcher.documents), 1)
         self.assertEqual(fetcher.documents[0]['url'], "http://example.com")
+        self.assertEqual(fetcher.documents[0]['title'], "Test Page")
 
-        # Verify launch_persistent_context was called
-        mock_p.chromium.launch_persistent_context.assert_called_once()
-
-        # Verify stealth script was added
-        mock_page.add_init_script.assert_called()
+        # Verify calls
+        mock_instance.navigate.assert_called_with("http://example.com")
+        mock_instance.extract_content.assert_called_with(mock_page)
 
         # Check file content
         file_path = self.output_dir / fetcher.documents[0]['path']
@@ -83,44 +68,31 @@ class TestBrowserFetchTool(unittest.IsolatedAsyncioTestCase):
         self.assertIn("# Test Title", content)
         self.assertIn("Test content", content)
 
-    @patch('ragmaker.tools.browser_fetch.async_playwright')
-    async def test_recursion(self, mock_playwright):
-        # Mock Playwright
-        mock_p = MagicMock()
-        mock_context = MagicMock()
+    @patch('ragmaker.tools.browser_fetch.BrowserManager')
+    async def test_recursion(self, MockBrowserManager):
+        # Mock BrowserManager
+        mock_instance = MagicMock()
+        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_instance.__aexit__ = AsyncMock(return_value=None)
+
+        MockBrowserManager.return_value = mock_instance
+
         mock_page = MagicMock()
-
-        # Correctly setup AsyncMocks
-        mock_playwright.return_value.start = AsyncMock(return_value=mock_p)
-        mock_p.chromium.launch_persistent_context = AsyncMock(return_value=mock_context)
-        mock_context.new_page = AsyncMock(return_value=mock_page)
-
-        mock_p.stop = AsyncMock()
-        mock_context.close = AsyncMock()
         mock_page.close = AsyncMock()
-        mock_page.goto = AsyncMock()
-        mock_page.add_init_script = AsyncMock()
 
-        # Mocks for bot detection check
-        mock_page.title = AsyncMock(return_value="Safe Title")
-        mock_page.content = AsyncMock(return_value="Safe content")
-        mock_page.query_selector = AsyncMock(return_value=None)
+        # Side effect for navigate
+        mock_instance.navigate = AsyncMock(return_value=(mock_page, False))
 
-        # Define behavior for recursion
-        # First call returns link to sub
-        # Second call returns content
+        # Side effect for extract_content
+        mock_instance.extract_content = AsyncMock(side_effect=[
+            ("# Root\nRoot content", "Root"),
+            ("# Sub\nSub content", "Sub")
+        ])
 
-        mock_page.evaluate = AsyncMock(side_effect=[
-            {
-                "html": "<p>Root</p>",
-                "links": ["http://example.com/sub"],
-                "title": "Root"
-            },
-            {
-                "html": "<p>Sub</p>",
-                "links": [],
-                "title": "Sub"
-            }
+        # Side effect for extract_links_and_title
+        mock_instance.extract_links_and_title = AsyncMock(side_effect=[
+            {"links": [{"href": "http://example.com/sub"}], "title": "Root"},
+            {"links": [], "title": "Sub"}
         ])
 
         args = argparse.Namespace(
