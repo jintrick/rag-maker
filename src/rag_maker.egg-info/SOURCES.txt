@@ -6,11 +6,16 @@ src/rag_maker.egg-info/dependency_links.txt
 src/rag_maker.egg-info/entry_points.txt
 src/rag_maker.egg-info/requires.txt
 src/rag_maker.egg-info/top_level.txt
+src/ragmaker/browser_manager.py
 src/ragmaker/io_utils.py
 src/ragmaker/utils.py
 src/ragmaker/data/ask.toml
 src/ragmaker/tools/ask_dir.py
+src/ragmaker/tools/browser_close.py
+src/ragmaker/tools/browser_extract.py
 src/ragmaker/tools/browser_fetch.py
+src/ragmaker/tools/browser_navigate.py
+src/ragmaker/tools/browser_open.py
 src/ragmaker/tools/cache_cleanup.py
 src/ragmaker/tools/create_knowledge_base.py
 src/ragmaker/tools/enrich_discovery.py

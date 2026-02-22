@@ -25,13 +25,19 @@
     -   `--base-url` には、収集範囲の基点となるURLを指定します（`{{args}}` から適切に判断してください）。
     -   `--output-dir` に `<プロジェクトルート>/.tmp/cache/` を指定します。
     -   このツールは、HTMLの取得、本文抽出、Markdown変換までをすべて行い、結果のJSONを**標準出力**に返します。
-2.  **結果の評価とフォールバック:**
+2.  **結果の評価と分岐:**
     -   `http_fetch` の実行結果（JSON）を確認します。
-    -   `documents` が空、または `metadata.status` が `"fallback_recommended"` の場合、SPAや動的サイトである可能性が高いため、`browser_fetch` を実行します。
-        -   `browser_fetch` ツールを実行します。引数は `http_fetch` と同様（`--url`, `--base-url`, `--output-dir`）です。出力先も同じ `<プロジェクトルート>/.tmp/cache/` を指定し、ファイルを上書きします。
-        -   `browser_fetch` の結果（JSON）を、最終的な結果として扱います。
-3.  **一時ファイルへ保存:** 最終的に採用したツール（`http_fetch` または `browser_fetch`）の標準出力をキャプチャし、`write_file` ツールを使って `<プロジェクトルート>/.tmp/cache/catalog.json` に保存します。
-4.  **次のステップへ:** **ステップ2. ドキュメントのエンリッチ** に進んでください。
+    -   **成功の場合:** `documents` が十分に取得できていれば、その標準出力をキャプチャし、`write_file` ツールを使って `<プロジェクトルート>/.tmp/cache/catalog.json` に保存します。その後、**ステップ2**へ進んでください。
+    -   **AI Pilotingへの移行:** `documents` が空、`metadata.status` が `"fallback_recommended"`、あるいはWikiのような複雑なサイト構造で選択的な収集が必要な場合は、以下の **AI Pilotingワークフロー** を実行します。
+        1. **ブラウザ初期化**: `browser_open` を実行します。
+        2. **ナビゲーション**: `browser_navigate --url {{args}}` を実行します。
+        3. **リンクの選別**: 得られた `links` から、主要な記事やドキュメントと思われるリンクを 5〜10 件選択します。
+        4. **抽出ループ**: 選択した各リンクに対し、`browser_extract` を実行します。
+           - `--output-dir` に `<プロジェクトルート>/.tmp/cache/` を指定します。
+           - このツールは自動的に `<プロジェクトルート>/.tmp/cache/catalog.json` を更新します。
+           - 必要に応じて、さらに深い階層へ `browser_navigate` して探索を続けても構いません。
+        5. **終了**: `browser_close` を実行します。
+3.  **次のステップへ:** **ステップ2. ドキュメントのエンリッチ** に進んでください。
 
 #### B) GitHubソースの場合 (`github.com` を含むURL)
 1.  **データ取得と変換:** `github_fetch` ツールを実行します。

@@ -16,10 +16,14 @@ test = [ "pytest" ]
 
 [project.scripts]
 ragmaker-ask-dir = "ragmaker.tools.ask_dir:main"
-ragmaker-cache-cleanup = "ragmaker.tools.cache_cleanup:main"
-ragmaker-init-cache = "ragmaker.tools.init_cache:main"
-ragmaker-create-knowledge-base = "ragmaker.tools.create_knowledge_base:main"
+ragmaker-browser-close = "ragmaker.tools.browser_close:main"
+ragmaker-browser-extract = "ragmaker.tools.browser_extract:main"
 ragmaker-browser-fetch = "ragmaker.tools.browser_fetch:main"
+ragmaker-browser-navigate = "ragmaker.tools.browser_navigate:main"
+ragmaker-browser-open = "ragmaker.tools.browser_open:main"
+ragmaker-cache-cleanup = "ragmaker.tools.cache_cleanup:main"
+ragmaker-create-knowledge-base = "ragmaker.tools.create_knowledge_base:main"
+ragmaker-init-cache = "ragmaker.tools.init_cache:main"
 ragmaker-enrich-discovery = "ragmaker.tools.enrich_discovery:main"
 ragmaker-entry-discovery = "ragmaker.tools.entry_discovery:main"
 ragmaker-file-sync = "ragmaker.tools.file_sync:main"

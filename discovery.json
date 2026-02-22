@@ -45,7 +45,7 @@
     {
       "name": "browser_fetch",
       "command": "ragmaker-browser-fetch",
-      "description": "Playwrightを使用してWebページを収集するツール。JavaScript駆動のSPAサイトや動的コンテンツの取得に特化しており、レンダリング後のDOMからコンテンツを抽出する。",
+      "description": "[DEPRECATED] Playwrightを使用してWebページを収集するツール。新規開発には browser_open, browser_navigate, browser_extract を使用してください。",
       "parameters": {
         "type": "object",
         "properties": {
@@ -77,6 +77,79 @@
           "base-url",
           "output-dir"
         ]
+      }
+    },
+    {
+      "name": "browser_open",
+      "command": "ragmaker-browser-open",
+      "description": "ブラウザセッションを初期化し、必要に応じて手動操作のためのブラウザウィンドウを開くツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "no-headless": {
+            "type": "boolean",
+            "description": "ブラウザを可視状態で起動し、手動操作（ログイン等）を待機する。",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_navigate",
+      "command": "ragmaker-browser-navigate",
+      "description": "現在のブラウザセッションで指定されたURLに遷移し、リンクとタイトルを取得するツール。ボット検知もチェックする。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "遷移先のURL。"
+          },
+          "no-headless": {
+            "type": "boolean",
+            "description": "ブラウザを可視状態で実行する。ボット検知時に手動介入を可能にするために使用。",
+            "default": false
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "browser_extract",
+      "command": "ragmaker-browser-extract",
+      "description": "現在のブラウザセッションで指定されたURLのコンテンツをMarkdownとして抽出し、保存するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "抽出対象のURL。"
+          },
+          "output-dir": {
+            "type": "string",
+            "description": "Markdownファイルの保存先ディレクトリ。"
+          },
+          "no-headless": {
+            "type": "boolean",
+            "description": "ブラウザを可視状態で実行する。",
+            "default": false
+          }
+        },
+        "required": [
+          "url",
+          "output-dir"
+        ]
+      }
+    },
+    {
+      "name": "browser_close",
+      "command": "ragmaker-browser-close",
+      "description": "ブラウザセッションを終了するツール。",
+      "parameters": {
+        "type": "object",
+        "properties": {}
       }
     },
     {
