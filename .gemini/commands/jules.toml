@@ -1,30 +1,53 @@
-description = "現在のブランチを使用してJulesセッションを開始します。 '/jules <issue番号>'"
-prompt = """
-1. 現在の変更をコミットし、GitHubへプッシュします。
+description = "現在のブランチを使用してJulesセッションを開始し、計画審査を経て実装させます。PR作成はJulesが自律的に行います。 '/jules <issue番号>` 例：`jules v0.2.5`'"
+prompt = """AI Agent Julesに実装を依頼する次のプロセスを開始せよ。
 
-以下の手順を実行してください:
+1. 現在の変更をコミットし、GitHubへプッシュする
+（コマンド連結時は`&&`ではなくセミコロンを使うこと）
+1-1. 現在のブランチ名を確認:
+    -  `git branch --show-current` を実行する。
+1-2.  変更のステージング:
+    - `git add .` を実行する。
+1-3.  変更のコミット:
+    - メッセージ: `feat(issue_{{args}}): Ready to implement issue {{args}}` でコミットする。
+1-4.  プッシュ:
+    - `git push -u origin HEAD` を実行する。
 
-1-0. **現在のブランチ名を確認**
-    -  `git branch --show-current` を実行します。特に必要でない場合を除き、`git status`を実行する必要はありません。またコマンド連結時は`&&`ではなくセミコロンを使ってください。
+2. Julesに実装を依頼し、計画を審査（Plan Review）。
+2-1. スキルを起動する
+`jules-client` スキルを起動。以下の手順でセッションを開始し、計画が提案されるまで待機する。
+2-1. セッション開始:
+    - コマンド: `api.cjs start "Implement docs/Issue/{{args}}.md" --branch <1-1で確認したブランチ名> --auto-pr --json`
+    - 出力されたJSONから `id` <session_id> を記録する。
+2-2. ユーザーへの通知:
+- セッションのURLをテキストとしたハイパーリンクをユーザーに提示する。ただしブラウザを開く必要があるかどうかはユーザーが判断する。
 
-1-1.  **変更のステージング**:
-    - `git add .` を実行します。
 
-1-2.  **変更のコミット**:
-    - メッセージ: `feat(issue_{{args}}): Ready to implement issue {{args}}` でコミットします。
+3. 提案された計画の承認
+3-1. コマンド: `api.cjs watch <session_id> --wait-for plan` を実行し、Julesが計画を作成するまで待機する。
+3-1. コマンド: `api.cjs inspect <session_id>` を実行し、計画の概要を確認する。
+3-3. 計画がIssueの要件を満たしているか判断せよ。
+    - **合格の場合**: `api.cjs approve <session_id>` 及び `api.cjs watch <session_id> --wait-for finish`を実行し、実装を開始させ、実装完了まで待機する。
+    - **不合格の場合**: `api.cjs message <session_id> "修正指示"` を実行し、2.に戻る。
 
-1-3.  **プッシュ**:
-    - `git push -u origin <現在のブランチ名>` を実行します。（リモートが存在しない場合はエラーになりますが、その際はユーザーに報告してください）
+4. 成果物への介入検証
+4-1. PR情報の取得: 
+    - コマンド: `api.cjs pr <session_id>` を実行し、作成されたPR番号を取得する。
+4-2. 実装環境をローカルに復元:
+    - `gh pr checkout <取得したPR番号>` を実行する。
+4-3. 自動レビューの確認:
+    - `gh api "repos/:owner/:repo/pulls/<取得したPR番号>/comments" | ConvertFrom-Json | Where-Object { $_.user.type -eq 'Bot' } | Format-List user, body, path, line` を実行し、Bot（Gemini Code Assist等）からの指摘を確認する。
+    - 指摘がある場合は、内容を精査し、修正が必要ならコードを修正してコミット・プッシュする。
+4-4.**[最重要] 事前レビュー: **
+    - `read_file` ツールを使用して `docs/Issue/GUI/REVIEW.md` を読み込み、その内容（判定項目、出力形式）を厳格に遵守してレビューを実行する。
 
-2. Julesに実装を依頼します（jules-clientを使用）。
+5. レビュー後の分岐
+5-1. 軽微な不備（リント、テスト、定数修正等）の場合:
+    - Geminiが自ら修正を施したのち、git commit -am "fix: minor adjustments by gemini" および git push を実行せよ。
+5-2. 重大な不備がある場合: 
+    - `api.cjs message <session_id> "修正指示"` を実行し、`api.cjs watch <session_id> --wait-for finish` を実行し、4.に戻る。
+5-3. 合格の場合:
+    - 次の手順（報告）へ進む。
 
-以下の設定でJulesセッションを開始してください:
-- 指示: "Implement `docs/Issue/v{{args}}.md`"
-- ブランチ: 現在のブランチ
-- 設定: 即時実行(immediate), プルリクエスト自動作成(auto-pr)
-
-3. セッション開始後、以下の操作を実行してください:
-- `node scripts/api.cjs open <session_id>` を実行し、ブラウザで監視ページを開く。
-- 監視用URLを報告する。
-- 作業報告を行う。「{{args}}の実装依頼が完了しました。作業内容は以下の通りです：」
+6. 報告
+    - ユーザーに報告。「/review <取得したPR番号> を実行のこと。」
 """
