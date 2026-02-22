@@ -9,12 +9,35 @@ import json
 import logging
 import os
 import shutil
+import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
 from ragmaker.io_utils import print_json_stdout
 
 logger = logging.getLogger(__name__)
+
+
+def atomic_write_json(path: Path, data: Any) -> None:
+    """
+    Atomically writes JSON data to a file.
+    Creates a temporary file first, then moves it to the destination path.
+    """
+    path = Path(path)
+    parent = path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', dir=parent, delete=False, encoding='utf-8') as tf:
+            json.dump(data, tf, ensure_ascii=False, indent=2)
+            temp_path = Path(tf.name)
+
+        temp_path.replace(path)
+    except Exception as e:
+        logger.error(f"Failed to atomically write JSON to {path}: {e}")
+        if 'temp_path' in locals() and temp_path.exists():
+            temp_path.unlink()
+        raise
 
 
 def print_catalog_data(
@@ -42,10 +65,7 @@ def print_catalog_data(
     if output_dir:
         try:
             output_path = output_dir / "catalog.json"
-            output_path.write_text(
-                json.dumps(catalog_data, ensure_ascii=False, indent=2),
-                encoding='utf-8'
-            )
+            atomic_write_json(output_path, catalog_data)
             logger.info(f"Catalog data saved to {output_path}")
         except Exception as e:
             logger.error(f"Failed to save catalog data to {output_dir}: {e}")

@@ -131,6 +131,11 @@
             "type": "string",
             "description": "Markdownファイルの保存先ディレクトリ。"
           },
+          "catalog-path": {
+            "type": "string",
+            "description": "更新するcatalog.jsonのパス。デフォルトは .tmp/cache/catalog.json。",
+            "default": ".tmp/cache/catalog.json"
+          },
           "no-headless": {
             "type": "boolean",
             "description": "ブラウザを可視状態で実行する。",

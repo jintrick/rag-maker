@@ -19,16 +19,13 @@ class TestBrowserPiloting(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.output_dir = Path(self.temp_dir.name)
-        self.catalog_path = Path(".tmp/cache/catalog.json")
-        self.catalog_path.parent.mkdir(parents=True, exist_ok=True)
+        self.catalog_path = self.output_dir / "catalog.json"
         # Clean catalog if exists
         if self.catalog_path.exists():
             self.catalog_path.unlink()
 
     def tearDown(self):
         self.temp_dir.cleanup()
-        if self.catalog_path.exists():
-            self.catalog_path.unlink()
 
     @patch('ragmaker.tools.browser_open.BrowserManager')
     @patch('ragmaker.tools.browser_open.sys.stderr')
@@ -122,6 +119,7 @@ class TestBrowserPiloting(unittest.IsolatedAsyncioTestCase):
                    return_value=argparse.Namespace(
                        url="http://example.com",
                        output_dir=str(self.output_dir),
+                       catalog_path=str(self.catalog_path),
                        no_headless=False)):
             await browser_extract.main_async()
 

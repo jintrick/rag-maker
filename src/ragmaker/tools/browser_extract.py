@@ -10,6 +10,7 @@ import asyncio
 import logging
 import json
 import hashlib
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List
@@ -27,6 +28,7 @@ try:
         print_json_stdout,
     )
     from ragmaker.browser_manager import BrowserManager, FatalBrowserError
+    from ragmaker.utils import atomic_write_json
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -35,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 def update_catalog(catalog_path: Path, new_doc: Dict[str, Any]):
     """
-    Updates the catalog.json file with the new document.
+    Updates the catalog.json file with the new document using atomic write.
     """
     catalog_data = {"documents": [], "metadata": {"sources": []}}
 
@@ -60,22 +62,13 @@ def update_catalog(catalog_path: Path, new_doc: Dict[str, Any]):
 
     catalog_data["documents"] = documents
 
-    # Update metadata sources if needed
-    sources = catalog_data.get("metadata", {}).get("sources", [])
-    if new_doc["url"] not in sources:
-        # This might be redundant as sources usually means "root sources" but for incremental it's tricky.
-        # Let's just leave sources as is or append if it's a new root?
-        # For now, we won't touch 'sources' in metadata heavily as it's usually set by the initial fetch or entry.
-        pass
-
     # Ensure metadata has basic structure
     if "metadata" not in catalog_data:
         catalog_data["metadata"] = {}
 
     catalog_data["metadata"]["updated_at"] = datetime.now(timezone.utc).isoformat()
 
-    with open(catalog_path, 'w', encoding='utf-8') as f:
-        json.dump(catalog_data, f, ensure_ascii=False, indent=2)
+    atomic_write_json(catalog_path, catalog_data)
 
 def get_filename_for_url(url: str, output_dir: Path, catalog_path: Path) -> str:
     """
@@ -88,25 +81,19 @@ def get_filename_for_url(url: str, output_dir: Path, catalog_path: Path) -> str:
                 data = json.load(f)
                 for doc in data.get("documents", []):
                     if doc.get("url") == url:
-                        return doc.get("path")
+                        # doc["path"] is relative to catalog dir.
+                        # We need to resolve it to get the filename if it's simple.
+                        # Or return the resolved absolute path? No, we return the filename to use in output_dir.
+                        # Assuming doc["path"] points to a file inside output_dir relative to catalog_dir.
+                        # This logic is a bit circular if directories don't align.
+                        # Simplified: Just grab the filename part.
+                        return Path(doc.get("path")).name
         except:
             pass
 
     # Generate new filename
     url_hash = hashlib.md5(url.encode('utf-8')).hexdigest()[:12]
     filename = f"page_{url_hash}.md"
-
-    # Ensure uniqueness if hash collision (unlikely) or file exists but not in catalog
-    counter = 0
-    original_filename = filename
-    while (output_dir / filename).exists():
-        # Check if it's the same content? No, just overwrite if we are re-extracting.
-        # But if it's a different URL with same hash (very unlikely) or we want to keep history?
-        # The prompt says "update existing entry". So we should overwrite the file.
-        # But wait, if we found it in catalog, we returned that path.
-        # If we didn't find it in catalog, but file exists, it might be from another run or orphaned.
-        # We can just overwrite it.
-        break
 
     return filename
 
@@ -122,6 +109,7 @@ async def main_async():
     parser = GracefulArgumentParser(description="Extract content from a URL and save as Markdown using persistent browser context.")
     parser.add_argument("--url", required=True, help="URL to extract content from.")
     parser.add_argument("--output-dir", required=True, help="Directory to save the Markdown file.")
+    parser.add_argument("--catalog-path", required=False, default=".tmp/cache/catalog.json", help="Path to the catalog.json file to update.")
     parser.add_argument("--no-headless", action="store_true", help="Run browser visibly.")
 
     try:
@@ -129,7 +117,11 @@ async def main_async():
 
         output_dir = Path(args.output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        catalog_path = Path(".tmp/cache/catalog.json")
+        catalog_path = Path(args.catalog_path)
+
+        # Ensure catalog directory exists
+        catalog_path.parent.mkdir(parents=True, exist_ok=True)
+
         profile_path = Path(".tmp/cache/browser_profile")
 
         async with BrowserManager(user_data_dir=profile_path, headless=not args.no_headless) as browser:
@@ -145,32 +137,16 @@ async def main_async():
 
             doc_entry = {
                 "url": args.url,
-                "path": str(file_path.relative_to(output_dir) if file_path.is_absolute() else filename), # Store relative path to output_dir usually, or just filename
-                # Actually browser_fetch stores just filename if inside output_dir, or relative path.
-                # Let's store just the filename as standard convention in this project seems to be relative to kb root (which is output_dir in this context)
-                # But wait, catalog often has "path" relative to where catalog.json is.
-                # If catalog.json is in .tmp/cache/catalog.json and file is .tmp/cache/page_X.md, then path is page_X.md.
-                # If output_dir is .tmp/cache/, then filename is correct.
+                "title": title
             }
 
-            # Correction: Store relative path to catalog location
-            # If catalog is at .tmp/cache/catalog.json and file is at .tmp/cache/subdir/file.md
-            # We need to know where catalog is relative to output_dir.
-            # Usually output_dir IS .tmp/cache/ or a subdir.
-            # Let's assume catalog.json is in the root of the "cache" or "kb".
-            # The prompt says: "output-dir ... 保存された相対パス".
-            # I will calculate relative path from catalog_path's parent.
-
+            # Robust path calculation: path in catalog is relative to the catalog file location
             try:
-                rel_path = file_path.absolute().relative_to(catalog_path.parent.absolute())
+                rel_path = os.path.relpath(file_path.absolute(), catalog_path.parent.absolute())
                 doc_entry["path"] = str(rel_path)
             except ValueError:
-                # If not relative, just store filename if in same dir, or absolute?
-                # If output_dir is totally elsewhere, this is tricky.
-                # But typically output-dir is .tmp/cache
-                doc_entry["path"] = filename
-
-            doc_entry["title"] = title
+                # Should not happen on standard FS, but fallback to absolute or filename
+                doc_entry["path"] = str(file_path.absolute())
 
             update_catalog(catalog_path, doc_entry)
 

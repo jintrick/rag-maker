@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 from urllib.parse import urlparse
 
-from playwright.async_api import async_playwright, BrowserContext, Page
+from playwright.async_api import async_playwright, BrowserContext, Page, Error as PlaywrightError
 from bs4 import BeautifulSoup, Tag
 from markdownify import markdownify as md
 
@@ -39,18 +39,36 @@ class BrowserManager:
     async def setup_browser(self):
         """Initialize the browser instance with persistent context."""
         self.playwright = await async_playwright().start()
-        try:
-            self.context = await self.playwright.chromium.launch_persistent_context(
-                str(self.user_data_dir.resolve()),
-                headless=self.headless,
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                viewport={"width": 1280, "height": 720}
-            )
-        except Exception as e:
-            if "Executable doesn't exist" in str(e) or "playwright install" in str(e):
-                logger.error("Playwright browsers are not installed.")
-                # We might want to re-raise or handle this gracefully depending on the caller
-            raise
+
+        max_retries = 3
+        retry_delay = 2
+
+        for attempt in range(max_retries):
+            try:
+                self.context = await self.playwright.chromium.launch_persistent_context(
+                    str(self.user_data_dir.resolve()),
+                    headless=self.headless,
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                    viewport={"width": 1280, "height": 720}
+                )
+                return # Success
+            except PlaywrightError as e:
+                if "Target closed" in str(e) or "lock" in str(e).lower():
+                    logger.warning(f"Browser profile locked or target closed (attempt {attempt+1}/{max_retries}). Retrying...")
+                    await asyncio.sleep(retry_delay)
+                else:
+                    raise
+            except Exception as e:
+                if "Executable doesn't exist" in str(e) or "playwright install" in str(e):
+                    logger.error("Playwright browsers are not installed.")
+                    # We might want to re-raise or handle this gracefully depending on the caller
+                raise
+
+        # If we get here, all retries failed
+        raise FatalBrowserError(
+            f"Failed to acquire browser context lock at {self.user_data_dir}. "
+            "A previous process might be hanging. Please close any open browsers or run 'ragmaker-browser-close'."
+        )
 
     async def close_browser(self):
         """Close the browser instance."""
