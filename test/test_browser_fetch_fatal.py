@@ -1,16 +1,16 @@
 import unittest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock, AsyncMock, ANY
 import sys
 import os
 import tempfile
-from pathlib import Path
 import argparse
-import asyncio
+from pathlib import Path
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 from ragmaker.tools import browser_fetch
+from ragmaker.browser_manager import FatalBrowserError
 
 class TestBrowserFetchFatal(unittest.IsolatedAsyncioTestCase):
 
@@ -31,98 +31,83 @@ class TestBrowserFetchFatal(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
-    @patch('ragmaker.tools.browser_fetch.async_playwright')
-    async def test_fatal_error_stops_crawl(self, mock_playwright):
-        # Mock Playwright
-        mock_p = MagicMock()
-        mock_context = MagicMock()
+    @patch('ragmaker.tools.browser_fetch.BrowserManager')
+    async def test_fatal_error_stops_crawl(self, MockBrowserManager):
+        # Mock BrowserManager instance and its async context manager
+        mock_instance = MagicMock()
+        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_instance.__aexit__ = AsyncMock(return_value=None)
+        MockBrowserManager.return_value = mock_instance
+
         mock_page = MagicMock()
-
-        mock_playwright.return_value.start = AsyncMock(return_value=mock_p)
-        mock_p.chromium.launch_persistent_context = AsyncMock(return_value=mock_context)
-        mock_context.new_page = AsyncMock(return_value=mock_page)
-
-        mock_p.stop = AsyncMock()
-        mock_context.close = AsyncMock()
         mock_page.close = AsyncMock()
 
         # Simulate successful first page, then fatal error on second page
-        async def side_effect_goto(url, **kwargs):
+        async def side_effect_navigate(url, **kwargs):
             if url == "http://example.com":
-                return # success
+                return mock_page, False # success
             elif url == "http://example.com/fatal":
-                raise Exception("Target closed")
-            return
+                raise FatalBrowserError("Target closed")
+            return mock_page, False
 
-        mock_page.goto = AsyncMock(side_effect=side_effect_goto)
-        mock_page.add_init_script = AsyncMock()
-        mock_page.title = AsyncMock(return_value="Safe Title")
-        mock_page.content = AsyncMock(return_value="Safe content")
-        mock_page.query_selector = AsyncMock(return_value=None)
-
-        # Evaluate returns links on first page
-        mock_page.evaluate = AsyncMock(side_effect=[
-            {
-                "html": "<p>Root</p>",
-                "links": ["http://example.com/fatal"],
-                "title": "Root"
-            },
-            # Second call shouldn't happen or will fail before evaluate if goto fails
-        ])
+        mock_instance.navigate = AsyncMock(side_effect=side_effect_navigate)
+        
+        # Mock content and link extraction
+        mock_instance.extract_content = AsyncMock(return_value=("# Root content", "Root"))
+        mock_instance.extract_links_and_title = AsyncMock(return_value={
+            "links": [{"href": "http://example.com/fatal"}],
+            "title": "Root"
+        })
 
         fetcher = browser_fetch.WebFetcher(self.args)
         await fetcher.run()
 
-        # Should have processed the first page
+        # Should have processed only the first page
         self.assertEqual(len(fetcher.documents), 1)
         self.assertEqual(fetcher.documents[0]['url'], "http://example.com")
+        
+        # Verify that navigate was called for the fatal URL
+        mock_instance.navigate.assert_any_call("http://example.com/fatal")
 
-        # Verify that the fatal error broke the loop and we didn't try to visit anything else
-        # (though in this simple case, there was nothing else to visit)
+    @patch('ragmaker.tools.browser_fetch.BrowserManager')
+    async def test_timeout_setting(self, MockBrowserManager):
+        # Verify that browser_fetch correctly passes the headless flag to BrowserManager.
+        
+        mock_instance = MagicMock()
+        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_instance.__aexit__ = AsyncMock(return_value=None)
+        MockBrowserManager.return_value = mock_instance
 
-        # To strictly verify it stopped, we can check logs or just rely on the fact that it didn't crash.
-
-    @patch('ragmaker.tools.browser_fetch.async_playwright')
-    async def test_timeout_setting(self, mock_playwright):
-        # Mock Playwright
-        mock_p = MagicMock()
-        mock_context = MagicMock()
         mock_page = MagicMock()
-
-        mock_playwright.return_value.start = AsyncMock(return_value=mock_p)
-        mock_p.chromium.launch_persistent_context = AsyncMock(return_value=mock_context)
-        mock_context.new_page = AsyncMock(return_value=mock_page)
-
-        mock_p.stop = AsyncMock()
-        mock_context.close = AsyncMock()
         mock_page.close = AsyncMock()
-        mock_page.goto = AsyncMock()
-        mock_page.add_init_script = AsyncMock()
-        mock_page.title = AsyncMock(return_value="Safe Title")
-        mock_page.content = AsyncMock(return_value="Safe content")
-        mock_page.query_selector = AsyncMock(return_value=None)
-        mock_page.evaluate = AsyncMock(return_value={
-            "html": "<p>Content</p>",
-            "links": [],
-            "title": "Title"
-        })
+        mock_instance.navigate = AsyncMock(return_value=(mock_page, False))
+        mock_instance.extract_content = AsyncMock(return_value=("# Title", "Title"))
+        mock_instance.extract_links_and_title = AsyncMock(return_value={"links": [], "title": "Title"})
 
-        # Test headless (default) -> timeout 60000
+        # Test headless (default)
         self.args.no_headless = False
         fetcher = browser_fetch.WebFetcher(self.args)
         await fetcher.run()
 
-        mock_page.goto.assert_called_with("http://example.com", timeout=60000, wait_until="networkidle")
+        # Check if constructor was called with headless=True
+        found_headless_true = any(
+            call.kwargs.get('headless') is True 
+            for call in MockBrowserManager.call_args_list
+        )
+        self.assertTrue(found_headless_true)
 
-        # Reset mocks
-        mock_page.goto.reset_mock()
-
-        # Test no-headless -> timeout 0
+        # Test no-headless
+        MockBrowserManager.reset_mock()
         self.args.no_headless = True
         fetcher = browser_fetch.WebFetcher(self.args)
         await fetcher.run()
 
-        mock_page.goto.assert_called_with("http://example.com", timeout=0, wait_until="networkidle")
+        # Check if called with headless=False
+        found_headless_false = any(
+            call.kwargs.get('headless') is False 
+            for call in MockBrowserManager.call_args_list
+        )
+        self.assertTrue(found_headless_false)
 
 if __name__ == '__main__':
     unittest.main()

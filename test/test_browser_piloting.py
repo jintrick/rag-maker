@@ -1,4 +1,3 @@
-
 import unittest
 from unittest.mock import patch, MagicMock, AsyncMock
 import sys
@@ -32,14 +31,15 @@ class TestBrowserPiloting(unittest.IsolatedAsyncioTestCase):
     @patch('ragmaker.tools.browser_open.print_json_stdout')
     async def test_browser_open_headless(self, mock_print, mock_stderr, MockBrowserManager):
         # Mock args
-        with patch('ragmaker.tools.browser_open.GracefulArgumentParser.parse_args',
+        with patch('ragmaker.tools.browser_open.GracefulArgumentParser.parse_args', 
                    return_value=argparse.Namespace(no_headless=False)):
             await browser_open.main_async()
-
-            # Check output
+            
+            # Check output (Using Path to be OS-agnostic)
+            expected_profile = str(Path(".tmp/cache/browser_profile"))
             mock_print.assert_called_with({
                 "status": "success",
-                "profile_path": ".tmp/cache/browser_profile"
+                "profile_path": expected_profile
             })
             # Check BrowserManager was NOT called (headless mode only inits dir)
             MockBrowserManager.assert_not_called()
@@ -51,18 +51,19 @@ class TestBrowserPiloting(unittest.IsolatedAsyncioTestCase):
     async def test_browser_open_no_headless(self, mock_loop, mock_print, mock_stderr, MockBrowserManager):
         # Mock BrowserManager context manager
         mock_instance = MagicMock()
-        mock_instance.__aenter__.return_value = mock_instance
-        mock_instance.__aexit__.return_value = None
+        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_instance.__aexit__ = AsyncMock(return_value=None)
         mock_instance.context.new_page = AsyncMock()
         MockBrowserManager.return_value = mock_instance
 
         # Mock readline
         mock_loop.return_value.run_in_executor = AsyncMock(return_value=b"\n")
 
-        with patch('ragmaker.tools.browser_open.GracefulArgumentParser.parse_args',
+        with patch('ragmaker.tools.browser_open.GracefulArgumentParser.parse_args', 
                    return_value=argparse.Namespace(no_headless=True)):
             await browser_open.main_async()
-
+            
+            # Verify constructor call with Path object
             MockBrowserManager.assert_called_with(user_data_dir=Path(".tmp/cache/browser_profile"), headless=False)
             mock_instance.context.new_page.assert_called_once()
 
@@ -70,29 +71,29 @@ class TestBrowserPiloting(unittest.IsolatedAsyncioTestCase):
     @patch('ragmaker.tools.browser_navigate.print_json_stdout')
     async def test_browser_navigate(self, mock_print, MockBrowserManager):
         mock_instance = MagicMock()
-        mock_instance.__aenter__.return_value = mock_instance
-        mock_instance.__aexit__.return_value = None
-
+        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_instance.__aexit__ = AsyncMock(return_value=None)
+        
         # Mock navigate return
         mock_page = MagicMock()
         mock_page.url = "http://example.com"
         mock_instance.navigate = AsyncMock(return_value=(mock_page, False)) # page, is_bot_detected
-
+        
         # Mock extract
         mock_instance.extract_links_and_title = AsyncMock(return_value={
             "links": [{"text": "Link", "href": "http://link.com"}],
             "title": "Title"
         })
-
+        
         MockBrowserManager.return_value = mock_instance
 
-        with patch('ragmaker.tools.browser_navigate.GracefulArgumentParser.parse_args',
+        with patch('ragmaker.tools.browser_navigate.GracefulArgumentParser.parse_args', 
                    return_value=argparse.Namespace(url="http://example.com", no_headless=False)):
             await browser_navigate.main_async()
-
+            
             mock_instance.navigate.assert_called_with("http://example.com")
             mock_instance.extract_links_and_title.assert_called_with(mock_page)
-
+            
             mock_print.assert_called_with({
                 "status": "success",
                 "url": "http://example.com",
@@ -105,32 +106,32 @@ class TestBrowserPiloting(unittest.IsolatedAsyncioTestCase):
     @patch('ragmaker.tools.browser_extract.print_json_stdout')
     async def test_browser_extract(self, mock_print, MockBrowserManager):
         mock_instance = MagicMock()
-        mock_instance.__aenter__.return_value = mock_instance
-        mock_instance.__aexit__.return_value = None
-
+        mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+        mock_instance.__aexit__ = AsyncMock(return_value=None)
+        
         mock_page = MagicMock()
         mock_instance.navigate = AsyncMock(return_value=(mock_page, False))
-
+        
         mock_instance.extract_content = AsyncMock(return_value=("# Title\nContent", "Title"))
-
+        
         MockBrowserManager.return_value = mock_instance
-
-        with patch('ragmaker.tools.browser_extract.GracefulArgumentParser.parse_args',
+        
+        with patch('ragmaker.tools.browser_extract.GracefulArgumentParser.parse_args', 
                    return_value=argparse.Namespace(
-                       url="http://example.com",
-                       output_dir=str(self.output_dir),
+                       url="http://example.com", 
+                       output_dir=str(self.output_dir), 
                        catalog_path=str(self.catalog_path),
                        no_headless=False)):
             await browser_extract.main_async()
-
+            
             mock_instance.navigate.assert_called_with("http://example.com")
-
+            
             # Check file creation
             files = list(self.output_dir.glob("*.md"))
             self.assertEqual(len(files), 1)
             with open(files[0], 'r') as f:
                 self.assertEqual(f.read(), "# Title\nContent")
-
+                
             # Check catalog update
             with open(self.catalog_path, 'r') as f:
                 data = json.load(f)

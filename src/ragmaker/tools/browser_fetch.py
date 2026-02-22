@@ -60,6 +60,7 @@ class WebFetcher:
         self.recursive = args.recursive
         self.depth = args.depth
         self.no_headless = args.no_headless
+        self.no_headless = args.no_headless
         self.visited_urls: set[str] = set()
         self.documents: list[dict] = []
 
