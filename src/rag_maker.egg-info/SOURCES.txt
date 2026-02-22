@@ -28,6 +28,7 @@ src/ragmaker/tools/read_file.py
 src/ragmaker/tools/write_file.py
 test/test_ask_dir.py
 test/test_browser_fetch.py
+test/test_browser_fetch_fatal.py
 test/test_cache_cleanup.py
 test/test_create_knowledge_base.py
 test/test_enrich_discovery.py
