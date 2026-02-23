@@ -227,7 +227,9 @@ class LockedJsonWriter:
         if os.name == 'nt':
             while True:
                 try:
-                    # Lock first 2GB (arbitrary large size to cover whole file)
+                    # Reset pointer before locking to ensure consistency
+                    self.file.seek(0)
+                    # Lock first 2GB
                     msvcrt.locking(self.file.fileno(), msvcrt.LK_NBLCK, 2147483647)
                     break
                 except OSError:
@@ -259,13 +261,13 @@ class LockedJsonWriter:
                 os.fsync(self.file.fileno())
         finally:
             # Release lock and close
-            if os.name == 'nt':
+            if self.file:
                 try:
-                    self.file.seek(0)
-                    msvcrt.locking(self.file.fileno(), msvcrt.LK_UNLCK, 2147483647)
-                except OSError:
+                    if os.name == 'nt':
+                        self.file.seek(0)
+                        msvcrt.locking(self.file.fileno(), msvcrt.LK_UNLCK, 2147483647)
+                    else:
+                        fcntl.flock(self.file, fcntl.LOCK_UN)
+                except Exception:
                     pass
-            else:
-                fcntl.flock(self.file, fcntl.LOCK_UN)
-
-            self.file.close()
+                self.file.close()
