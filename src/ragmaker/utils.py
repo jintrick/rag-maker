@@ -10,8 +10,14 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 from pathlib import Path
 from typing import Any, Optional
+
+if os.name == 'nt':
+    import msvcrt
+else:
+    import fcntl
 
 from ragmaker.io_utils import print_json_stdout
 
@@ -188,3 +194,80 @@ def safe_export(src_dir: Path, dst_dir: Path) -> None:
     except Exception as e:
         logger.error(f"Failed to export safely from {src_dir} to {dst_dir}: {e}")
         raise
+
+
+class LockedJsonWriter:
+    """
+    Context manager for safely reading and updating a JSON file using file locking.
+    Ensures exclusive access during the read-modify-write cycle.
+
+    Usage:
+        with LockedJsonWriter(path) as data:
+            data['key'] = 'value'
+    """
+    def __init__(self, path: Path):
+        self.path = Path(path)
+        self.file = None
+        self.data = None
+
+    def __enter__(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Ensure file exists before opening in r+ mode
+        if not self.path.exists():
+            try:
+                with open(self.path, 'x', encoding='utf-8') as f:
+                    json.dump({}, f)
+            except FileExistsError:
+                pass
+
+        self.file = open(self.path, 'r+', encoding='utf-8')
+
+        # Acquire lock
+        if os.name == 'nt':
+            while True:
+                try:
+                    # Reset pointer before locking to ensure consistency
+                    self.file.seek(0)
+                    # Lock first 2GB
+                    msvcrt.locking(self.file.fileno(), msvcrt.LK_NBLCK, 2147483647)
+                    break
+                except OSError:
+                    time.sleep(0.1)
+        else:
+            fcntl.flock(self.file, fcntl.LOCK_EX)
+
+        # Read content
+        try:
+            self.file.seek(0)
+            content = self.file.read()
+            if content.strip():
+                self.data = json.loads(content)
+            else:
+                self.data = {}
+        except json.JSONDecodeError:
+            self.data = {}
+
+        return self.data
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            if exc_type is None:
+                # Write back
+                self.file.seek(0)
+                self.file.truncate()
+                json.dump(self.data, self.file, ensure_ascii=False, indent=2)
+                self.file.flush()
+                os.fsync(self.file.fileno())
+        finally:
+            # Release lock and close
+            if self.file:
+                try:
+                    if os.name == 'nt':
+                        self.file.seek(0)
+                        msvcrt.locking(self.file.fileno(), msvcrt.LK_UNLCK, 2147483647)
+                    else:
+                        fcntl.flock(self.file, fcntl.LOCK_UN)
+                except Exception:
+                    pass
+                self.file.close()

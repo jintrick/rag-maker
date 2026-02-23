@@ -1,5 +1,6 @@
 
 import asyncio
+import json
 import logging
 import random
 import sys
@@ -28,6 +29,8 @@ class BrowserManager:
         self.headless = headless
         self.playwright = None
         self.context = None
+        self.browser = None
+        self._created_pages = []
 
     async def __aenter__(self):
         await self.setup_browser()
@@ -37,9 +40,31 @@ class BrowserManager:
         await self.close_browser()
 
     async def setup_browser(self):
-        """Initialize the browser instance with persistent context."""
+        """Initialize the browser instance. Tries to connect to existing session first."""
         self.playwright = await async_playwright().start()
 
+        # Check for existing CDP connection
+        cdp_file = Path(".tmp/browser_cdp.json")
+        if cdp_file.exists():
+            try:
+                with open(cdp_file, 'r') as f:
+                    data = json.load(f)
+                    ws_endpoint = data.get("ws_endpoint")
+                    if ws_endpoint:
+                        try:
+                            # Connect to existing browser
+                            self.browser = await self.playwright.chromium.connect_over_cdp(ws_endpoint)
+                            # Get the default context (usually the first one if persistent context was launched via remote debugging)
+                            if self.browser.contexts:
+                                self.context = self.browser.contexts[0]
+                                return # Success
+                        except Exception as e:
+                            logger.warning(f"Failed to connect to existing browser: {e}")
+                            # Fallback to launching new
+            except Exception as e:
+                logger.warning(f"Error reading CDP file: {e}")
+
+        # Fallback: Launch persistent context (as before)
         max_retries = 3
         retry_delay = 2
 
@@ -72,11 +97,28 @@ class BrowserManager:
 
     async def close_browser(self):
         """Close the browser instance."""
-        try:
-            if self.context:
-                await self.context.close()
-        except Exception:
-            pass
+        # Close all pages created by this manager instance
+        for page in self._created_pages:
+            try:
+                await page.close()
+            except Exception:
+                pass
+        self._created_pages = []
+
+        if self.browser:
+            # Connected via CDP: Disconnect only
+            try:
+                await self.browser.disconnect()
+            except Exception:
+                pass
+        else:
+            # Launched persistent context: Close context (which closes windows)
+            try:
+                if self.context:
+                    await self.context.close()
+            except Exception:
+                pass
+
         try:
             if self.playwright:
                 await self.playwright.stop()
@@ -141,6 +183,7 @@ class BrowserManager:
         Handles waiting for user input if bot detected and not headless.
         """
         page = await self.context.new_page()
+        self._created_pages.append(page)
         await self._apply_stealth_scripts(page)
 
         try:

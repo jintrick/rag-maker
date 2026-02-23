@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any
+from datetime import datetime, timezone
 
 try:
     from ragmaker.io_utils import (
@@ -22,6 +23,7 @@ try:
         handle_value_error,
         handle_unexpected_error
     )
+    from ragmaker.utils import LockedJsonWriter
 except ImportError:
     sys.stderr.write('{"status": "error", "message": "The \'ragmaker\' package is required. Please install it."}\n')
     sys.exit(1)
@@ -38,12 +40,6 @@ def main():
     catalog_path = args.catalog_path
 
     try:
-        if not os.path.exists(catalog_path):
-            raise FileNotFoundError(f"The catalog file was not found at the specified path: {catalog_path}")
-
-        with open(catalog_path, 'r', encoding='utf-8') as f:
-            catalog_data = json.load(f)
-
         # Handle --updates as a file path or a JSON string
         updates_raw = args.updates
         if os.path.exists(updates_raw):
@@ -51,7 +47,6 @@ def main():
                 with open(updates_raw, 'r', encoding='utf-8') as f:
                     updates = json.load(f)
             except Exception as e:
-                # If it's a valid path but failed to read as JSON, it's an error.
                 raise ValueError(f"Failed to read updates from file {updates_raw}: {e}")
         else:
             try:
@@ -62,39 +57,49 @@ def main():
         if not isinstance(updates, list):
             raise ValueError("--updates must be a JSON array of objects.")
 
-        documents_dict = {doc['path']: doc for doc in catalog_data.get('documents', [])}
-
         updated_paths = []
-        not_found_paths = []
-        for update in updates:
-            path = update.get('path')
-            if not path:
-                continue
+        added_paths = []
 
-            if path in documents_dict:
-                doc_to_update = documents_dict[path]
-                doc_to_update['title'] = update.get('title', doc_to_update.get('title'))
-                doc_to_update['summary'] = update.get('summary', doc_to_update.get('summary'))
-                updated_paths.append(path)
-            else:
-                not_found_paths.append(path)
+        with LockedJsonWriter(catalog_path) as catalog_data:
+            if 'documents' not in catalog_data:
+                catalog_data['documents'] = []
 
-        if not_found_paths:
-            # We treat this as a warning or informational rather than a fatal error to allow partial updates?
-            # Actually the original code raised FileNotFoundError. Let's keep it consistent but maybe more descriptive.
-            print(json.dumps({
-                "status": "warning",
-                "message": f"Some document paths from the updates were not found in {catalog_path}.",
-                "not_found_paths": not_found_paths
-            }, ensure_ascii=False), file=sys.stderr)
+            documents = catalog_data['documents']
+            documents_dict = {doc.get('path'): doc for doc in documents}
 
-        with open(catalog_path, 'w', encoding='utf-8') as f:
-            json.dump(catalog_data, f, ensure_ascii=False, indent=2)
+            for update in updates:
+                path = update.get('path')
+                if not path:
+                    continue
+
+                if path in documents_dict:
+                    # Update existing
+                    doc_to_update = documents_dict[path]
+                    if 'title' in update: doc_to_update['title'] = update['title']
+                    if 'summary' in update: doc_to_update['summary'] = update['summary']
+                    if 'url' in update: doc_to_update['url'] = update['url']
+                    updated_paths.append(path)
+                else:
+                    # Add new document
+                    new_doc = {
+                        "path": path,
+                        "url": update.get('url', ''),
+                        "title": update.get('title', ''),
+                        "summary": update.get('summary', '')
+                    }
+                    documents.append(new_doc)
+                    documents_dict[path] = new_doc # Keep dict synced just in case duplicates in updates
+                    added_paths.append(path)
+
+            if 'metadata' not in catalog_data:
+                catalog_data['metadata'] = {}
+            catalog_data['metadata']['updated_at'] = datetime.now(timezone.utc).isoformat()
 
         output_data = {
             "status": "success",
-            "message": f"Successfully updated {len(updated_paths)} documents in {catalog_path}.",
-            "updated_paths": updated_paths
+            "message": f"Successfully processed documents in {catalog_path}.",
+            "updated_paths": updated_paths,
+            "added_paths": added_paths
         }
         print_json_stdout(output_data)
 
