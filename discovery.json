@@ -302,6 +302,11 @@
             "type": "boolean",
             "description": "複数のソースを一つのターゲットディレクトリにマージするかどうか。false（デフォルト）の場合は、ソースごとにサブディレクトリを作成する。",
             "default": false
+          },
+          "flatten": {
+            "type": "boolean",
+            "description": "ソースの中身をターゲットディレクトリの直下に展開するかどうか。",
+            "default": false
           }
         },
         "required": [

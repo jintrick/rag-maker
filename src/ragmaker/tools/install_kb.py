@@ -36,14 +36,15 @@ except ImportError:
 # --- Tool Characteristics ---
 logger = logging.getLogger(__name__)
 
-def install_knowledge_base(source_roots: List[Path], target_root: Path, force: bool = False, merge: bool = False):
+def install_knowledge_base(source_roots: List[Path], target_root: Path, force: bool = False, merge: bool = False, flatten: bool = False):
     """
     Installs/Merges KBs from source_roots to target_root.
 
-    If merge is True, all sources are merged into target_root.
-    If merge is False (default), each source is installed into a subdirectory of target_root named after the source directory.
+    If merge or flatten is True, all sources are merged into target_root.
+    If flatten is True, the contents are expanded directly into the target directory without subdirectories.
+    If merge is False and flatten is False (default), each source is installed into a subdirectory of target_root named after the source directory.
     """
-    if merge:
+    if merge or flatten:
         return _install_merged(source_roots, target_root, force)
     else:
         results = []
@@ -110,7 +111,15 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
 
         for source_root in source_roots:
             try:
-                source_cache = source_root / "cache"
+                if (source_root / "cache").is_dir():
+                    source_cache = source_root / "cache"
+                    source_base = source_root
+                elif source_root.name == "cache":
+                    source_cache = source_root
+                    source_base = source_root.parent
+                else:
+                    source_cache = source_root
+                    source_base = source_root
 
                 # 2. Copy cache directory
                 if source_cache.exists():
@@ -126,8 +135,8 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
                 catalog_source_location = None # "root" or "cache"
 
                 candidates = [
-                    (source_root / "catalog.json", "root"),
-                    (source_root / "discovery.json", "root"),
+                    (source_base / "catalog.json", "root"),
+                    (source_base / "discovery.json", "root"),
                     (source_cache / "catalog.json", "cache"),
                     (source_cache / "discovery.json", "cache")
                 ]
@@ -164,7 +173,7 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
                     abs_source_path = None
 
                     if catalog_source_location == "root":
-                        abs_source_path = source_root / doc_path
+                        abs_source_path = source_base / doc_path
                     else: # cache
                         abs_source_path = source_cache / doc_path
 
@@ -186,6 +195,10 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
                          new_rel_path = doc_path
 
                     if new_rel_path:
+                        # Ensure no cache/cache/ duplication
+                        if new_rel_path.parts[0] == "cache" and len(new_rel_path.parts) > 1 and new_rel_path.parts[1] == "cache":
+                            new_rel_path = Path("cache") / Path(*new_rel_path.parts[2:])
+
                         doc["path"] = new_rel_path.as_posix()
 
                         # Verify existence in work_root
@@ -276,11 +289,12 @@ def main():
     parser.add_argument("--target-kb-root", required=True, help="Target KB root directory.")
     parser.add_argument("--force", action="store_true", help="Force overwrite of target.")
     parser.add_argument("--merge", action="store_true", help="Merge all sources into the target root instead of creating subdirectories.")
+    parser.add_argument("--flatten", action="store_true", help="Flatten contents into the target directory without subdirectories.")
 
     try:
         args = parser.parse_args()
         source_paths = [Path(p) for p in args.source]
-        result = install_knowledge_base(source_paths, Path(args.target_kb_root), args.force, args.merge)
+        result = install_knowledge_base(source_paths, Path(args.target_kb_root), args.force, args.merge, args.flatten)
         print_json_stdout(result)
 
     except (FileNotFoundError, FileExistsError) as e:
