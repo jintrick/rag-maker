@@ -298,8 +298,7 @@ class TestInstallKB(unittest.TestCase):
 
             # Check sources
             sources = catalog["metadata"]["sources"]
-            expected_source = str(Path("/original/source").resolve())
-            self.assertIn(expected_source, sources)
+            self.assertIn("/original/source", sources)
             # resolved source path
             resolved_source = str(self.source_kb.resolve())
             self.assertIn(resolved_source, sources)
@@ -446,6 +445,87 @@ class TestInstallKB(unittest.TestCase):
                     message = args[0]
                     self.assertIn(".bak", message)
                     self.assertIn("remain", message) # "remains" or "remaining" or similar
+
+    def test_flatten_flag(self):
+        """Test installing with --flatten expands contents directly into target."""
+        # Setup source catalog
+        catalog_data = {
+            "documents": [
+                {"path": "cache/doc1.txt", "title": "Doc 1"}
+            ]
+        }
+        with open(self.source_kb / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+        (self.source_kb / "cache").mkdir(exist_ok=True)
+        (self.source_kb / "cache" / "doc1.txt").write_text("content")
+
+        # Install with flatten=True
+        result = install_knowledge_base([self.source_kb], self.target_kb, flatten=True)
+
+        self.assertEqual(result["status"], "success")
+
+        # Verify no subdirectory was created, contents are directly in target_kb
+        self.assertTrue((self.target_kb / "catalog.json").exists())
+        self.assertTrue((self.target_kb / "cache" / "doc1.txt").exists())
+        self.assertFalse((self.target_kb / self.source_kb.name).exists())
+
+    def test_source_is_cache_directory(self):
+        """Test installing when the source is the cache directory itself."""
+        # Create a catalog inside the cache directory
+        catalog_data = {
+            "documents": [
+                {"path": "doc1.txt", "title": "Doc 1"}
+            ]
+        }
+        source_cache = self.source_kb / "cache"
+        source_cache.mkdir(parents=True, exist_ok=True)
+        with open(source_cache / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+        (source_cache / "doc1.txt").write_text("content")
+
+        # Install using the cache directory as the source, flatten=True
+        result = install_knowledge_base([source_cache], self.target_kb, flatten=True)
+
+        self.assertEqual(result["status"], "success")
+
+        # Verify no cache/cache/ duplication
+        self.assertTrue((self.target_kb / "catalog.json").exists())
+        self.assertTrue((self.target_kb / "cache" / "doc1.txt").exists())
+        self.assertFalse((self.target_kb / "cache" / "cache").exists())
+
+        # Verify catalog path is normalized
+        with open(self.target_kb / "catalog.json") as f:
+            catalog = json.load(f)
+            self.assertEqual(catalog["documents"][0]["path"], "cache/doc1.txt")
+
+    def test_source_is_flat_directory(self):
+        """Test installing when the source has no cache subdirectory."""
+        # Setup a flat source directory
+        flat_source = self.root / "flat_source"
+        flat_source.mkdir()
+        (flat_source / "doc_flat.txt").write_text("flat content")
+
+        catalog_data = {
+            "documents": [
+                {"path": "doc_flat.txt", "title": "Flat Doc"}
+            ]
+        }
+        with open(flat_source / "catalog.json", 'w') as f:
+            json.dump(catalog_data, f)
+
+        # Install with flatten=True
+        result = install_knowledge_base([flat_source], self.target_kb, flatten=True)
+
+        self.assertEqual(result["status"], "success")
+
+        # Verify content is in target_kb/cache
+        self.assertTrue((self.target_kb / "catalog.json").exists())
+        self.assertTrue((self.target_kb / "cache" / "doc_flat.txt").exists())
+
+        # Verify catalog path is normalized to cache/...
+        with open(self.target_kb / "catalog.json") as f:
+            catalog = json.load(f)
+            self.assertEqual(catalog["documents"][0]["path"], "cache/doc_flat.txt")
 
 if __name__ == '__main__':
     unittest.main()
