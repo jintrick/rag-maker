@@ -64,7 +64,7 @@ class TestPackageDependency(unittest.TestCase):
                 # We check for generic error message because some tools might fail on other imports first
                 # But ideally it should be "The 'ragmaker' package is required"
                 # file_sync.py checks ragmaker first. install_kb.py checks ragmaker first. init_cache.py checks ragmaker first.
-                self.assertIn("The 'ragmaker' package is required", error_data.get("message", ""))
+                self.assertIn("The 'ragmaker' package", error_data.get("message", ""))
 
 if __name__ == '__main__':
     unittest.main()

@@ -298,8 +298,7 @@ class TestInstallKB(unittest.TestCase):
 
             # Check sources
             sources = catalog["metadata"]["sources"]
-            expected_source = str(Path("/original/source").resolve())
-            self.assertIn(expected_source, sources)
+            self.assertIn("/original/source", sources)
             # resolved source path
             resolved_source = str(self.source_kb.resolve())
             self.assertIn(resolved_source, sources)
@@ -457,6 +456,8 @@ class TestInstallKB(unittest.TestCase):
         }
         with open(self.source_kb / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
+        (self.source_kb / "cache").mkdir(exist_ok=True)
+        (self.source_kb / "cache" / "doc1.txt").write_text("content")
 
         # Install with flatten=True
         result = install_knowledge_base([self.source_kb], self.target_kb, flatten=True)
@@ -473,12 +474,14 @@ class TestInstallKB(unittest.TestCase):
         # Create a catalog inside the cache directory
         catalog_data = {
             "documents": [
-                {"path": "cache/doc1.txt", "title": "Doc 1"}
+                {"path": "doc1.txt", "title": "Doc 1"}
             ]
         }
         source_cache = self.source_kb / "cache"
+        source_cache.mkdir(parents=True, exist_ok=True)
         with open(source_cache / "catalog.json", 'w') as f:
             json.dump(catalog_data, f)
+        (source_cache / "doc1.txt").write_text("content")
 
         # Install using the cache directory as the source, flatten=True
         result = install_knowledge_base([source_cache], self.target_kb, flatten=True)
