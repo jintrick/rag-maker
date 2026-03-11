@@ -1,0 +1,1152 @@
+{
+  "documents": [
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/blog.md",
+      "path": "cache/docs/blog.md",
+      "title": "Vitest Blog",
+      "summary": "Vitestの最新ニュース、アップデート、ブログ記事の一覧ページ。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/index.md",
+      "path": "cache/docs/index.md",
+      "title": "Vitest Home",
+      "summary": "Vitestの公式サイトのホームページ。次世代のテスティングフレームワークとしての概要を紹介。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/team.md",
+      "path": "cache/docs/team.md"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/todo.md",
+      "path": "cache/docs/todo.md",
+      "title": "Migration Notes: UnoCSS to Plain CSS",
+      "summary": "CIでのメモリ不足問題を解決するために、UnoCSSから標準のCSSおよび@iconify/vueへ移行した際の記録。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/assert-type.md",
+      "path": "cache/docs/api/assert-type.md",
+      "title": "assertType API",
+      "summary": "静的な型チェックを行うためのAPI。実行時には何も行わず、--typecheckフラグと共に使用する。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/assert.md",
+      "path": "cache/docs/api/assert.md",
+      "title": "assert API",
+      "summary": "Chaiのassertメソッドをベースとした表明（アサーション）API。値の検証や比較を行うための多様なメソッドを提供。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/describe.md",
+      "path": "cache/docs/api/describe.md",
+      "title": "describe API",
+      "summary": "テストをグループ化（スイート化）するための関数。入れ子構造による階層的なテスト管理が可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/expect-typeof.md",
+      "path": "cache/docs/api/expect-typeof.md",
+      "title": "expectTypeOf API",
+      "summary": "TypeScriptの型レベルでの表明を行うためのAPI。プロパティの存在や型の等価性を検証。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/expect.md",
+      "path": "cache/docs/api/expect.md",
+      "title": "expect API",
+      "summary": "Jest互換のマッチャーを含む表明API。値の検証、非同期処理の待機、モックの呼び出し確認などが可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/hooks.md",
+      "path": "cache/docs/api/hooks.md",
+      "title": "Lifecycle Hooks API",
+      "summary": "beforeEach, afterEach, beforeAll, afterAllなど、テストの実行前後に処理を挿入するためのフック。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/mock.md",
+      "path": "cache/docs/api/mock.md",
+      "title": "Mock Functions API",
+      "summary": "関数やクラスのモック化、呼び出し履歴の追跡、戻り値のカスタマイズを行うためのAPI。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/test.md",
+      "path": "cache/docs/api/test.md",
+      "title": "test API",
+      "summary": "テストケースを定義するための中心的なAPI。エイリアスとしてitも利用可能。タイムアウト、リトライ、スキップなどの豊富なオプションを提供。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/vi.md",
+      "path": "cache/docs/api/vi.md",
+      "title": "vi Utility API",
+      "summary": "Vitest固有のユーティリティ。fnによるモック作成、spyOnによる既存オブジェクトの監視、タイマー操作（useFakeTimers）などの機能を提供。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/artifacts.md",
+      "path": "cache/docs/api/advanced/artifacts.md",
+      "title": "Test Artifacts API",
+      "summary": "テスト実行中に生成される追加データ（スクリーンショットやログなど）を記録・管理するためのアドバンスドAPI。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/import-example.md",
+      "path": "cache/docs/api/advanced/import-example.md",
+      "title": "Advanced Import Example",
+      "summary": "アドバンスドAPIにおけるモジュールインポートの例を示すドキュメント。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/metadata.md",
+      "path": "cache/docs/api/advanced/metadata.md",
+      "title": "Task Metadata API",
+      "summary": "テストやスイートにカスタムメタデータを付加し、レポーターから参照できるようにするための機能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/plugin.md",
+      "path": "cache/docs/api/advanced/plugin.md",
+      "title": "Vitest Plugin API",
+      "summary": "Vitestの動作を拡張するためのプラグイン作成ガイド。Viteプラグインとの統合や独自のフックの定義方法を解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/reporters.md",
+      "path": "cache/docs/api/advanced/reporters.md",
+      "title": "Reporters API",
+      "summary": "カスタムレポーターを作成するためのインターフェース。テストの開始・終了、結果の通知などのイベントをフック可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/runner.md",
+      "path": "cache/docs/api/advanced/runner.md",
+      "title": "Runner API",
+      "summary": "テストの実行エンジンをカスタマイズするためのアドバンスドAPI。テストの収集や実行フローを制御するクラスの作成方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/test-case.md",
+      "path": "cache/docs/api/advanced/test-case.md",
+      "title": "TestCase Class",
+      "summary": "メインスレッドにおける単一のテストを表すクラス。名前、ID、位置情報、実行結果（result）などのプロパティを保持。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/test-collection.md",
+      "path": "cache/docs/api/advanced/test-collection.md",
+      "title": "TestCollection Class",
+      "summary": "テストやスイートの集合を管理するクラス。イテレータによる効率的な走査や、特定の状態のテストのフィルタリング機能を提供。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/test-module.md",
+      "path": "cache/docs/api/advanced/test-module.md",
+      "title": "TestModule Class",
+      "summary": "単一のテストファイルを管理するクラス。ファイルパス、実行状態、診断情報（インポート時間など）を保持し、TestSuiteを継承している。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/test-project.md",
+      "path": "cache/docs/api/advanced/test-project.md",
+      "title": "TestProject Class",
+      "summary": "Vitestにおけるプロジェクト（ワークスペース）の単位を表すクラス。個別の設定（SerializedConfig）やグローバル設定への参照を持つ。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/test-specification.md",
+      "path": "cache/docs/api/advanced/test-specification.md",
+      "title": "TestSpecification Class",
+      "summary": "実行対象のテストファイルとそのプロジェクトを定義する仕様クラス。テストのフィルタリングや特定のファイルのみの実行に使用される。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/test-suite.md",
+      "path": "cache/docs/api/advanced/test-suite.md",
+      "title": "TestSuite Class",
+      "summary": "describeによってグループ化されたテストの集合。子要素（children）の管理や、実行結果・エラーの集計機能を持つ。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/advanced/vitest.md",
+      "path": "cache/docs/api/advanced/vitest.md",
+      "title": "Vitest Class (Node API)",
+      "summary": "Vitestのメインプロセスを制御するコアクラス。テストの開始、キャンセル、プロジェクト管理、設定の解決などを担当。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/assertions.md",
+      "path": "cache/docs/api/browser/assertions.md",
+      "title": "Browser Assertions API",
+      "summary": "ブラウザテスト専用の表明（アサーション）API。要素の可視性、活性状態、テキスト内容などを非同期に検証可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/commands.md",
+      "path": "cache/docs/api/browser/commands.md",
+      "title": "Browser Commands API",
+      "summary": "ブラウザ側からNode.js側の処理（ファイル読み書きなど）を呼び出すためのカスタムコマンド作成ガイド。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/context.md",
+      "path": "cache/docs/api/browser/context.md",
+      "title": "Browser Context API",
+      "summary": "ブラウザテストにおける実行コンテキスト。pageオブジェクトを通じた要素の取得や、スクリーンショットの撮影が可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/interactivity.md",
+      "path": "cache/docs/api/browser/interactivity.md",
+      "title": "Browser Interactivity API",
+      "summary": "ユーザー操作（クリック、キー入力、ドラッグ＆ドロップなど）をシミュレートするためのuserEvent APIの解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/locators.md",
+      "path": "cache/docs/api/browser/locators.md",
+      "title": "Browser Locators API",
+      "summary": "DOM要素を特定するためのロケーターAPI。getByRole, getByTextなどのTesting Library互換のクエリや、カスタムロケーターの作成方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/react.md",
+      "path": "cache/docs/api/browser/react.md",
+      "title": "vitest-browser-react API",
+      "summary": "ブラウザモードでReactコンポーネントをテストするためのライブラリ。render, cleanup, renderHookなどのAPIを提供し、自動リトライ機能を備える。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/svelte.md",
+      "path": "cache/docs/api/browser/svelte.md",
+      "title": "vitest-browser-svelte API",
+      "summary": "ブラウザモードでSvelteコンポーネントをテストするためのライブラリ。render, cleanup, renderHookなどのAPIを提供。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/api/browser/vue.md",
+      "path": "cache/docs/api/browser/vue.md",
+      "title": "vitest-browser-vue API",
+      "summary": "ブラウザモードでVueコンポーネントをテストするためのライブラリ。render, cleanupなどのAPIを提供。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/blog/vitest-3-2.md",
+      "path": "cache/docs/blog/vitest-3-2.md",
+      "title": "Vitest 3.2 Announcement",
+      "summary": "Vitest 3.2のリリースノート。カスタムロケーターの拡張、シグナルAPIの導入、V8カバレッジの改善などの新機能を紹介。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/blog/vitest-3.md",
+      "path": "cache/docs/blog/vitest-3.md",
+      "title": "Vitest 3.0 Announcement",
+      "summary": "Vitest 3.0のメジャーアップデート。レポーターの刷新、インラインワークスペース、マルチブラウザ設定などの主要機能を紹介。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/blog/vitest-4.md",
+      "path": "cache/docs/blog/vitest-4.md",
+      "title": "Vitest 4.0 Announcement",
+      "summary": "Vitest 4.0のメジャーアップデート。ブラウザモードの安定化、視覚的回帰テストの導入、Playwrightトレース対応などを紹介。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/alias.md",
+      "path": "cache/docs/config/alias.md",
+      "title": "alias Config",
+      "summary": "テスト実行時のカスタムエイリアス設定。Viteのresolve.aliasとマージされ、モジュールのインポート先を置換する。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/allowonly.md",
+      "path": "cache/docs/config/allowonly.md",
+      "title": "allowOnly Config",
+      "summary": "test.onlyフラグが付いたテストの実行を許可するかどうかの設定。デフォルトではCI環境で失敗するように設定されている。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/api.md",
+      "path": "cache/docs/config/api.md",
+      "title": "api Config",
+      "summary": "Vitest UIやブラウザサーバーのためのAPIサーバー設定。ポート番号やホスト名、書き込み権限（allowWrite）などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/attachmentsdir.md",
+      "path": "cache/docs/config/attachmentsdir.md",
+      "title": "attachmentsDir Config",
+      "summary": "テスト結果に添付されるファイル（スクリーンショットなど）の保存ディレクトリを指定する設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/bail.md",
+      "path": "cache/docs/config/bail.md",
+      "title": "bail Config",
+      "summary": "指定した回数のテスト失敗が発生した時点でテスト実行を停止する設定。CI環境での効率化に有用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/benchmark.md",
+      "path": "cache/docs/config/benchmark.md",
+      "title": "benchmark Config",
+      "summary": "ベンチマークテスト（vitest bench）実行時の設定。対象ファイルの包含・除外パターンやレポーター、結果の比較（compare）設定を含む。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/cache.md",
+      "path": "cache/docs/config/cache.md",
+      "title": "cache Config",
+      "summary": "テスト結果のキャッシュ機能を制御する設定。失敗したテストや実行時間の長いテストを優先的に実行するために使用される。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/chaiconfig.md",
+      "path": "cache/docs/config/chaiconfig.md",
+      "title": "chaiConfig",
+      "summary": "Chaiアサーションライブラリの設定。スタックトレースの表示、差分（diff）の表示、長い値の切り捨て（truncateThreshold）を制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/clearmocks.md",
+      "path": "cache/docs/config/clearmocks.md",
+      "title": "clearMocks Config",
+      "summary": "各テストの実行前にモックの呼び出し履歴を自動的にクリアするかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/coverage.md",
+      "path": "cache/docs/config/coverage.md",
+      "title": "coverage Config",
+      "summary": "コードカバレッジ収集の詳細設定。v8やistanbulプロバイダーの選択、対象ファイルの指定、閾値（thresholds）の設定などが可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/css.md",
+      "path": "cache/docs/config/css.md",
+      "title": "css Config",
+      "summary": "CSSファイルの処理設定。包含・除外パターンやCSS Modulesのクラス名生成戦略（stable, scopedなど）を制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/dangerouslyignoreunhandlederrors.md",
+      "path": "cache/docs/config/dangerouslyignoreunhandlederrors.md",
+      "title": "dangerouslyIgnoreUnhandledErrors",
+      "summary": "ハンドルされていないエラーが発生してもテストを失敗させないようにする設定。デバッグや特定の状況でのみ使用を推奨。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/deps.md",
+      "path": "cache/docs/config/deps.md",
+      "title": "deps Config",
+      "summary": "依存関係の解決と最適化の設定。外部ライブラリのバンドル（optimizer）、CSS/アセットの変換、CJS互換性などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/detectasyncleaks.md",
+      "path": "cache/docs/config/detectasyncleaks.md",
+      "title": "detectAsyncLeaks Config",
+      "summary": "テストファイルからの非同期リソース（setTimeoutなど）のリークを検出する設定。デバッグ目的で使用され、実行速度に影響する。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/diff.md",
+      "path": "cache/docs/config/diff.md",
+      "title": "diff Config",
+      "summary": "テスト失敗時の差分（diff）表示のカスタマイズ設定。インジケーターの変更、展開（expand）、切り捨て閾値（truncateThreshold）などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/dir.md",
+      "path": "cache/docs/config/dir.md",
+      "title": "dir Config",
+      "summary": "テストファイルをスキャンするベースディレクトリの設定。プロジェクト全体ではなく特定のディレクトリを指定することでテストの発見を高速化できる。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/disableconsoleintercept.md",
+      "path": "cache/docs/config/disableconsoleintercept.md",
+      "title": "disableConsoleIntercept",
+      "summary": "コンソールログのインターセプト（横取り）を無効にする設定。デバッグ時に標準のコンソール出力を使用したい場合に有用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/env.md",
+      "path": "cache/docs/config/env.md",
+      "title": "env Config",
+      "summary": "テスト実行中に利用可能な環境変数の設定。process.envやimport.meta.envを通じてアクセス可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/environment.md",
+      "path": "cache/docs/config/environment.md",
+      "title": "environment Config",
+      "summary": "テストを実行する環境（node, jsdom, happy-dom, edge-runtime）の設定。ファイルごとの指定も可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/environmentoptions.md",
+      "path": "cache/docs/config/environmentoptions.md",
+      "title": "environmentOptions",
+      "summary": "jsdomやhappy-domなどのテスト環境に渡すオプション設定。URLやブラウザ画面のサイズなどを指定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/exclude.md",
+      "path": "cache/docs/config/exclude.md",
+      "title": "exclude Config",
+      "summary": "テスト対象から除外するファイルのglobパターン設定。デフォルトでnode_modulesや.gitが除外されている。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/execargv.md",
+      "path": "cache/docs/config/execargv.md",
+      "title": "execArgv Config",
+      "summary": "Node.jsのワーカープロセスに渡す追加の引数設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/expandsnapshotdiff.md",
+      "path": "cache/docs/config/expandsnapshotdiff.md",
+      "title": "expandSnapshotDiff",
+      "summary": "スナップショットのテスト失敗時に、パッチ形式ではなく完全な差分を表示するかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/expect.md",
+      "path": "cache/docs/config/expect.md",
+      "title": "expect Config",
+      "summary": "expectアサーションの動作設定。表明（assertion）の必須化（requireAssertions）や、expect.pollのポーリング間隔などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/experimental.md",
+      "path": "cache/docs/config/experimental.md",
+      "title": "experimental Config",
+      "summary": "開発中の実験的機能の設定。ファイルシステムキャッシュ（fsModuleCache）、OpenTelemetryのサポート、インポート時間の詳細表示などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/faketimers.md",
+      "path": "cache/docs/config/faketimers.md",
+      "title": "fakeTimers Config",
+      "summary": "偽のタイマー（fake timers）の設定。現在時刻の指定や、モック対象の関数（setTimeout, Dateなど）、ループ制限などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/fileparallelism.md",
+      "path": "cache/docs/config/fileparallelism.md",
+      "title": "fileParallelism Config",
+      "summary": "テストファイルを並列に実行するかどうかの設定。falseに設定するとファイルが一つずつ順番に実行される。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/forcereruntriggers.md",
+      "path": "cache/docs/config/forcereruntriggers.md",
+      "title": "forceRerunTriggers",
+      "summary": "変更があった場合に全テストを再実行させるファイルのglobパターン。package.jsonやvitest.configなどがデフォルトで設定されている。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/globals.md",
+      "path": "cache/docs/config/globals.md",
+      "title": "globals Config",
+      "summary": "describeやitなどのAPIをグローバル変数として提供するかどうかの設定。Jestからの移行時に便利。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/globalsetup.md",
+      "path": "cache/docs/config/globalsetup.md",
+      "title": "globalSetup Config",
+      "summary": "テスト全体の実行前後に一度だけ実行されるセットアップ・ティアダウンファイルの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/hideskippedtests.md",
+      "path": "cache/docs/config/hideskippedtests.md",
+      "title": "hideSkippedTests",
+      "summary": "スキップされたテストのログを非表示にする設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/hooktimeout.md",
+      "path": "cache/docs/config/hooktimeout.md",
+      "title": "hookTimeout Config",
+      "summary": "beforeEachやafterAllなどのフックのデフォルトタイムアウト時間（ミリ秒）の設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/include-source.md",
+      "path": "cache/docs/config/include-source.md",
+      "title": "includeSource Config",
+      "summary": "ソースコード内に記述されたテスト（in-source tests）の対象ファイルを指定する設定。import.meta.vitestを利用する。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/include.md",
+      "path": "cache/docs/config/include.md",
+      "title": "include Config",
+      "summary": "テスト対象となるファイルのglobパターン設定。デフォルトは **/*.{test,spec}.?(c|m)[jt]s?(x)。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/includetasklocation.md",
+      "path": "cache/docs/config/includetasklocation.md",
+      "title": "includeTaskLocation",
+      "summary": "レポーターが受け取るタスクオブジェクトに、テストの定義位置（行・列）を含めるかどうかの設定。UIやHTMLレポーターでは自動的に有効化される。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/index.md",
+      "path": "cache/docs/config/index.md",
+      "title": "Configuring Vitest",
+      "summary": "Vitestの設定方法の概要。vitest.config.tsの作成、Vite設定との統合、デフォルト値（configDefaults）の拡張方法などを解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/isolate.md",
+      "path": "cache/docs/config/isolate.md",
+      "title": "isolate Config",
+      "summary": "各テストファイルを隔離された環境で実行するかどうかの設定。無効にすることでパフォーマンスが向上する場合があるが、副作用に注意が必要。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/logheapusage.md",
+      "path": "cache/docs/config/logheapusage.md",
+      "title": "logHeapUsage Config",
+      "summary": "各テスト終了後にヒープ使用量を表示する設定。メモリリークのデバッグに有用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/maxconcurrency.md",
+      "path": "cache/docs/config/maxconcurrency.md",
+      "title": "maxConcurrency Config",
+      "summary": "test.concurrentを使用する際に、同時に実行できるテストとフックの最大数の設定。デフォルトは5。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/maxworkers.md",
+      "path": "cache/docs/config/maxworkers.md",
+      "title": "maxWorkers Config",
+      "summary": "並列実行するワーカープロセスの最大数の設定。数値またはパーセンテージ（例：'50%'）で指定可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/mockreset.md",
+      "path": "cache/docs/config/mockreset.md",
+      "title": "mockReset Config",
+      "summary": "各テストの実行前にモックをリセット（履歴クリアと実装の初期化）するかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/mode.md",
+      "path": "cache/docs/config/mode.md",
+      "title": "mode Config",
+      "summary": "Viteの実行モード（'test', 'staging'など）を上書きする設定。デフォルトは'test'。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/name.md",
+      "path": "cache/docs/config/name.md",
+      "title": "name Config",
+      "summary": "テストプロジェクトやプロセスに名前（および表示色）を割り当てる設定。複数のプロジェクトを識別するのに役立つ。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/onconsolelog.md",
+      "path": "cache/docs/config/onconsolelog.md",
+      "title": "onConsoleLog Config",
+      "summary": "console.logなどの出力に対するカスタムハンドラ。特定のログをフィルタリングして表示させないようにすることが可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/onstacktrace.md",
+      "path": "cache/docs/config/onstacktrace.md",
+      "title": "onStackTrace Config",
+      "summary": "スタックトレースの各フレームに対してフィルタリングを行うカスタム関数。サードパーティライブラリのフレームを除外するなどの処理が可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/onunhandlederror.md",
+      "path": "cache/docs/config/onunhandlederror.md",
+      "title": "onUnhandledError Config",
+      "summary": "ハンドルされていないエラーをフィルタリングするためのカスタムコールバック。特定のエラーを無視してテスト結果に影響を与えないようにできる。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/open.md",
+      "path": "cache/docs/config/open.md",
+      "title": "open Config",
+      "summary": "Vitest UIが有効な場合に、ブラウザを自動的に開くかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/outputfile.md",
+      "path": "cache/docs/config/outputfile.md",
+      "title": "outputFile Config",
+      "summary": "json, html, junitなどのレポーターを使用する際の、結果出力先ファイルのパス設定。レポーターごとに個別のパスを指定することも可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/passwithnotests.md",
+      "path": "cache/docs/config/passwithnotests.md",
+      "title": "passWithNoTests Config",
+      "summary": "テストファイルが見つからない場合でも、テスト実行を失敗（エラー）にしない設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/pool.md",
+      "path": "cache/docs/config/pool.md",
+      "title": "pool Config",
+      "summary": "テスト実行に使用するプール（threads, forks, vmThreads, vmForks）の選択。実行環境の隔離レベルやパフォーマンスを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/printconsoletrace.md",
+      "path": "cache/docs/config/printconsoletrace.md",
+      "title": "printConsoleTrace Config",
+      "summary": "consoleメソッドの呼び出し時に、常にスタックトレースを表示するようにするデバッグ用の設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/projects.md",
+      "path": "cache/docs/config/projects.md",
+      "title": "projects Config",
+      "summary": "複数のテストプロジェクト（ワークスペース）を定義する設定。異なる環境や設定のテストを組み合わせて実行できる。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/provide.md",
+      "path": "cache/docs/config/provide.md",
+      "title": "provide Config",
+      "summary": "テスト内でinjectメソッドを使用してアクセスできる値を定義する設定。プロセス間でのデータ共有に使用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/reporters.md",
+      "path": "cache/docs/config/reporters.md",
+      "title": "reporters Config",
+      "summary": "テスト結果の出力形式（レポーター）の指定。標準レポーター（verbose, junit, jsonなど）やカスタムレポーターを設定可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/resolvesnapshotpath.md",
+      "path": "cache/docs/config/resolvesnapshotpath.md",
+      "title": "resolveSnapshotPath",
+      "summary": "スナップショットファイルの保存パスを上書きするための関数設定。プロジェクト名に基づいた動的なパス指定などが可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/restoremocks.md",
+      "path": "cache/docs/config/restoremocks.md",
+      "title": "restoreMocks Config",
+      "summary": "各テストの実行前に、vi.spyOnなどで作成された全スパイの元の実装を復元するかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/retry.md",
+      "path": "cache/docs/config/retry.md",
+      "title": "retry Config",
+      "summary": "テスト失敗時の再試行回数と、再試行の間隔や条件（RegExpまたは関数）の設定。CLIやテストファイル内での上書きも可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/root.md",
+      "path": "cache/docs/config/root.md",
+      "title": "root Config",
+      "summary": "プロジェクトのルートディレクトリの設定。デフォルトは現在の作業ディレクトリ。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/runner.md",
+      "path": "cache/docs/config/runner.md",
+      "title": "runner Config",
+      "summary": "カスタムテストランナーを使用するための設定。ライブラリ作成者向けの高度な機能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/sequence.md",
+      "path": "cache/docs/config/sequence.md",
+      "title": "sequence Config",
+      "summary": "テストの実行順序や並列化、シャッフル、シード値、フックの実行順序（stack, list, parallel）などを制御する詳細設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/server.md",
+      "path": "cache/docs/config/server.md",
+      "title": "server Config (Deprecated)",
+      "summary": "Viteサーバー関連の設定（非推奨）。依存関係のインライン化（inline）や外部化（external）の微調整に使用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/setupfiles.md",
+      "path": "cache/docs/config/setupfiles.md",
+      "title": "setupFiles Config",
+      "summary": "各テストファイルの実行前に、テストプロセス内で実行されるセットアップファイルの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/silent.md",
+      "path": "cache/docs/config/silent.md",
+      "title": "silent Config",
+      "summary": "コンソール出力を抑制する設定。'passed-only'を指定すると失敗したテストのログのみを表示できる。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/slowtestthreshold.md",
+      "path": "cache/docs/config/slowtestthreshold.md",
+      "title": "slowTestThreshold",
+      "summary": "テストが「遅い」と判定される閾値（ミリ秒）。閾値を超えたテストは結果で報告される。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/snapshotenvironment.md",
+      "path": "cache/docs/config/snapshotenvironment.md",
+      "title": "snapshotEnvironment",
+      "summary": "Node.js APIをサポートしていない環境などでスナップショットを扱うための、カスタム環境の実装パス設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/snapshotformat.md",
+      "path": "cache/docs/config/snapshotformat.md",
+      "title": "snapshotFormat Config",
+      "summary": "スナップショットテストの出力フォーマット設定。pretty-formatのオプションや、Shadow Rootの表示設定が可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/snapshotserializers.md",
+      "path": "cache/docs/config/snapshotserializers.md",
+      "title": "snapshotSerializers",
+      "summary": "スナップショットテストに使用するカスタムシリアライザーのパスリスト設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/stricttags.md",
+      "path": "cache/docs/config/stricttags.md",
+      "title": "strictTags Config",
+      "summary": "設定されていないタグがテストで使用された場合にエラーを投げるかどうかの設定。タイポ防止に有用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/tags.md",
+      "path": "cache/docs/config/tags.md",
+      "title": "tags Config",
+      "summary": "テストに付与できるタグの定義設定。名前、説明、優先度（priority）、タグごとのタイムアウトやリトライなどの個別オプションを定義可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/teardowntimeout.md",
+      "path": "cache/docs/config/teardowntimeout.md",
+      "title": "teardownTimeout Config",
+      "summary": "Vitest終了時のクリーンアップ処理（ティアダウン）の待機タイムアウト時間（ミリ秒）。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/testnamepattern.md",
+      "path": "cache/docs/config/testnamepattern.md",
+      "title": "testNamePattern Config",
+      "summary": "テスト名が特定のパターン（文字列または正規表現）に一致するものだけを実行するフィルタリング設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/testtimeout.md",
+      "path": "cache/docs/config/testtimeout.md",
+      "title": "testTimeout Config",
+      "summary": "個々のテストのデフォルトタイムアウト時間（ミリ秒）。Node.js環境とブラウザ環境で異なるデフォルト値が設定されている。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/typecheck.md",
+      "path": "cache/docs/config/typecheck.md",
+      "title": "typecheck Config",
+      "summary": "TypeScriptの型チェックテスト（-d.tsファイル）の設定。tscやvue-tscの使用、対象パターンの指定などが可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/ui.md",
+      "path": "cache/docs/config/ui.md",
+      "title": "ui Config",
+      "summary": "Vitest UIを有効にするかどうかの設定。ブラウザ上でテストの実行状況を確認・操作できるグラフィカルなインターフェースを提供。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/unstubenvs.md",
+      "path": "cache/docs/config/unstubenvs.md",
+      "title": "unstubEnvs Config",
+      "summary": "各テストの実行前に、vi.stubEnvで変更された環境変数をすべて元に戻すかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/unstubglobals.md",
+      "path": "cache/docs/config/unstubglobals.md",
+      "title": "unstubGlobals Config",
+      "summary": "各テストの実行前に、vi.stubGlobalで変更されたグローバル変数をすべて元に戻すかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/update.md",
+      "path": "cache/docs/config/update.md",
+      "title": "update Config",
+      "summary": "スナップショットの更新動作の設定。新しいスナップショットのみ生成、すべて更新、あるいは更新しない（エラーにする）などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/vmmemorylimit.md",
+      "path": "cache/docs/config/vmmemorylimit.md",
+      "title": "vmMemoryLimit Config",
+      "summary": "vmForksやvmThreadsプールを使用する際の、ワーカープロセスのメモリ制限設定。制限を超えるとプロセスがリサイクルされる。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/watch.md",
+      "path": "cache/docs/config/watch.md",
+      "title": "watch Config",
+      "summary": "ウォッチモード（ファイルの変更を監視してテストを再実行）を有効にするかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/watchtriggerpatterns.md",
+      "path": "cache/docs/config/watchtriggerpatterns.md",
+      "title": "watchTriggerPatterns",
+      "summary": "ウォッチモードで再実行をトリガーするファイルパターンと、それに対応して実行するテストファイルを定義する設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/api.md",
+      "path": "cache/docs/config/browser/api.md",
+      "title": "browser.api Config",
+      "summary": "ブラウザテスト用のViteサーバー設定。ポート番号、ホスト名、書き込み権限（allowWrite）などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/commands.md",
+      "path": "cache/docs/config/browser/commands.md",
+      "title": "browser.commands",
+      "summary": "ブラウザテスト中に使用できるカスタムコマンドの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/connecttimeout.md",
+      "path": "cache/docs/config/browser/connecttimeout.md",
+      "title": "browser.connectTimeout",
+      "summary": "ブラウザとのWebSocket接続確立のタイムアウト時間（ミリ秒）の設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/detailspanelposition.md",
+      "path": "cache/docs/config/browser/detailspanelposition.md",
+      "title": "browser.detailsPanelPosition",
+      "summary": "ブラウザテスト実行時のVitest UI詳細パネルの表示位置（右側または下側）の設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/enabled.md",
+      "path": "cache/docs/config/browser/enabled.md",
+      "title": "browser.enabled Config",
+      "summary": "ブラウザモードを有効にするかどうかの設定。有効にするとデフォルトですべてのテストがブラウザ上で実行される。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/expect.md",
+      "path": "cache/docs/config/browser/expect.md",
+      "title": "browser.expect Config",
+      "summary": "ブラウザテストにおけるアサーション設定。特に視覚的回帰テスト（toMatchScreenshot）の画像保存パスや比較アルゴリズム（comparator）のカスタマイズが可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/headless.md",
+      "path": "cache/docs/config/browser/headless.md",
+      "title": "browser.headless Config",
+      "summary": "ブラウザをヘッドレスモード（画面なし）で実行するかどうかの設定。CI環境ではデフォルトで有効。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/instances.md",
+      "path": "cache/docs/config/browser/instances.md",
+      "title": "browser.instances Config",
+      "summary": "複数のブラウザ設定（Chrome, Firefoxなど）を定義する設定。それぞれのインスタンスで個別の設定を持つことが可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/isolate.md",
+      "path": "cache/docs/config/browser/isolate.md",
+      "title": "browser.isolate (Deprecated)",
+      "summary": "各テストを個別のiframeで実行するかどうかの設定（非推奨）。代わりに共通のisolateオプションを使用。 "
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/locators.md",
+      "path": "cache/docs/config/browser/locators.md",
+      "title": "browser.locators Config",
+      "summary": "ブラウザロケーターの設定。getByTestIdで使用する属性名（デフォルト：data-testid）などを変更可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/orchestratorscripts.md",
+      "path": "cache/docs/config/browser/orchestratorscripts.md",
+      "title": "browser.orchestratorScripts",
+      "summary": "テスト実行前にブラウザのオーケストレーターHTMLに注入するカスタムスクリプトの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/playwright.md",
+      "path": "cache/docs/config/browser/playwright.md",
+      "title": "browser.playwright Provider",
+      "summary": "Playwrightをブラウザプロバイダーとして使用する際の設定。起動オプション（launchOptions）やコンテキスト（contextOptions）を制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/preview.md",
+      "path": "cache/docs/config/browser/preview.md",
+      "title": "browser.preview Provider",
+      "summary": "ブラウザのプレビューモード（開発者向け簡易ブラウザ実行）の設定。高度な自動化はサポートしていないが、実際のブラウザでの動作確認に有用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/provider.md",
+      "path": "cache/docs/config/browser/provider.md",
+      "title": "browser.provider Config",
+      "summary": "ブラウザテストで使用するプロバイダー（playwright, webdriverio, preview）の選択と、カスタムプロバイダーの定義設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/screenshotdirectory.md",
+      "path": "cache/docs/config/browser/screenshotdirectory.md",
+      "title": "browser.screenshotDirectory",
+      "summary": "ブラウザテストでのスクリーンショット保存先ディレクトリのパス設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/screenshotfailures.md",
+      "path": "cache/docs/config/browser/screenshotfailures.md",
+      "title": "browser.screenshotFailures",
+      "summary": "テスト失敗時に自動的にスクリーンショットを撮影するかどうかを設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/testerhtmlpath.md",
+      "path": "cache/docs/config/browser/testerhtmlpath.md",
+      "title": "browser.testerHtmlPath",
+      "summary": "ブラウザテストの実行に使用するHTMLエントリポイントのパス設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/trace.md",
+      "path": "cache/docs/config/browser/trace.md",
+      "title": "browser.trace Config",
+      "summary": "ブラウザテストの実行トレースを記録する設定。Playwrightプロバイダーのみ対応しており、失敗時のみ保持するなどの詳細な制御が可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/trackunhandlederrors.md",
+      "path": "cache/docs/config/browser/trackunhandlederrors.md",
+      "title": "browser.trackUnhandledErrors",
+      "summary": "ブラウザ内での未捕捉エラーをVitestが追跡し、レポートするかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/ui.md",
+      "path": "cache/docs/config/browser/ui.md",
+      "title": "browser.ui Config",
+      "summary": "ブラウザテスト実行時にVitest UIをページ内に注入するかどうかの設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/viewport.md",
+      "path": "cache/docs/config/browser/viewport.md",
+      "title": "browser.viewport Config",
+      "summary": "ブラウザテストで使用するiframeのデフォルトの表示サイズ（横幅・高さ）設定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/config/browser/webdriverio.md",
+      "path": "cache/docs/config/browser/webdriverio.md",
+      "title": "browser.webdriverio Provider",
+      "summary": "WebdriverIOをブラウザプロバイダーとして使用する際の設定。ブラウザのケーパビリティ（capabilities）などを制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/cli-generated.md",
+      "path": "cache/docs/guide/cli-generated.md",
+      "title": "CLI Options Reference",
+      "summary": "Vitestの全CLIオプションのリファレンス。各オプションのショートカット、対応する設定項目、デフォルト値を一覧で確認可能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/cli.md",
+      "path": "cache/docs/guide/cli.md",
+      "title": "Command Line Interface Guide",
+      "summary": "VitestのCLIコマンド（run, watch, related, benchなど）とシェルの補完、主要なオプションの使い方についてのガイド。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/common-errors.md",
+      "path": "cache/docs/guide/common-errors.md",
+      "title": "Common Errors Guide",
+      "summary": "Vitestでよく遭遇するエラー（モジュールが見つからない、ワーカーの終了失敗、セグメンテーションフォールトなど）の原因と解決策のまとめ。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/comparisons.md",
+      "path": "cache/docs/guide/comparisons.md",
+      "title": "Comparisons with Other Runners",
+      "summary": "Jest, Cypress, Playwrightなどの他のテストランナーとVitestの比較。Viteとの統合による利点や使い分けについて解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/coverage.md",
+      "path": "cache/docs/guide/coverage.md",
+      "title": "Code Coverage Guide",
+      "summary": "コードカバレッジの収集方法についてのガイド。v8やistanbulプロバイダーの使用、レポート形式の設定、カバレッジの閾値管理などを解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/debugging.md",
+      "path": "cache/docs/guide/debugging.md",
+      "title": "Debugging Guide",
+      "summary": "Vitestでのテストのデバッグ方法。VS Codeでのデバッグ、ブラウザ上でのデバッグ（Vitest UI）、Node.jsインスペクターの使用方法など。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/environment.md",
+      "path": "cache/docs/guide/environment.md",
+      "title": "Test Environment Guide",
+      "summary": "jsdomやhappy-domを使用したDOM環境のシミュレーション、独自のカスタム環境の作成方法についての詳細ガイド。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/extending-matchers.md",
+      "path": "cache/docs/guide/extending-matchers.md",
+      "title": "Extending Matchers",
+      "summary": "expect.extendを使用したカスタムマッチャーの作成方法。TypeScriptでの型定義や、MatcherStateを通じたコンテキストへのアクセス方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/features.md",
+      "path": "cache/docs/guide/features.md",
+      "title": "Vitest Features Overview",
+      "summary": "Vitestの主要機能（Vite設定の共有、ウォッチモード、スナップショット、モック、ベンチマーク、型チェックなど）の概要。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/filtering.md",
+      "path": "cache/docs/guide/filtering.md",
+      "title": "Test Filtering Guide",
+      "summary": "実行するテストを絞り込む方法。CLIからのフィルタリング、.only/.skipの使用、タグ（tags）によるフィルタリング、タイムアウトの設定など。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/ide.md",
+      "path": "cache/docs/guide/ide.md",
+      "title": "IDE Integrations",
+      "summary": "VS Code, JetBrains IDE, Wallaby.jsなどのIDEとの統合方法と、公式拡張機能の紹介。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/improving-performance.md",
+      "path": "cache/docs/guide/improving-performance.md",
+      "title": "Improving Performance Guide",
+      "summary": "テスト実行速度を向上させるためのヒント。隔離（isolation）の無効化、ディレクトリ探索の制限、ファイルシステムキャッシュ、シャーディング（sharding）の活用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/in-source.md",
+      "path": "cache/docs/guide/in-source.md",
+      "title": "In-Source Testing",
+      "summary": "ソースコード内に直接テストを記述する方法。import.meta.vitestを使用し、プロダクションビルド時にテストコードを削除する設定などを解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/index.md",
+      "path": "cache/docs/guide/index.md",
+      "title": "Getting Started Guide",
+      "summary": "Vitestの導入ガイド。インストール方法、最初のテストの書き方、package.jsonへのスクリプト追加、基本設定の概要。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/lifecycle.md",
+      "path": "cache/docs/guide/lifecycle.md",
+      "title": "Test Lifecycle Hooks",
+      "summary": "beforeEach, afterEach, beforeAll, afterAllなどのライフサイクルフックと、テスト終了時のクリーンアップ処理（onTestFinished）の解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/migration.md",
+      "path": "cache/docs/guide/migration.md",
+      "title": "Migration Guide",
+      "summary": "Jestなどの他のテストフレームワークからVitestへ移行するためのガイド。APIの互換性や設定の変更点についての解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking.md",
+      "path": "cache/docs/guide/mocking.md",
+      "title": "Mocking Guide",
+      "summary": "Vitestでのモック化の包括的なガイド。関数（vi.fn）、日付（setSystemTime）、グローバル変数、環境変数、タイマー、モジュールのモック化手法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/open-telemetry.md",
+      "path": "cache/docs/guide/open-telemetry.md",
+      "title": "OpenTelemetry Support",
+      "summary": "OpenTelemetryを使用したテストのトレースとパフォーマンス分析の設定方法。Node.jsおよびブラウザモードでの設定手順。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/parallelism.md",
+      "path": "cache/docs/guide/parallelism.md",
+      "title": "Parallelism in Vitest",
+      "summary": "Vitestの並列実行メカニズム。テストファイル単位の並列実行（workers）と、同一ファイル内でのテスト単位の並列実行（concurrent）について。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/profiling-test-performance.md",
+      "path": "cache/docs/guide/profiling-test-performance.md",
+      "title": "Profiling Test Performance",
+      "summary": "テストのパフォーマンスプロファイリング手法。トランスフォーム、セットアップ、インポート、テスト実行の各フェーズの分析と改善策。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/projects.md",
+      "path": "cache/docs/guide/projects.md",
+      "title": "Test Projects (Workspaces)",
+      "summary": "ひとつのVitestプロセスで複数のプロジェクト設定を実行する機能。モノレポ構成や、異なる環境（Node/ブラウザ）のテスト混在に有用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/recipes.md",
+      "path": "cache/docs/guide/recipes.md",
+      "title": "Vitest Recipes",
+      "summary": "特定のユースケースに対する設定例。特定のファイルのみ隔離を無効化する方法や、並列実行と逐次実行を組み合わせる方法など。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/reporters.md",
+      "path": "cache/docs/guide/reporters.md",
+      "title": "Vitest Reporters",
+      "summary": "テスト結果の出力形式（レポーター）のガイド。標準レポーター（default, verbose, dot, junit, json, html, blob）の使い方とカスタマイズ方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/snapshot.md",
+      "path": "cache/docs/guide/snapshot.md",
+      "title": "Snapshot Testing Guide",
+      "summary": "スナップショットテストの使用方法。toMatchSnapshot, toMatchInlineSnapshotの使い方、ファイル保存先、更新方法、カスタムシリアライザーの実装。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/test-annotations.md",
+      "path": "cache/docs/guide/test-annotations.md",
+      "title": "Test Annotations",
+      "summary": "テストに追加情報を付与するアノテーション機能。context.annotateを使用して、レポーター（特にHTML/UI）にリンクや説明を表示させる方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/test-context.md",
+      "path": "cache/docs/guide/test-context.md",
+      "title": "Test Context",
+      "summary": "各テストに渡されるコンテキストオブジェクトの解説。expect, meta, taskへのアクセス、およびカスタムコンテキストの追加方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/test-tags.md",
+      "path": "cache/docs/guide/test-tags.md",
+      "title": "Test Tags Guide",
+      "summary": "テストへのタグ付けとフィルタリングのガイド。タグごとの設定（タイムアウトなど）の定義、論理演算子を用いた高度なフィルタリング手法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/testing-types.md",
+      "path": "cache/docs/guide/testing-types.md",
+      "title": "Testing Types (Static)",
+      "summary": "TypeScriptの型定義自体のテスト方法。expectTypeOfとassertTypeを使用した、コンパイル時の型検証。 "
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/ui.md",
+      "path": "cache/docs/guide/ui.md",
+      "title": "Vitest UI Guide",
+      "summary": "グラフィカルなテスト操作画面であるVitest UIの導入と使用方法。モジュールグラフの確認、テストの対話的実行、カバレッジ表示機能。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/using-plugins.md",
+      "path": "cache/docs/guide/using-plugins.md",
+      "title": "Using Plugins",
+      "summary": "Vitestをプラグインで拡張する方法。Viteプラグインの仕組みをそのまま利用した、テスト環境のカスタマイズ手法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/why.md",
+      "path": "cache/docs/guide/why.md",
+      "title": "Why Vitest?",
+      "summary": "Vitestが作成された背景と、その設計思想。Viteネイティブであることの利点、既存のテストランナー（Jest等）との違いと優位性。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/advanced/index.md",
+      "path": "cache/docs/guide/advanced/index.md",
+      "title": "Advanced Node API",
+      "summary": "ライブラリ作者向けのNode.js APIガイド。startVitest, createVitest, resolveConfigなどを使用した、プログラムによるVitestの制御。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/advanced/pool.md",
+      "path": "cache/docs/guide/advanced/pool.md",
+      "title": "Custom Pool API",
+      "summary": "独自のテスト実行環境（プール）を作成するためのアドバンスドAPI。Worker ThreadsやChild Processをカスタマイズして実行フローを制御する方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/advanced/reporters.md",
+      "path": "cache/docs/guide/advanced/reporters.md",
+      "title": "Extending Reporters",
+      "summary": "標準レポーターを継承・拡張してカスタムレポーターを作成する方法。テストの開始・終了などのイベントハンドリングの解説。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/advanced/tests.md",
+      "path": "cache/docs/guide/advanced/tests.md",
+      "title": "Running Tests Programmatically",
+      "summary": "Node.jsスクリプトからVitestを起動し、テストを実行・管理するための詳細なガイド。startVitestとcreateVitestの使い分け。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/browser/component-testing.md",
+      "path": "cache/docs/guide/browser/component-testing.md",
+      "title": "Browser Component Testing",
+      "summary": "ブラウザモードを使用したコンポーネントテストのガイド。React, Vue, Svelteなどの主要フレームワークのレンダリング手法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/browser/index.md",
+      "path": "cache/docs/guide/browser/index.md",
+      "title": "Browser Mode Guide",
+      "summary": "実ブラウザでテストを実行する「ブラウザモード」の導入。jsdom等のエミュレーションとの違い、セットアップ、プロバイダーの選択。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/browser/multiple-setups.md",
+      "path": "cache/docs/guide/browser/multiple-setups.md",
+      "title": "Multiple Browser Setups",
+      "summary": "複数の異なるブラウザ環境（例：ChromeとFirefox）を組み合わせて同時にテストを実行する設定方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/browser/trace-view.md",
+      "path": "cache/docs/guide/browser/trace-view.md",
+      "title": "Browser Trace View",
+      "summary": "ブラウザテストの実行詳細をPlaywright Trace Viewerで確認する方法。テストの失敗原因をタイムラインで視覚的に特定。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/browser/visual-regression-testing.md",
+      "path": "cache/docs/guide/browser/visual-regression-testing.md",
+      "title": "Visual Regression Testing",
+      "summary": "ブラウザモードでの視覚的回帰テスト（スクリーンショット比較）のガイド。toMatchScreenshotの使用方法とカスタマイズ。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/browser/why.md",
+      "path": "cache/docs/guide/browser/why.md",
+      "title": "Why Browser Mode?",
+      "summary": "実ブラウザでのテストが必要な理由。Node.js環境でのエミュレーションでは再現できない挙動や、真のユーザー体験の検証。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/examples/projects-workspace.md",
+      "path": "cache/docs/guide/examples/projects-workspace.md",
+      "title": "Projects Workspace Example",
+      "summary": "複数プロジェクト（ワークスペース）構成の具体的な設定例。モノレポでの効率的なテスト管理手法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/examples/promise-done.md",
+      "path": "cache/docs/guide/examples/promise-done.md",
+      "title": "Mocking Promises and Done",
+      "summary": "Promiseの解決待ちや、レガシーなdoneコールバックを使用した非同期テストの具体的なパターン。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/classes.md",
+      "path": "cache/docs/guide/mocking/classes.md",
+      "title": "Mocking Classes Guide",
+      "summary": "クラス全体のモック化手法。vi.fnを使用したコンストラクタやメソッドの置換、プロトタイプ経由での呼び出し追跡。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/dates.md",
+      "path": "cache/docs/guide/mocking/dates.md",
+      "title": "Mocking Dates Guide",
+      "summary": "Dateオブジェクトやシステム時刻のモック化。特定の時刻での挙動を安定してテストするためのvi.setSystemTimeの使用方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/file-system.md",
+      "path": "cache/docs/guide/mocking/file-system.md",
+      "title": "Mocking File System",
+      "summary": "ファイルシステム操作のモック化。memfsを使用したインメモリファイルシステムによる、安全で高速なテスト手法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/functions.md",
+      "path": "cache/docs/guide/mocking/functions.md",
+      "title": "Mocking Functions Guide",
+      "summary": "関数やメソッドのモック・スパイ化。vi.fnによるモック作成と、vi.spyOnによる既存機能の監視。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/globals.md",
+      "path": "cache/docs/guide/mocking/globals.md",
+      "title": "Mocking Globals Guide",
+      "summary": "IntersectionObserverなどのブラウザ標準機能や、独自のグローバル変数をvi.stubGlobalでモック化する方法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/modules.md",
+      "path": "cache/docs/guide/mocking/modules.md",
+      "title": "Mocking Modules Guide",
+      "summary": "モジュール（ファイル）単位のモック化。vi.mockを使用したインポートの置換、自動モック、部分的なモックの実装手法。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/requests.md",
+      "path": "cache/docs/guide/mocking/requests.md",
+      "title": "Mocking Network Requests",
+      "summary": "HTTP, WebSocket, GraphQLなどのネットワークリクエストのモック化。MSW（Mock Service Worker）を使用した推奨構成。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/guide/mocking/timers.md",
+      "path": "cache/docs/guide/mocking/timers.md",
+      "title": "Mocking Timers Guide",
+      "summary": "setTimeoutやsetIntervalのモック化。時間を早送りして待機時間を短縮するvi.useFakeTimersの活用。"
+    },
+    {
+      "url": "https://github.com/vitest-dev/vitest/blob/main/docs/public/robots.txt",
+      "path": "cache/docs/public/robots.txt"
+    }
+  ],
+  "metadata": {
+    "generator": "ragmaker-install-kb",
+    "sources": [
+      "C:\\Synology Drive\\2way-sync\\work\\rag-maker\\.tmp\\cache"
+    ]
+  }
+}
