@@ -17,7 +17,7 @@ try:
         handle_value_error,
         print_json_stdout
     )
-    from ragmaker.utils import safe_export, merge_catalog_data
+    from ragmaker.utils import safe_export
 except ImportError:
     sys.stderr.write("{\"status\": \"error\", \"message\": \"The 'ragmaker' package is not installed or not in the Python path.\"}\x0a")
     sys.exit(1)
@@ -46,63 +46,14 @@ def _install_merged(source_roots: List[Path], target_root: Path, force: bool = F
         work = Path(tmp) / "work"
         work.mkdir()
         if target_root.exists(): safe_export(target_root, work)
-        t_cache = work / "cache"
-        t_cache.mkdir(exist_ok=True)
+        t_cache = work
         
         all_docs = []
         for src_root in source_roots:
-            if (src_root / "cache").is_dir():
-                s_cache, s_base = src_root / "cache", src_root
-            elif src_root.name == "cache":
-                s_cache, s_base = src_root, src_root.parent
-            else:
-                s_cache, s_base = src_root, src_root
+            s_cache, s_base = src_root, src_root
             
             if s_cache.exists(): safe_export(s_cache, t_cache)
             
-            s_cat = None
-            loc = None
-            for p, l in [(s_base/"catalog.json","root"),(s_base/"discovery.json","root"),(s_cache/"catalog.json","cache"),(s_cache/"discovery.json","cache")]:
-                if p.exists():
-                    s_cat, loc = p, l
-                    break
-            if not s_cat: continue
-            
-            data = json.load(open(s_cat, "r", encoding="utf-8"))
-            for doc in data.get("documents", []):
-                p_str = doc.get("path")
-                if not p_str: continue
-                abs_s = (s_base / p_str) if loc == "root" else (s_cache / p_str)
-                abs_s = abs_s.resolve()
-                try: rel = abs_s.relative_to(s_cache.resolve())
-                except ValueError: rel = Path(p_str)
-                
-                parts = list(rel.parts)
-                while parts and parts[0] == "cache": parts.pop(0)
-                new_rel = Path("cache").joinpath(*parts)
-                doc["path"] = new_rel.as_posix()
-                all_docs.append(doc)
-        
-        source_paths_str = [str(p.resolve()) for p in source_roots]
-        final = {
-            "documents": all_docs,
-            "metadata": {
-                "generator": "ragmaker-install-kb",
-                "sources": source_paths_str
-            }
-        }
-        
-        w_cat = work / "catalog.json"
-        if w_cat.exists():
-            try: 
-                old = json.load(open(w_cat,"r", encoding="utf-8"))
-                # Merge metadata sources safely
-                old_sources = old.get("metadata", {}).get("sources", [])
-                final = merge_catalog_data(old, final)
-                merged_sources = list(dict.fromkeys(old_sources + source_paths_str))
-                final.setdefault("metadata", {})["sources"] = merged_sources
-            except Exception: pass
-        json.dump(final, open(w_cat,"w",encoding="utf-8"), indent=2, ensure_ascii=False)
         
         if target_root.exists():
             bak = target_root.with_suffix(".bak")

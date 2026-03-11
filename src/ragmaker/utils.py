@@ -19,36 +19,22 @@ logger = logging.getLogger(__name__)
 
 def print_catalog_data(
     documents: list[dict[str, Any]],
-    metadata: dict[str, Any],
-    output_dir: Optional[Path] = None
+    metadata: dict[str, Any]
 ) -> None:
     """
     Constructs the catalog.json data structure from the retrieved document information and metadata,
-    and writes it to standard output in JSON format. If output_dir is specified, it also saves to a file.
+    and writes it to standard output in JSON format.
 
     Args:
         documents (list[dict[str, Any]]):
             List of document information. Each element is a dictionary containing 'path' and 'url'.
         metadata (dict[str, Any]):
             Metadata about this retrieval process. The 'source' key is required.
-        output_dir (Path, optional):
-            The directory path to save catalog.json.
     """
     catalog_data = {
         "documents": documents,
         "metadata": metadata
     }
-    
-    if output_dir:
-        try:
-            output_path = output_dir / "catalog.json"
-            output_path.write_text(
-                json.dumps(catalog_data, ensure_ascii=False, indent=2),
-                encoding='utf-8'
-            )
-            logger.info(f"Catalog data saved to {output_path}")
-        except Exception as e:
-            logger.error(f"Failed to save catalog data to {output_dir}: {e}")
 
     print_json_stdout(catalog_data)
 

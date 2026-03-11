@@ -8,6 +8,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from typing import Optional
+from datetime import datetime, timezone
 
 try:
     from ragmaker.io_utils import (
@@ -65,16 +66,28 @@ def github_fetch(repo_url: str, path_in_repo: str, temp_dir: Path, branch: Optio
             rel = src.relative_to(clone_dir)
             dst = work_dir / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
+            url = repo_url.replace(".git","") + "/blob/" + branch + "/" + rel.as_posix()
+            timestamp = datetime.now(timezone.utc).isoformat()
             if src.suffix.lower() in {".html", ".htm"}:
                 try:
                     art = simple_json_from_html_string(src.read_text(encoding="utf-8"))
                     if art and art.get("content"):
                         dst = dst.with_suffix(".md")
-                        dst.write_text(md(art["content"], heading_style="ATX"), encoding="utf-8")
+                        title = art.get("title") or src.stem
+                        markdown_content = md(art["content"], heading_style="ATX")
+                        frontmatter = f"---\nsource_url: {url}\noriginal_title: {title}\nfetched_at: {timestamp}\n---\n\n"
+                        dst.write_text(f"{frontmatter}{markdown_content}", encoding="utf-8")
                 except Exception: continue
-            else: shutil.copy2(src, dst)
+            else:
+                try:
+                    content = src.read_text(encoding="utf-8")
+                    title = src.stem
+                    frontmatter = f"---\nsource_url: {url}\noriginal_title: {title}\nfetched_at: {timestamp}\n---\n\n"
+                    dst.write_text(f"{frontmatter}{content}", encoding="utf-8")
+                except Exception:
+                    shutil.copy2(src, dst)
             if dst.exists():
-                results.append({"url": repo_url.replace(".git","") + "/blob/" + branch + "/" + rel.as_posix(), "path": dst.relative_to(work_dir).as_posix()})
+                results.append({"url": url, "path": dst.relative_to(work_dir).as_posix()})
         safe_export(work_dir, temp_dir)
         return results
 
@@ -89,7 +102,7 @@ def main():
     try:
         args = parser.parse_args()
         res = github_fetch(args.repo_url, args.path_in_repo, Path(args.temp_dir), args.branch)
-        print_catalog_data(res, {"source": "github_fetch", "repo_url": args.repo_url}, output_dir=Path(args.temp_dir))
+        print_catalog_data(res, {"source": "github_fetch", "repo_url": args.repo_url})
     except Exception as e:
         handle_unexpected_error(e)
         sys.exit(1)

@@ -38,19 +38,6 @@ def create_knowledge_base(kb_root: Path):
     dest_commands_dir = kb_root / ".gemini" / "commands"
     dest_commands_dir.mkdir(parents=True, exist_ok=True)
 
-    try:
-        # This requires ragmaker package to be installed/importable
-        with importlib.resources.path("ragmaker.data", "ask.toml") as source_ask_toml:
-            if source_ask_toml.is_file():
-                shutil.copy2(source_ask_toml, dest_commands_dir / "ask.toml")
-                logger.info(f"Copied ask.toml to {dest_commands_dir.resolve()}")
-    except (ImportError, ModuleNotFoundError):
-        logger.warning("Could not find ragmaker.data resource. ask.toml not copied.")
-        # We don't fail here, just skip copying the template.
-
-    cache_dir = kb_root / "cache"
-    cache_dir.mkdir(exist_ok=True)
-    logger.info(f"Created cache directory at {cache_dir.resolve()}")
 
 
 # --- Main Execution ---

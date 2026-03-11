@@ -105,91 +105,6 @@
       }
     },
     {
-      "name": "entry_discovery",
-      "command": "ragmaker-entry-discovery",
-      "description": "ドキュメントをシステムに登録するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "kb-root": {
-            "type": "string",
-            "description": "ドキュメント情報を登録するナレッジベースのルートパス。"
-          },
-          "title": {
-            "type": "string",
-            "description": "登録するドキュメント群全体のタイトル。"
-          },
-          "summary": {
-            "type": "string",
-            "description": "登録するドキュメント群全体の要約。"
-          },
-          "src-type": {
-            "type": "string",
-            "description": "ソースのタイプ（例: github, web, localなど）。"
-          },
-          "source-url": {
-            "type": "string",
-            "description": "ドキュメントの元のソースURLまたはパス。"
-          }
-        },
-        "required": [
-          "kb-root",
-          "source-url"
-        ]
-      }
-    },
-    {
-      "name": "create_knowledge_base",
-      "command": "ragmaker-create-knowledge-base",
-      "description": "新しい自己完結型のナレッジベースのディレクトリ構造と初期ファイルをセットアップするツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "kb-root": {
-            "type": "string",
-            "description": "新しいナレッジベースを作成するルートパス。"
-          }
-        },
-        "required": [
-          "kb-root"
-        ]
-      }
-    },
-    {
-      "name": "path_normalizer",
-      "command": "ragmaker-path-normalizer",
-      "description": "与えられたパスを正規化し、絶対パスに変換するツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "description": "正規化するパス文字列。"
-          }
-        },
-        "required": [
-          "path"
-        ]
-      }
-    },
-    {
-      "name": "open_directory",
-      "command": "ragmaker-open-directory",
-      "description": "指定されたディレクトリをOSのデフォルトのファイルマネージャーで開く。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "description": "開きたいディレクトリのパス。"
-          }
-        },
-        "required": [
-          "path"
-        ]
-      }
-    },
-    {
       "name": "read_file",
       "command": "ragmaker-read-file",
       "description": "指定された複数のファイルのパスを受け取り、その内容をまとめて読み込んで単一のJSON形式で標準出力に書き出すツール。",
@@ -206,28 +121,6 @@
         },
         "required": [
           "path"
-        ]
-      }
-    },
-    {
-      "name": "enrich_discovery",
-      "command": "ragmaker-enrich-discovery",
-      "description": "複数のドキュメント情報を一括で更新するためのバッチ処理ツール。",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "catalog-path": {
-            "type": "string",
-            "description": "変更対象の catalog.json ファイルのフルパス。"
-          },
-          "updates": {
-            "type": "string",
-            "description": "更新内容を含むJSON文字列。'path', 'title', 'summary' をキーに持つオブジェクトの配列。"
-          }
-        },
-        "required": [
-          "catalog-path",
-          "updates"
         ]
       }
     },
@@ -278,7 +171,7 @@
     {
       "name": "install_kb",
       "command": "ragmaker-install-kb",
-      "description": "既存のKBをインストール先ディレクトリにインストール（マージ）し、パスを正規化してセットアップする。既存のカタログ情報がある場合は非破壊的にマージする。",
+      "description": "既存のKBをインストール先ディレクトリにインストール（マージ）し、パスを正規化してセットアップする。既存のドキュメントがある場合は非破壊的にマージする。",
       "parameters": {
         "type": "object",
         "properties": {

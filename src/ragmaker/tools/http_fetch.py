@@ -155,6 +155,16 @@ class WebFetcher:
             if title and not markdown_content.strip().startswith('#'):
                  markdown_content = f"# {title}\n\n{markdown_content}"
 
+            timestamp = datetime.now(timezone.utc).isoformat()
+            frontmatter = (
+                "---\n"
+                f"source_url: {url}\n"
+                f"original_title: {title}\n"
+                f"fetched_at: {timestamp}\n"
+                "---\n"
+            )
+            markdown_content = f"{frontmatter}\n{markdown_content}"
+
             return markdown_content
 
         except subprocess.CalledProcessError as e:
@@ -285,7 +295,7 @@ def main() -> None:
             "depth": args.depth,
             "fetched_at": datetime.now(timezone.utc).isoformat()
         }
-        print_catalog_data(fetcher.documents, metadata, output_dir=output_dir_path)
+        print_catalog_data(fetcher.documents, metadata)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)

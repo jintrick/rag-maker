@@ -77,17 +77,19 @@
 ### 2.5 最終整合性チェック
 **[MUST: NO SKIPPING]**
 1.  **残存ファイルの確認**: `.tmp/cache/` 直下に未整理ファイル（移動・リネームされていない元ファイル）がないかを `list_directory` ツール（または `ls` コマンド）で確認します。
-2.  **再開**: もし未整理ファイルが残っていれば、ステップ 2 の整理作業を再開し、全てなくなるまで完了させません。
+2.  **空ディレクトリの削除**: `run_shell_command` を使って、`.tmp/cache/` 内の空ディレクトリを再帰的に削除します。Windows環境の場合は、以下のPowerShellコマンドを実行してください。
+    - `Get-ChildItem -Path .tmp/cache -Recurse -Directory | Where-Object { @(Get-ChildItem -Path $_.FullName).Count -eq 0 } | Remove-Item -Recurse -Force`
+3.  **再開**: もし未整理ファイルが残っていれば、ステップ 2 の整理作業を再開し、全てなくなるまで完了させません。
 
 ### 3. ナレッジベースの最終配置
 **[MUST: NO SKIPPING]**
 1. 「ドキュメントの整理が完了しました。ナレッジベースの保存場所を選択して下さい」と告げ、`ask_dir` ツールを実行し、配置場所のパスを得ます（`kb_root`）。
 2. **ナレッジベースの外箱の作成:** `create_knowledge_base` ツールを呼び出します。
     - `--kb-root` に `{{kb_root}}` を指定します。
-3. **コンテンツの一括移動:** `move_file` ツールを呼び出し、整理済みの `.tmp/cache/` の全内容を `{{kb_root}}/cache/` へ一括移動します。
+3. **コンテンツの一括移動:** `move_file` ツールを呼び出し、整理済みの `.tmp/cache/` の全内容を `{{kb_root}}/` へ一括移動します。
     - `--source` に `<プロジェクトルート>/.tmp/cache/` を指定。
-    - `--destination` に `{{kb_root}}/cache/` を指定。
-    - すでに `cache` ディレクトリが存在する場合は、`--merge` フラグを付与してください。
+    - `--destination` に `{{kb_root}}/` を指定。
+    - すでにディレクトリが存在する場合は、`--merge` フラグを付与してください。
 
 ### 4. 完了報告
 **[MUST: NO SKIPPING]**
