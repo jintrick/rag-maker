@@ -68,11 +68,24 @@
         -   最低3つ以上の具体的キーワードを含むスネークケースを使用します。
         -   **NG**: `appendix/faq.md`, `guide/install.md`
         -   **OK**: `guide/gemini_cli_faq_and_common_troubleshooting_tips.md`, `guide/gemini_cli_npm_package_setup_and_verification_steps.md`
-        -   FAQやトラブルシューティングは `appendix` ではなく `guide` ディレクトリに分類します。
+        -   **分類の厳格化**: 
+            - `Example`, `Sample`, `Workflow`, `Tutorial` というキーワードを含むファイルは、**決して `appendix` に入れてはなりません。** 必ず `guide` または `reference` に分類してください。
+            - `appendix` は「変更履歴、利用規約、ライセンス、用語集」などの受動的なメタデータのみを格納します。
     -   `run_shell_command` を使って、`.tmp/cache/` 内に必要なサブディレクトリ（`introduction`, `reference`, `guide`, `appendix`）を作成してから移動してください。
         - `--source` に `<プロジェクトルート>/.tmp/cache/<現在のファイル名>`
         - `--destination` に `<プロジェクトルート>/.tmp/cache/<決定した新ディレクトリ>/<新ファイル名>`
 3.  **継続:** 全てのドキュメントが 4つのカテゴリ配下に整理されるまで繰り返します。
+
+### 2.6 第三者エージェントによる組織化監査
+**[MUST: NO SKIPPING]**
+整理が完了したナレッジベースの品質を、客観的な視点で最終確認します。
+
+1.  **監査の依頼**: `generalist` サブエージェントを起動し、以下の指示を与えてください。
+    - 「`.tmp/cache/` 内の全ファイルパスを提示します。[記述的命名規則ガイドライン] に照らして、分類が適切か監査してください。」
+    - 「特に、`appendix/` 内に `Example`, `Workflow`, `Tutorial`, `Setup` などの能動的なドキュメントが混入していないか、ファイル名は十分に記述的かを厳格にチェックしてください。」
+2.  **指摘の受領と修正**: 
+    - `generalist` から「このファイルは `guide` に移すべき」「この名前は抽象的すぎる」といった指摘を受けた場合、主担当エージェントは即座に `move_file` ツールを用いて修正を実行してください。
+    - 全ての指摘事項が解消されるまで、このステップを完了させてはなりません。
 
 ### 2.5 最終整合性チェック
 **[MUST: NO SKIPPING]**
