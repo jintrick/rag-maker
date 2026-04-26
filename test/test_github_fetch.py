@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 import subprocess
 import tempfile
 import shutil
@@ -218,6 +219,65 @@ class TestGitHubFetch(unittest.TestCase):
         stdout_json = json.loads(stdout)
         self.assertEqual(len(stdout_json["documents"]), 1)
         self.assertEqual(stdout_json["documents"][0]["path"], "README.md")
+
+    @mock.patch('ragmaker.tools.github_fetch.Repo.clone_from')
+    def test_fetch_retry_on_shallow_clone_failure(self, mock_clone_from):
+        """
+        Test that github_fetch correctly cleans up and retries a full clone
+        if the initial shallow clone fails.
+        """
+        output_dir = Path(self.test_dir.name) / "output_retry"
+        repo_url = "https://dummy.github.com/test/test"
+        path_in_repo = "."
+
+        # First call raises an exception (simulating shallow clone failure).
+        # Second call returns a dummy repo (simulating successful full clone).
+        mock_clone_from.side_effect = [
+            Exception("Simulated shallow clone failure"),
+            mock.MagicMock()
+        ]
+
+        # To avoid actual file copying errors after the mock clone,
+        # we also need to mock shutil.copy2 or os.walk, OR just let it fail naturally
+        # since we just want to verify the clone_from calls and cleanup.
+        # But wait, run_tool runs in a SUBPROCESS!
+        # unittest.mock.patch won't work across processes if we use self.run_tool.
+        # We need to import the function directly to test the retry logic with mock.
+        from ragmaker.tools.github_fetch import github_fetch
+        
+        # We will mock os.walk and Path.exists to pretend the repo has files
+        # so the rest of the function doesn't crash after clone.
+        with mock.patch('ragmaker.tools.github_fetch.os.walk') as mock_walk, \
+             mock.patch('pathlib.Path.exists') as mock_exists, \
+             mock.patch('ragmaker.tools.github_fetch.shutil.copy2'), \
+             mock.patch('ragmaker.tools.github_fetch.shutil.rmtree') as mock_rmtree:
+            
+            # Pretend files exist so it proceeds
+            mock_exists.return_value = True
+            # Empty list so it doesn't crash on relative_to
+            mock_walk.return_value = []
+            
+            github_fetch(
+                repo_url=repo_url,
+                path_in_repo=path_in_repo,
+                output_dir=output_dir,
+                branch="main"
+            )
+            
+            # Verify clone_from was called twice
+            self.assertEqual(mock_clone_from.call_count, 2)
+            
+            # Verify the first call had depth=1
+            args, kwargs = mock_clone_from.call_args_list[0]
+            self.assertIn('depth', kwargs)
+            self.assertEqual(kwargs['depth'], 1)
+            
+            # Verify rmtree was called before the second clone
+            self.assertTrue(mock_rmtree.called)
+            
+            # Verify the second call did NOT have depth=1
+            args, kwargs = mock_clone_from.call_args_list[1]
+            self.assertNotIn('depth', kwargs)
 
 
 if __name__ == '__main__':

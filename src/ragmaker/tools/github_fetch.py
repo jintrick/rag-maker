@@ -92,11 +92,16 @@ def github_fetch(
             if "depth" in kwargs:
                 del kwargs["depth"]
 
+            # リトライ前に、失敗したクローンの中間成果物を完全に削除し、空のディレクトリを再準備する。
+            # これを行わないと、Gitが「空ではないディレクトリへのクローン」としてリトライを拒絶してしまう。
+            shutil.rmtree(clone_dir, ignore_errors=True)
+            clone_dir.mkdir(exist_ok=True)
+
             try:
                 Repo.clone_from(repo_url, clone_dir, **kwargs)
             except Exception as final_exception:
                 # Explicitly state that the full clone also failed after the shallow clone attempt.
-                raise RuntimeError(f"Full clone also failed after shallow clone attempt: {final_exception}") from final_exception
+                raise RuntimeError(f"Full clone failed after shallow clone attempt. First error: {e}. Final error: {final_exception}") from final_exception
 
         # Now copy files from path_in_repo to work_dir
         source_path = clone_dir / path_in_repo
