@@ -38,6 +38,12 @@ def create_knowledge_base(kb_root: Path):
     dest_commands_dir = kb_root / ".gemini" / "commands"
     dest_commands_dir.mkdir(parents=True, exist_ok=True)
 
+    # Create standard category directories for descriptive naming architecture
+    categories = ["introduction", "reference", "guide", "appendix"]
+    for category in categories:
+        (kb_root / category).mkdir(parents=True, exist_ok=True)
+        logger.info(f"Category directory created: {category}")
+
 
 
 # --- Main Execution ---
