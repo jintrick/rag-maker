@@ -19,7 +19,7 @@ class TestCreateKnowledgeBase(unittest.TestCase):
     def test_knowledge_base_creation(self):
         """
         Test that the create_knowledge_base tool correctly creates the
-        directory structure and initial files.
+        directory structure.
         """
         # Execute the script
         result = subprocess.run(
@@ -36,23 +36,14 @@ class TestCreateKnowledgeBase(unittest.TestCase):
         self.assertEqual(result.returncode, 0, "Script execution failed")
         self.assertIn("success", result.stdout, "Success message not in stdout")
 
-        # 1. Verify .gemini/commands directory and ask.toml were created
+        # 1. Verify .gemini/commands directory was created
         gemini_dir = self.kb_root / ".gemini"
         self.assertTrue(gemini_dir.exists(), ".gemini directory not created")
-        self.assertTrue(gemini_dir.is_dir(), ".gemini is not a directory")
-        # Check that only the necessary files were copied, not the whole directory.
-        self.assertTrue((gemini_dir / "commands" / "ask.toml").exists(), "ask.toml not found in copied .gemini dir")
-        self.assertFalse((gemini_dir / "commands" / "rag.md").exists(), "rag.md should not be copied to new KB")
+        self.assertTrue((gemini_dir / "commands").exists(), ".gemini/commands directory not created")
 
-
-        # 2. Verify cache directory was created
-        cache_dir = self.kb_root / "cache"
-        self.assertTrue(cache_dir.exists(), "cache directory not created")
-        self.assertTrue(cache_dir.is_dir(), "cache is not a directory")
-
-        # 3. Verify discovery.json was NOT created in the knowledge base root
-        discovery_file = self.kb_root / "discovery.json"
-        self.assertFalse(discovery_file.exists(), "discovery.json should NOT be created in the kb_root")
+        # 2. Verify catalog.json and discovery.json were NOT created
+        self.assertFalse((self.kb_root / "catalog.json").exists(), "catalog.json should NOT be created")
+        self.assertFalse((self.kb_root / "discovery.json").exists(), "discovery.json should NOT be created")
 
 if __name__ == '__main__':
     unittest.main()

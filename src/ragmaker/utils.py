@@ -83,6 +83,14 @@ def merge_catalog_data(old_data: dict, new_data: dict) -> dict:
     }
 
 
+import stat
+
+def _remove_readonly(func, path, _):
+    """Clear the readonly bit and re-attempt the file deletion."""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
 def cleanup_dir_contents(path: Path) -> None:
     """
     Recursively deletes the contents of a directory while preserving the directory itself.
@@ -91,9 +99,13 @@ def cleanup_dir_contents(path: Path) -> None:
         return
     for item in path.iterdir():
         if item.is_dir():
-            shutil.rmtree(item)
+            shutil.rmtree(item, onexc=_remove_readonly)
         else:
-            item.unlink()
+            try:
+                item.unlink()
+            except PermissionError:
+                os.chmod(item, stat.S_IWRITE)
+                item.unlink()
 
 
 def safe_export(src_dir: Path, dst_dir: Path) -> None:

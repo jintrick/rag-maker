@@ -253,7 +253,7 @@ def main():
             "source_dir": str(source_path.resolve()),
         }
 
-        print_catalog_data(processed_documents, metadata, output_dir=dest_path)
+        print_catalog_data(processed_documents, metadata)
 
     except ArgumentParsingError as e:
         handle_argument_parsing_error(e)

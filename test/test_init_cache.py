@@ -3,7 +3,13 @@ import subprocess
 import os
 import shutil
 import sys
+import stat
 from pathlib import Path
+
+def remove_readonly(func, path, _):
+    """Clear the readonly bit and re-attempt the file deletion."""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 class TestInitCache(unittest.TestCase):
 
@@ -12,12 +18,12 @@ class TestInitCache(unittest.TestCase):
         self.tmp_dir = Path(".tmp")
         # Clean up before the test, just in case
         if self.tmp_dir.exists():
-            shutil.rmtree(self.tmp_dir)
+            shutil.rmtree(self.tmp_dir, onexc=remove_readonly)
 
     def tearDown(self):
         """Clean up the test environment."""
         if self.tmp_dir.exists():
-            shutil.rmtree(self.tmp_dir)
+            shutil.rmtree(self.tmp_dir, onexc=remove_readonly)
 
     def test_initializes_cache_correctly(self):
         """

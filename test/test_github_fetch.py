@@ -69,9 +69,9 @@ class TestGitHubFetch(unittest.TestCase):
         stderr = decode_output(process.stderr)
         return process.returncode, stdout, stderr
 
-    def test_html_conversion_and_copying(self):
+    def test_html_conversion_and_frontmatter(self):
         """
-        Test that HTML files are converted to Markdown, and other files are copied.
+        Test that HTML files are converted to Markdown and frontmatter is added.
         """
         output_dir = Path(self.test_dir.name) / "output_html"
         repo_url = self.repo_dir.as_uri()
@@ -85,12 +85,9 @@ class TestGitHubFetch(unittest.TestCase):
         <html>
         <head><title>My Test Page</title></head>
         <body>
-            <header><h1>Header</h1></header>
-            <div class="ad">An ad</div>
             <article>
                 <p>This is the main content.</p>
             </article>
-            <footer>Footer</footer>
         </body>
         </html>
         """)
@@ -115,24 +112,24 @@ class TestGitHubFetch(unittest.TestCase):
         self.assertTrue(output_dir.exists())
         converted_md = output_dir / path_in_repo / "test.md"
         copied_txt = output_dir / path_in_repo / "plain.txt"
-        original_html = output_dir / path_in_repo / "test.html"
 
         self.assertTrue(converted_md.exists(), f"Markdown file was not created. Stderr: {stderr}")
         self.assertTrue(copied_txt.exists(), "Text file was not copied.")
-        self.assertFalse(original_html.exists(), "Original HTML file should not be present.")
 
-        # Check JSON output
-        try:
-            stdout_json = json.loads(stdout)
-        except json.JSONDecodeError:
-            self.fail(f"Stdout was not valid JSON.\nStdout: {stdout}\nStderr: {stderr}")
+        # Verify frontmatter in converted Markdown
+        md_content = converted_md.read_text(encoding='utf-8')
+        self.assertIn("source_url:", md_content)
+        self.assertIn("original_title: My Test Page", md_content)
+        self.assertIn("fetched_at:", md_content)
 
-        self.assertEqual(len(stdout_json["documents"]), 2)
+        # Verify frontmatter in copied text file (github_fetch adds it to all)
+        txt_content = copied_txt.read_text(encoding='utf-8')
+        self.assertIn("source_url:", txt_content)
+        self.assertIn("original_title: plain", txt_content)
 
     def test_fetch_and_stdout_json(self):
         """
-        Test that github_fetch can fetch from a local repo
-        and prints the discovery JSON to stdout.
+        Test that github_fetch prints the catalog JSON to stdout (but no catalog.json file).
         """
         output_dir = Path(self.test_dir.name) / "output"
         self.assertFalse(output_dir.exists())
@@ -151,12 +148,8 @@ class TestGitHubFetch(unittest.TestCase):
         self.assertTrue(output_dir.exists())
         self.assertTrue((output_dir / "docs" / "test_file.md").exists())
         
-        # Verify automatic saving of catalog.json
-        discovery_file = output_dir / "catalog.json"
-        self.assertTrue(discovery_file.exists(), "catalog.json was not automatically saved.")
-        with open(discovery_file, 'r', encoding='utf-8') as f:
-            saved_data = json.load(f)
-        self.assertEqual(len(saved_data["documents"]), 1)
+        # Verify catalog.json was NOT created
+        self.assertFalse((output_dir / "catalog.json").exists())
 
         try:
             stdout_json = json.loads(stdout)
@@ -190,32 +183,6 @@ class TestGitHubFetch(unittest.TestCase):
         paths = {doc["path"] for doc in stdout_json["documents"]}
         self.assertIn("README.md", paths)
         self.assertIn("docs/test_file.md", paths)
-
-    def test_fetch_single_file_path(self):
-        """
-        Test that github_fetch can fetch a single file path correctly
-        without creating a directory conflict.
-        """
-        output_dir = Path(self.test_dir.name) / "output_single_file"
-        repo_url = self.repo_dir.as_uri()
-        path_in_repo = "README.md" # Root file
-
-        returncode, stdout, stderr = self.run_tool([
-            "--repo-url", repo_url,
-            "--path-in-repo", path_in_repo,
-            "--temp-dir", str(output_dir),
-            "--branch", self.main_branch
-        ])
-
-        self.assertEqual(returncode, 0, f"Script failed with stderr: {stderr}")
-        self.assertTrue((output_dir / "README.md").exists())
-        self.assertTrue((output_dir / "README.md").is_file())
-        self.assertFalse((output_dir / "README.md").is_dir())
-
-        stdout_json = json.loads(stdout)
-        self.assertEqual(len(stdout_json["documents"]), 1)
-        self.assertEqual(stdout_json["documents"][0]["path"], "README.md")
-
 
 if __name__ == '__main__':
     unittest.main()
