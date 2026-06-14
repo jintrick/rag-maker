@@ -1,59 +1,148 @@
-import subprocess
+import os
 import json
+import re
+import shutil
 
-catalog_path = "C:/Synology Drive/2way-sync/rag/electron/cache/catalog.json"
-updates = [
-    {"path": "docs/tutorial/devices.md", "title": "Device Access (Bluetooth, HID, USB, Serial)", "summary": "Guide to accessing hardware devices in Electron using Web Bluetooth, WebHID, Web Serial, and WebUSB APIs, including permission handling."},
-    {"path": "docs/tutorial/devtools-extension.md", "title": "DevTools Extension", "summary": "How to load and use Chrome DevTools extensions in Electron for enhanced debugging capabilities."},
-    {"path": "docs/tutorial/distribution-overview.md", "title": "Distribution Overview", "summary": "An overview of the different ways to package and distribute Electron applications for end-users."},
-    {"path": "docs/tutorial/electron-timelines.md", "title": "Electron Timelines", "summary": "Understanding Electron's release cycle, supported versions, and the relationship with Chromium and Node.js versions."},
-    {"path": "docs/tutorial/electron-versioning.md", "title": "Electron Versioning", "summary": "Detailed explanation of Electron's versioning scheme and how to manage upgrades."},
-    {"path": "docs/tutorial/esm.md", "title": "ES Modules in Electron", "summary": "Guide to using ECMAScript Modules (ESM) in both the main and renderer processes of an Electron application."},
-    {"path": "docs/tutorial/examples.md", "title": "Tutorial Examples", "summary": "A collection of practical examples and links to open-source Electron apps for learning."},
-    {"path": "docs/tutorial/forge-overview.md", "title": "Electron Forge Overview", "summary": "Introduction to Electron Forge, the recommended tool for scaffolding, building, and publishing Electron apps."},
-    {"path": "docs/tutorial/fuses.md", "title": "Electron Fuses", "summary": "Explains Electron Fuses, a mechanism to toggle packaged-time features without rebuilding Electron from source."},
-    {"path": "docs/tutorial/in-app-purchases.md", "title": "In-App Purchases", "summary": "How to implement in-app purchases in Electron using the inAppPurchase API for macOS App Store builds."},
-    {"path": "docs/tutorial/keyboard-shortcuts.md", "title": "Keyboard Shortcuts Guide", "summary": "Comprehensive guide on defining global and local keyboard shortcuts in Electron."},
-    {"path": "docs/tutorial/launch-app-from-url-in-another-app.md", "title": "Launching App from URL", "summary": "How to register your Electron app as a default handler for a custom protocol URI."},
-    {"path": "docs/tutorial/linux-desktop-actions.md", "title": "Linux Desktop Actions", "summary": "Guide to implementing Linux-specific desktop actions and shortcuts in the application menu."},
-    {"path": "docs/tutorial/mac-app-store-submission-guide.md", "title": "Mac App Store Submission", "summary": "Step-by-step guide for signing and submitting Electron applications to the Mac App Store."},
-    {"path": "docs/tutorial/macos-dock.md", "title": "macOS Dock Customization", "summary": "How to customize the application's dock icon, menu, and bounce effects on macOS."},
-    {"path": "docs/tutorial/menus.md", "title": "Menus in Electron", "summary": "Comprehensive guide to creating and managing application and context menus using Menu and MenuItem."},
-    {"path": "docs/tutorial/message-ports.md", "title": "Message Ports", "summary": "Using the MessagePort API for high-performance communication between different contexts in Electron."},
-    {"path": "docs/tutorial/multithreading.md", "title": "Multithreading in Electron", "summary": "Techniques for offloading heavy tasks to background threads using Web Workers and Node.js worker threads."},
-    {"path": "docs/tutorial/native-code-and-electron.md", "title": "Using Native Node Modules", "summary": "How to compile and use native C/C++ Node.js modules in your Electron application."},
-    {"path": "docs/tutorial/native-file-drag-drop.md", "title": "Native File Drag and Drop", "summary": "Implementing native-like file drag-and-drop interactions from your app to the OS."},
-    {"path": "docs/tutorial/navigation-history.md", "title": "Navigation History API", "summary": "Using the NavigationHistory API to manage and display browsing history in custom browser interfaces."},
-    {"path": "docs/tutorial/notifications.md", "title": "Notifications Guide", "summary": "How to send and handle native OS notifications from both main and renderer processes."},
-    {"path": "docs/tutorial/offscreen-rendering.md", "title": "Offscreen Rendering", "summary": "Using offscreen rendering to capture page content as bitmaps without displaying a window."},
-    {"path": "docs/tutorial/online-offline-events.md", "title": "Online and Offline Events", "summary": "Monitoring and responding to the application's network connectivity status."},
-    {"path": "docs/tutorial/performance.md", "title": "Performance Optimization", "summary": "Best practices and tips for optimizing the performance of Electron applications."},
-    {"path": "docs/tutorial/progress-bar.md", "title": "Taskbar Progress Bar", "summary": "How to display and update an application's progress in the OS-native taskbar or dock."},
-    {"path": "docs/tutorial/recent-documents.md", "title": "Recent Documents", "summary": "Managing and displaying a list of recently opened files in the OS-native application menu."},
-    {"path": "docs/tutorial/repl.md", "title": "Electron REPL", "summary": "Using the Read-Eval-Print Loop (REPL) for interactive Electron development and debugging."},
-    {"path": "docs/tutorial/represented-file.md", "title": "Represented File (macOS)", "summary": "Setting the represented file for a window to enable macOS-specific title bar features."},
-    {"path": "docs/tutorial/snapcraft.md", "title": "Packaging for Snapcraft", "summary": "Guide to packaging and distributing Electron apps on Linux using the Snap format."},
-    {"path": "docs/tutorial/spellchecker.md", "title": "Spellchecker Support", "summary": "Configuring and using Electron's built-in spellchecker for input fields."},
-    {"path": "docs/tutorial/support.md", "title": "Support and Community", "summary": "Resources for getting help and staying connected with the Electron community."},
-    {"path": "docs/tutorial/testing-on-headless-ci.md", "title": "Testing on Headless CI", "summary": "How to run automated Electron tests in headless environments like GitHub Actions."},
-    {"path": "docs/tutorial/tray.md", "title": "System Tray Guide", "summary": "How to create and manage system tray icons, menus, and tooltips across different platforms."},
-    {"path": "docs/tutorial/updates.md", "title": "Auto-Updater Guide", "summary": "Implementing automatic update mechanisms in Electron using the autoUpdater module or Electron Forge."},
-    {"path": "docs/tutorial/using-native-node-modules.md", "title": "Native Modules Tutorial", "summary": "In-depth tutorial on compiling and managing native Node.js modules for Electron."},
-    {"path": "docs/tutorial/using-pepper-flash-plugin.md", "title": "Pepper Flash (Deprecated)", "summary": "Note on the removal of Flash support in modern Electron versions."},
-    {"path": "docs/tutorial/web-embeds.md", "title": "Embedding Web Content", "summary": "Comparison of iframe, webview, and WebContentsView for embedding third-party content."},
-    {"path": "docs/tutorial/window-customization.md", "title": "Window Customization Overview", "summary": "Introduction to the various ways to customize BrowserWindow appearance and behavior."},
-    {"path": "docs/tutorial/windows-arm.md", "title": "Windows on ARM Support", "summary": "Guide to building and testing Electron applications for Windows 10/11 on ARM devices."},
-    {"path": "docs/tutorial/windows-store-guide.md", "title": "Windows Store Submission", "summary": "How to package and submit Electron apps to the Microsoft Store using the Desktop Bridge."},
-    {"path": "docs/tutorial/windows-taskbar.md", "title": "Windows Taskbar Customization", "summary": "Detailed guide on customizing the application's presence in the Windows taskbar, including JumpLists and thumbnail toolbars."}
-]
+def sanitize_filename(name):
+    name = name.lower()
+    name = re.sub(r'[^a-z0-9]+', '_', name)
+    name = re.sub(r'_+', '_', name)
+    return name.strip('_')
 
-cmd = [
-    "ragmaker-enrich-discovery",
-    "--catalog-path", catalog_path,
-    "--updates", json.dumps(updates)
-]
+def categorize_and_rename(item):
+    path = item['path']
+    title = item['original_title'].lower()
+    filename = item['filename'].lower()
+    body = item['body_snippet'].lower()
+    
+    cat = "reference"
+    info_type = "doc"
+    
+    # 1. Determine Category and Info Type
+    if "adr/" in path.lower():
+        cat = "appendix"
+        info_type = "adr"
+    elif any(kw in filename or kw in title for kw in ["readme", "install", "create", "setup", "introduction", "overview", "getting_started", "start"]):
+        cat = "introduction"
+        info_type = "overview"
+    elif any(kw in filename or kw in title or kw in body[:50] for kw in ["changelog", "license", "terms", "code_of_conduct", "contributing", "security", "support", "history", "glossary", "faq", "deadcode", "package"]):
+        cat = "appendix"
+        info_type = "metadata"
+    elif any(kw in filename or kw in title or kw in body[:50] for kw in ["guide", "tutorial", "how_to", "how-to", "example", "demo", "pattern", "workflow", "action", "step", "recipe"]):
+        cat = "guide"
+        info_type = "guide"
+    elif any(kw in filename or kw in title or kw in body[:50] for kw in ["api", "reference", "config", "command", "prompt", "cli", "error", "message", "issue", "comment", "fallback", "linter"]):
+        cat = "reference"
+        if "prompt" in filename or "prompt" in title:
+            info_type = "prompt"
+        elif "error" in filename or "fallback" in filename:
+            info_type = "error_message"
+        elif "issue" in filename:
+            info_type = "issue_template"
+        elif "comment" in filename:
+            info_type = "comment_template"
+        elif "linter" in filename:
+            info_type = "linter_rule"
+        else:
+            info_type = "reference"
+    else:
+        # fallback parsing body
+        if "guide" in body or "tutorial" in body or "example" in body:
+            cat = "guide"
+            info_type = "guide"
+        else:
+            cat = "reference"
+            info_type = "doc"
+            
+    # Refine specific known files
+    if filename == "agents.md":
+        cat = "introduction"
+        info_type = "overview"
+    if filename == "devguide.md":
+        cat = "guide"
+        info_type = "developer_guide"
+    if filename == "skill.md":
+        cat = "reference"
+        info_type = "skill_definition"
+        
+    # 2. Build detailed content string
+    # Extract keywords from title and filename
+    raw_name = title if title else filename.replace('.md', '')
+    if "adr-" in raw_name or re.match(r'^\d+-', raw_name):
+        # keep adr name
+        pass
+    
+    details = sanitize_filename(raw_name)
+    
+    # Ensure at least 3 keywords if possible
+    words = details.split('_')
+    if len(words) < 3:
+        # try to extract from body
+        extra = sanitize_filename(body[:30])
+        extra_words = [w for w in extra.split('_') if len(w) > 3 and w not in words]
+        words.extend(extra_words)
+        details = "_".join(words[:5])
+        
+    # Final name
+    # Project: gh_aw
+    # Format: gh_aw_[category]_[details]_[info_type].md
+    new_name = f"gh_aw_{cat}_{details}_{info_type}.md"
+    new_name = re.sub(r'_+', '_', new_name)
+    
+    return cat, new_name
 
-print(f"Running command: {' '.join(cmd)}")
-result = subprocess.run(cmd, capture_output=True, text=True)
-print(result.stdout)
-print(result.stderr)
+def main():
+    cache_dir = r"C:\Synology Drive\2way-sync\work\rag-maker\.tmp\cache"
+    meta_path = "metadata.json"
+    
+    with open(meta_path, "r", encoding="utf-8") as f:
+        metadata = json.load(f)
+        
+    moves = []
+    for item in metadata:
+        old_path = item['path']
+        if not os.path.exists(old_path):
+            continue
+            
+        cat, new_name = categorize_and_rename(item)
+        new_dir = os.path.join(cache_dir, cat)
+        new_path = os.path.join(new_dir, new_name)
+        
+        moves.append((old_path, new_path, new_dir))
+        
+    # Execute moves
+    count = 0
+    for old_path, new_path, new_dir in moves:
+        if not os.path.exists(new_dir):
+            os.makedirs(new_dir, exist_ok=True)
+            
+        # Handle conflicts
+        if os.path.exists(new_path) and old_path != new_path:
+            base, ext = os.path.splitext(new_path)
+            new_path = f"{base}_{count}{ext}"
+            
+        try:
+            shutil.move(old_path, new_path)
+            count += 1
+        except Exception as e:
+            print(f"Failed to move {old_path} to {new_path}: {e}")
+            
+    print(f"Successfully processed and moved {count} files.")
+    
+    # Clean up empty directories
+    for root, dirs, files in os.walk(cache_dir, topdown=False):
+        for d in dirs:
+            dir_path = os.path.join(root, d)
+            # Do not delete the 4 main category folders even if empty
+            if d in ['introduction', 'reference', 'guide', 'appendix'] and root == cache_dir:
+                continue
+            try:
+                if not os.listdir(dir_path):
+                    os.rmdir(dir_path)
+            except Exception:
+                pass
+                
+    print("Cleanup complete.")
+
+if __name__ == "__main__":
+    main()

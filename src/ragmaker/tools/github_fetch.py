@@ -36,23 +36,32 @@ except ImportError:
     sys.exit(1)
 
 def github_fetch(repo_url: str, path_in_repo: str, temp_dir: Path, branch: Optional[str] = None):
-    with tempfile.TemporaryDirectory() as temp_root:
+    try:
+        temp_root_obj = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
+    except TypeError:
+        temp_root_obj = tempfile.TemporaryDirectory()
+    
+    temp_root = temp_root_obj.name
+    try:
         clone_dir = Path(temp_root) / "clone"
         work_dir = Path(temp_root) / "processed"
         work_dir.mkdir(parents=True, exist_ok=True)
         repo = Repo.init(clone_dir)
         origin = repo.create_remote("origin", repo_url)
-        origin.fetch()
         repo.git.execute(["git", "config", "core.sparseCheckout", "true"])
         sparse_path = clone_dir / ".git" / "info" / "sparse-checkout"
         sparse_path.parent.mkdir(parents=True, exist_ok=True)
         with open(sparse_path, "w", encoding="utf-8") as f:
-            if not path_in_repo or path_in_repo == ".": f.write("/*\x0a!/.git\x0a")
-            else: f.write(path_in_repo + "/*\x0a" + path_in_repo + "\x0a")
-        if not branch:
-            try: branch = repo.git.execute(["git", "symbolic-ref", "refs/remotes/origin/HEAD"]).split("/")[-1].strip()
-            except Exception: branch = "main"
-        repo.git.execute(["git", "checkout", branch])
+            if not path_in_repo or path_in_repo == "." or path_in_repo == "/": f.write("/*\n!/.git\n")
+            else: f.write(path_in_repo + "/*\n" + path_in_repo + "\n")
+
+        if branch:
+            repo.git.execute(["git", "fetch", "--depth=1", "origin", f"{branch}:{branch}"])
+            repo.git.execute(["git", "checkout", branch])
+        else:
+            repo.git.execute(["git", "fetch", "--depth=1", "origin", "HEAD"])
+            repo.git.execute(["git", "checkout", "FETCH_HEAD"])
+            branch = repo.head.commit.hexsha
         allowed = {".md", ".mdx", ".txt", ".py", ".html", ".htm"}
         scan_path = clone_dir / path_in_repo.strip("/")
         files = []
@@ -90,6 +99,11 @@ def github_fetch(repo_url: str, path_in_repo: str, temp_dir: Path, branch: Optio
                 results.append({"url": url, "path": dst.relative_to(work_dir).as_posix()})
         safe_export(work_dir, temp_dir)
         return results
+    finally:
+        try:
+            temp_root_obj.cleanup()
+        except Exception:
+            pass
 
 def main():
     parser = GracefulArgumentParser(description="Fetch from GitHub")
