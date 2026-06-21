@@ -1,0 +1,52 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/kagi/features/exclude-ai-images.md
+original_title: exclude-ai-images
+fetched_at: 2026-06-21T02:50:46.327628+00:00
+---
+
+# AI Image Filter for Search Results
+
+As AI-generated images become increasingly prevalent across the web, many users find their image search results cluttered with artificial content. This can be particularly frustrating when searching for authentic, human-created images or specific real-world references.
+
+At Kagi, we understand the importance of delivering high-quality, relevant search results. Our AI Image Filter feature is designed to address this challenge, giving users more control over the content they see and prioritizing authentic imagery in search results.
+
+## Downranking AI-generated images
+
+By default, [Kagi Image Search](https://kagi.com/images) downranks images from websites with a high proportion of AI-generated content. Try the example search [here](https://kagi.com/images?q=baby+cat).
+
+![Kagi vs Google AI-generated images](./media/kagi_vs_google_image_search.png){width=720px data-zoomable}
+
+## Labeling AI-generated images
+
+In addition to downranking, we have implemented an AI image labeling system. This feature adds a small badge or icon to thumbnails that are likely to be AI-generated content. The label helps users quickly identify potential AI images without completely removing them from search results. 
+
+![Kagi AI Image Label](./media/image_search_ai_label.png){width=720px data-zoomable}
+
+## Filtering AI-generated images
+
+You can use the **AI images** filter to completely exclude websites with AI-generated images from your search results.
+
+<video src="./media/exclude_ai_images_filter.mp4" width="720" type="video/mp4" autoplay muted loop playsinline disablepictureinpicture alt="Kagi Image Search - Exclude AI Images Filter" />
+
+The **AI images** filter has three options:
+- **Any**: This is the default behavior. Includes all images but downranks AI-generated results.
+- **None**: Excludes AI-generated results.
+- **Only**: Only includes AI-generated results.
+
+You can also use the `ai:only` and `ai:none` search operators to only include AI-generated images, and exclude all AI-generated images, respectively.
+
+##  You are in control: Block websites in image search results
+
+Note that, since there is currently no reliable way to automatically identify AI-generated images with good enough precision, this feature relies on the website's reputation rather than analyzing individual images. As a result, some AI-generated content may still appear in the results.
+
+If you detect a website with AI or low quality imagery that slipped through our filter, you can lower or completely block it off in your search results, using our [search personalization feature](./website-info-personalized-results.md) or report it as [AI generated](./slopstop.md).
+
+Click on shield icon in your image search results, the same as you already can do in web search results.
+
+![Kagi Image search personalization](./media/kagi-slopstop-cat.png)
+
+## Our approach to AI-generated images
+
+The decision to implement this feature and have it turned on by default is based on our [AI integration philosophy](../why-kagi/ai-philosophy.md) and direct [user feedback](https://kagifeedback.org/d/4972-ability-to-filter-out-obvious-ai-image-websites-from-image-search). 
+
+This is fairly new territory so do not expect the detection to be 100% reliable. We will be working more to improve this in the future. As always, help us improve Kagi by [sending feedback](https://kagifeedback.org).

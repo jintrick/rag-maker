@@ -1,0 +1,29 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/kagi/settings/advanced.md
+original_title: advanced
+fetched_at: 2026-06-21T02:50:47.113725+00:00
+---
+
+# Advanced Settings
+
+This settings page gives you access to more powerful features of Kagi.
+
+![Advanced Settings](media/advanced_settings.png)
+
+## Custom Bangs
+
+Create and manage custom [Bangs](../features/bangs.md) to easily search other websites from Kagi.
+
+[Read more about Custom Bangs](../features/bangs.md#custom-bangs)
+
+## Redirects
+
+Redirects are a powerful feature that allow you to make modifications to search result URLs with textual find & replace.
+
+[Read more about Redirects](../features/redirects.md)
+
+## Kagi API portal
+
+Control panel for the [Search API](../api/overview.md), for developers looking to build something with Kagi Search results.
+
+[Read more about the Search API](../api/overview.md)

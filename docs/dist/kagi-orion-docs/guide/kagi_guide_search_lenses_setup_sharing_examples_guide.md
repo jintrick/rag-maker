@@ -1,0 +1,106 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/kagi/features/lenses.md
+original_title: lenses
+fetched_at: 2026-06-21T02:50:46.346879+00:00
+---
+
+# Lenses
+
+<br>
+
+<video src="./media/lenses.mp4" width="720" type="video/mp4" autoplay muted loop playsinline disablepictureinpicture />
+
+Kagi [Lenses](https://kagi.com/settings/lenses) allow you to customize your searches by specifying which websites (and other parameters) you see in your results. We provide a few Lenses to get you started, such as one to search only online discussions and forums.
+
+
+You can create your own Lenses where you specify parameters such as:
+
+- Region
+- Up to 10 included websites
+- Up to 10 excluded websites
+- Up to 5 included keywords
+- Up to 5 excluded keywords
+- File type
+- Results before a given date
+- Results after a given date
+
+Lenses do not yet support image or video searches.
+
+## Default Lenses
+
+Kagi offers several prebuilt lenses. The following are available by default:
+
+- **Forums**: search forums from around the web.
+- **Programming**: official programming language websites and forums.
+- **News 360**: offers a 360-degree perspective on news impacting the globe.
+- **Fediverse Forums**: search Lemmy and kbin fediverse forums.
+- **Usenet/Archive**: search Usenet Archives and Archive.org non-web collections.
+- **Academic**: searches education (.edu) domains.
+- **PDFs**: search for PDF files.
+- **Kagi Documentation**: searches help.kagi.com, blog.kagi.com, kagifeedback.org, and orionfeedback.org.
+
+The following lenses need to be activated from the [Lenses](https://kagi.com/settings/lenses) settings.
+
+- **Cyber Security**: search cyber security news websites.
+- **Small Web**: results that favor noncommercial domains and topics.
+- **Recipes**: recipes without spam from high-quality (English) recipe sites.
+
+## Lens Example
+
+Let's say you love movie news and reviews. You can make a Lens that searches only the movie-related websites you find most useful.
+
+1. Go to the [Lenses page](https://kagi.com/settings/lenses) and click the **Create New** button.
+
+2. Fill in the "Create Lens" page with the details of how you want the Lens to constrain searches. Perhaps you live in the United States and you like certain movie-focused websites.
+
+![Lens Form](./media/kagi-search-lens-form.png){width=675px data-zoomable}
+
+3. Click the **Save** button at the bottom of the page.
+4. Back on the Lenses page, switch your new Movies Lens to **On**.
+
+![Lens Switch](./media/kagi-search-lens-turn-on.png){data-zoomable}
+
+5. Do a search in Kagi for a movie title.
+
+![Lens Initial Search](./media/kagi-search-lens-initial-search.png){data-zoomable}
+
+6. Once you see the search results, enable your Movies Lens.
+
+![Lens Enable](./media/kagi-search-lens-enable.png){data-zoomable}
+
+7. You will see the search results constrained to specific websites based on the Lens.
+
+![Lens Result](./media/kagi-search-lens-result.png){data-zoomable}
+
+Lenses are a powerful tool for making searches more useful. If you think about the types of things you search for often, you can probably create Lenses to make those searches more efficient and effective.
+
+## Sharing Lenses
+
+You can share a copy of your lens with other Kagi users.
+
+To enable lens sharing, first find the lens you want to share in your [Active Lenses list](https://kagi.com/settings/lenses), and click the pencil icon to edit the lens.
+
+![Lens Edit](./media/kagi-search-lens-edit.png){data-zoomable}
+
+In the Edit Lens form, find the checkbox Share Lens Link.
+Enable it, then press save at the bottom of the page.
+
+![Lens Share](./media/kagi-search-lens-share.png){data-zoomable}
+
+When you return to your lens list, you will see a new sharing icon that you can click to copy a sharing URL to your clipboard.
+
+![Lens Share Link](./media/kagi-search-lens-share-link.png){data-zoomable}
+
+You can send this link to anyone with a Kagi account.
+When they open the link, they will be brought to the Create Lens form with all the options from your lens pre-filled.
+They can make any edits they like before saving it to their account.
+
+### How Sharing URLs Work
+
+When users open your sharing URL, it will pull the latest settings from your lens at that moment.
+This means you can make improvements or fixes to your lens without having to share a new URL.
+
+*After* users have copied your lens, it will not receive updates from the original one.
+
+Disabling the Share Lens option will invalidate the previously shared link.
+Re-enabling the Share Lens option will generate a new link.

@@ -1,0 +1,25 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/orion/features/compact-tabs.md
+original_title: compact-tabs
+fetched_at: 2026-06-21T02:50:47.642492+00:00
+---
+
+---
+next:
+  text: 'Link Previews'
+  link: '/orion/features/link-previews'
+---
+
+# Compact Tabs
+
+Compact Tabs is a feature available in Orion for Mac that condenses your open tabs into a single, compact bar, located next to the address bar, allowing you to see more of your webpage and less of the browser's interface.
+
+Compact Tabs show only the website's favicon and a short snippet of the title. This feature is particularly useful when you have multiple tabs open simultaneously, as it helps declutter your screen and makes tab management easier.
+
+To enable Compact Tabs follow these steps:
+1. In your menu bar, select **Orion** > **Settings**.
+<img src="./media/macos_orion_settings_menu.png" width="300" alt="Orion Settings Menu Option"><br />
+2. Click on the **Tabs** tab.
+3. Select **Compact** in the **Tab Layout** section.
+
+![Orion - Compact Tabs Setting](./media/compact_tabs_setting.gif){data-zoomable}

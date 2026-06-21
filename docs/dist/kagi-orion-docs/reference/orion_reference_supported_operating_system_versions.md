@@ -1,0 +1,34 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/orion/support-and-community/os-versions.md
+original_title: os-versions
+fetched_at: 2026-06-21T02:50:48.175675+00:00
+---
+
+# Supported OS Versions
+
+We believe in the concept of "timeless computing," meaning that software should be built to last and new software should be mindful of older operating systems.
+
+We try to maintain support for older operating systems whenever possible, while balancing the need to support newer OS versions.
+
+<a name="macOS"></a>
+## macOS
+
+We currently support these versions of macOS:
+
+- 10.14 (Mojave)
+- 10.15 (Catalina)
+- 11 (Big Sur)
+- 12 (Monterey)
+- 13 (Ventura)
+- 14 (Sonoma)
+- 15 (Sequoia)
+- 26 (Tahoe)
+
+We plan to add support for 10.13 (High Sierra) in the future.
+
+Intel and Arm64 optimizations will automatically activate on your first run of Orion.
+
+<a name="iOS_iPadOS"></a>
+## iOS and iPadOS
+
+We currently support iOS and iPadOS 15.0 and later.

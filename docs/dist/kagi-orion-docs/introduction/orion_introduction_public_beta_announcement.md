@@ -1,0 +1,14 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/orion/getting-started/public-beta.md
+original_title: public-beta
+fetched_at: 2026-06-21T02:50:47.961452+00:00
+---
+
+# Orion is in Public Beta
+
+While Orion is in public beta, we don't feel our vision is fully realized and ready for prime time. But we also don't want to build something in isolation. We want to build it with you, our users. We appreciate your support and patience as Orion evolves.
+
+During this time, we plan to fix bugs, introduce more core features, and improve the stability of the product. We hope to have v1.0 ready some time in 2024.
+
+You can read more about this in our public beta [announcement post](https://blog.kagi.com/kagi-orion-public-beta).
+

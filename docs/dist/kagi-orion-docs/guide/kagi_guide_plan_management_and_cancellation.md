@@ -1,0 +1,36 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/kagi/plans/plan-management.md
+original_title: plan-management
+fetched_at: 2026-06-21T02:50:46.863726+00:00
+---
+
+# Managing Your Premium Plan
+
+## Signing Up for the Premium Plans
+
+You can [Sign Up](https://kagi.com/signup) for a new Kagi account and select the [Plan Type](plan-types.md) during the sign-up process.
+
+If you already have a Kagi account, you can upgrade your plan type in your [Billing settings](https://kagi.com/settings/billing).
+
+## Managing Billing
+
+To manage your Kagi [Premium plan](plan-types.md) billing, go to your [Billing settings](https://kagi.com/settings/billing).
+
+Once in Billing settings, click the **Manage Billing** button. This button will take you to a webpage for Stripe, our payment processor.
+
+From that Stripe page, you can:
+
+- Change your payment method
+- Change your billing information
+- See your invoices
+- Switch between monthly and annual billing (use the **Update plan** button)
+
+## Canceling a Premium Plan
+
+If you want to cancel your Premium plan, you can do so in your Kagi account's [Billing settings](https://kagi.com/settings/billing):
+
+1. Once in Billing settings, click/tap the **Manage Billing** button. This will take you to a webpage for Stripe, our payment processor.
+2. Click/tap the **Cancel plan** button.
+3. On the next webpage, click/tap another **Cancel plan** button to confirm the cancellation.
+
+After canceling, your plan remains active until the end of your current billing cycle. If you'd prefer a prorated refund instead, just email [support@kagi.com](mailto:support@kagi.com) to request it, no questions asked.

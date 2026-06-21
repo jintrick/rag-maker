@@ -1,0 +1,32 @@
+---
+source_url: https://github.com/kagisearch/kagi-docs/blob/3fb47e284426fbd356307197717b5f167d3e868c/docs/orion/support-and-community/troubleshooting/troubleshooting-syncing-data-issues.md
+original_title: troubleshooting-syncing-data-issues
+fetched_at: 2026-06-21T02:50:48.235532+00:00
+---
+
+# Troubleshooting Syncing Data Issues
+
+If you have problems syncing between devices try the following in order:
+
+1. Ensure iCloud Drive is On
+    - Make sure that iCloud Drive sync is enabled on all of your devices. See [this Apple Support article](https://support.apple.com/en-us/HT204025) for instructions for your device.
+1. Toggle Orion in iCloud Settings
+    - iOS / iPadOS
+        - Open `Settings/Apple ID/iCloud/Apps Using iCloud/Show All` and toggle off and on the button beside Orion
+    - MacOS
+        - Open `Settings/Apple ID/iCloud/iCloud Drive/Apps Syncing to iCloud Drive - Options` and uncheck and check the box beside Orion
+1. Toggle Sync in Settings
+    - MacOS
+        1. Use the **Orion** menu to open Settings.
+        <img src="../../features/media/macos_orion_settings_menu.png" width="300" alt="Open Orion Settings"><br />
+        1. Click the **Sync** tab and find the box for **Enable cross-device sync of your tabs, bookmarks, and reading list**. Turn it off and then back on.
+		2. If sync is not working as expected, you can try the `Force Sync` button.
+        <img src="../../features/media/macos_orion_sync_tab.png" width="500" alt="Orion Sync Tab"><br />
+    - iOS / iPadOS
+        1. Tap the three-dot menu (•••) in the upper-right corner of the screen.
+        <img src="../../getting-started/media/ios_settings.png" width="200" alt="iOS Settings"><br />
+        1. Tap **Settings**.
+        <img src="./../media/ios_sync_settings.jpeg" width="500" alt="iOS Orion Sync Settings"><br />
+		<img src="./../media/ios_sync_settings2.jpg" width="500" alt="iOS Orion Sync Settings"><br />
+        1. In the **Sync** section, turn Sync off and then back on.
+		2. If sync is not working as expected, you can try the `Force Sync` button.
